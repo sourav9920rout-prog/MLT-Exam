@@ -28,14 +28,14 @@ export default function AdminTakeExam() {
   }, []);
 
   const handleDeleteExam = async (examId: string) => {
-    if (!window.confirm("Are you sure you want to completely delete this exam? Students will no longer be able to see or take it.")) return;
+    try {
+      if (!window.confirm("Are you sure you want to completely delete this exam? Students will no longer be able to see or take it.")) return;
+    } catch(e) {}
     try {
       await deleteDoc(doc(db, 'exams', examId));
-      alert("Exam deleted successfully.");
       fetchExams();
     } catch (err) {
       console.error(err);
-      alert("Error deleting exam.");
     }
   };
 

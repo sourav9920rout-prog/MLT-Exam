@@ -813,6 +813,12 @@ export default function QuizRunner({
              {/* Question Area */}
              <div className="flex-1 overflow-y-auto px-6 py-6 pb-20">
                  
+                 {currentQuestion.imageUrl && (
+                     <div className="mb-5 flex justify-center">
+                         <img src={currentQuestion.imageUrl} alt="Question Reference" className="max-w-full h-auto max-h-64 object-contain rounded-xl border border-slate-200" referrerPolicy="no-referrer" />
+                     </div>
+                 )}
+
                  {examLanguage === 'english' && (
                      <div className="mb-6">
                          <p className="text-[15px] font-medium text-slate-900 leading-snug mb-5 whitespace-pre-wrap">
@@ -824,7 +830,12 @@ export default function QuizRunner({
                               return (
                                 <label key={oIdx} className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition w-fit pr-4 py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0" />
-                                   <span className="text-[15px] text-slate-800 ">{opt}</span>
+                                   <div className="flex flex-col gap-2">
+                                     {opt && <span className="text-[15px] text-slate-800 ">{opt}</span>}
+                                     {currentQuestion.optionImageUrls?.[oIdx] && (
+                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
+                                     )}
+                                   </div>
                                 </label>
                               )
                            })}
@@ -843,7 +854,12 @@ export default function QuizRunner({
                               return (
                                 <label key={oIdx} className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition w-fit pr-4 py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0" />
-                                   <span className="text-[15px] text-slate-800">{opt}</span>
+                                   <div className="flex flex-col gap-2">
+                                     {opt && <span className="text-[15px] text-slate-800 ">{opt}</span>}
+                                     {currentQuestion.optionImageUrls?.[oIdx] && (
+                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
+                                     )}
+                                   </div>
                                 </label>
                               )
                            })}

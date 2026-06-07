@@ -688,6 +688,11 @@ export default function App() {
                           <div key={q.id} className="py-4 space-y-3">
                             <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono text-slate-600">Question #{idx + 1}</span>
                             <h5 className="font-medium text-slate-900 leading-relaxed text-sm md:text-base">{q.questionText}</h5>
+                            {q.imageUrl && (
+                               <div className="flex justify-center mt-2 mb-3">
+                                  <img src={q.imageUrl} alt="Reference Detail" className="max-w-full h-auto max-h-48 object-contain rounded-lg border border-slate-200" referrerPolicy="no-referrer" />
+                               </div>
+                            )}
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                               {q.options.map((optText: string, oIdx: number) => {
@@ -708,7 +713,12 @@ export default function App() {
                                     <span className="font-mono uppercase font-bold text-slate-500">
                                       {['A','B','C','D'][oIdx]}:
                                     </span>
-                                    <span>{optText}</span>
+                                    <div className="flex flex-col gap-2">
+                                      {optText && <span>{optText}</span>}
+                                      {q.optionImageUrls?.[oIdx] && (
+                                        <img src={q.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 object-contain rounded border border-slate-200" referrerPolicy="no-referrer" />
+                                      )}
+                                    </div>
                                   </div>
                                 );
                               })}

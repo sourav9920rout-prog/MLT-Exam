@@ -516,7 +516,7 @@ app.post('/api/admin/test-smtp', async (req, res) => {
  * Receives base64 encoded document (PDF, DOCX, TXT) and parses.
  */
 app.post('/api/admin/extract-questions', async (req, res) => {
-  const { documentBase64, mimeType } = req.body;
+  const { documentBase64, mimeType, languageMode } = req.body;
   if (!documentBase64 || !mimeType) {
     return res.status(400).json({ error: 'Document data required.' });
   }
@@ -524,24 +524,35 @@ app.post('/api/admin/extract-questions', async (req, res) => {
   try {
     const gClient = getGeminiClient();
     
+    // Build prompt based on languageMode
+    const hindiInstructions = languageMode === 'english'
+      ? `"hindiQuestion": "",
+      "hindiOptions": ["", "", "", ""],
+      "hindiExplanation": "",`
+      : `"hindiQuestion": "string (leave empty string if source text is purely English)",
+      "hindiOptions": ["string", "string", "string", "string"],
+      "hindiExplanation": "string",`;
+      
+    const extraInstruction = languageMode === 'english' 
+      ? `CRITICAL: You are in English-Only mode. Do NOT translate anything to Hindi. Provide empty strings for all Hindi fields. This saves processing time.`
+      : `CRITICAL: You are in Bilingual mode. You MUST provide Hindi translations for the englishQuestion, englishOptions, and englishExplanation fields in the corresponding hindiQuestion, hindiOptions, and hindiExplanation fields.`;
+
     const extractionPrompt = `You are a strict data extraction assistant. Extract ALL multiple-choice questions from the provided document into a JSON array.
 Each question MUST follow this EXACT Schema:
 {
   "questions": [
     {
       "englishQuestion": "string",
-      "hindiQuestion": "string (leave empty string if source text is purely English)",
       "englishOptions": ["string", "string", "string", "string"],
-      "hindiOptions": ["string", "string", "string", "string"],
+      ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "hindiExplanation": "string",
       "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
 }
-If the document only has English, do NOT provide Hindi translations. Leave Hindi fields as empty strings. 
+${extraInstruction}
 Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`json.`;
 
     const response = await gClient.models.generateContent({
@@ -568,11 +579,25 @@ Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`j
 });
 
 app.post('/api/admin/extract-questions-raw', async (req, res) => {
-  const { rawText } = req.body;
+  const { rawText, languageMode } = req.body;
   if (!rawText) return res.status(400).json({ error: 'No rawText provided.' });
 
   try {
     const gClient = getGeminiClient();
+
+    // Build prompt based on languageMode
+    const hindiInstructions = languageMode === 'english'
+      ? `"hindiQuestion": "",
+      "hindiOptions": ["", "", "", ""],
+      "hindiExplanation": "",`
+      : `"hindiQuestion": "string (leave empty string if source text is purely English)",
+      "hindiOptions": ["string", "string", "string", "string"],
+      "hindiExplanation": "string",`;
+      
+    const extraInstruction = languageMode === 'english' 
+      ? `CRITICAL: You are in English-Only mode. Do NOT translate anything to Hindi. Provide empty strings for all Hindi fields. This saves processing time.`
+      : `CRITICAL: You are in Bilingual mode. You MUST provide Hindi translations for the englishQuestion, englishOptions, and englishExplanation fields in the corresponding hindiQuestion, hindiOptions, and hindiExplanation fields.`;
+
     const extractionPrompt = `You are a Medical Data extraction Assistant. 
 Extract all educational quiz/exam questions from the following text and format as JSON.
 
@@ -584,18 +609,16 @@ STRICT JSON SCHEMA:
   "questions": [
     {
       "englishQuestion": "string",
-      "hindiQuestion": "string (leave empty string if source text is purely English)",
       "englishOptions": ["string", "string", "string", "string"],
-      "hindiOptions": ["string", "string", "string", "string"],
+      ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "hindiExplanation": "string",
       "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
 }
-If the text only has English, do NOT provide Hindi translations. Leave Hindi fields as empty strings. 
+${extraInstruction}
 Return ONLY the raw JSON object.`;
 
     const response = await gClient.models.generateContent({

@@ -74,9 +74,11 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   };
 
   const handlePermanentDelete = async (student: StudentProfile) => {
-    if (!window.confirm(`Are you absolutely sure you want to permanently delete student "${student.fullName}"? This action cannot be undone.`)) {
-      return;
-    }
+    try {
+      if (!window.confirm(`Are you absolutely sure you want to permanently delete student "${student.fullName}"? This action cannot be undone.`)) {
+        return;
+      }
+    } catch(e) {}
     try {
       await deleteDoc(doc(db, 'students', student.uid));
       onNotify(`Student "${student.fullName}" permanently removed.`);
