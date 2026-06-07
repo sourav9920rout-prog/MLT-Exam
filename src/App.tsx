@@ -280,7 +280,14 @@ export default function App() {
         setCurrentUser(credentialUser);
       }
     } catch (error: any) {
-      console.error(error);
+      console.error("Sign-in error:", error);
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        showNotification('Sign in was cancelled. Please try again when you are ready.', true);
+        setAuthLoading(false);
+        return;
+      }
+      
       const msg = error.code === 'auth/invalid-credential' 
         ? 'Invalid email or password.' 
         : error.message || 'Authentication rejected. If you are an Admin, please check credentials.';

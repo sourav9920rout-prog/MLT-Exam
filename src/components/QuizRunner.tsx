@@ -897,8 +897,10 @@ export default function QuizRunner({
                       <span className="leading-tight pt-1">Answered</span>
                   </div>
                   <div className="flex items-start gap-1">
-                     <div className="w-6 h-6 bg-white border border-slate-400 text-slate-800 rounded-sm flex justify-center items-center font-bold text-[10px] shrink-0">{paletteCountNotAns}</div>
-                     <span className="leading-tight pt-0.5">Not Answered</span>
+                     <div className="w-7 h-7 bg-red-600 text-white flex items-center justify-center font-bold relative shrink-0" style={{clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%)'}}>
+                         <span className="absolute text-[10px] top-0.5">{paletteCountNotAns}</span>
+                     </div>
+                     <span className="leading-tight pt-1">Not Answered</span>
                   </div>
                   <div className="flex items-start gap-1">
                      <div className="w-6 h-6 bg-slate-200 border border-slate-400 text-slate-800 rounded-sm flex justify-center items-center font-bold text-[10px] shrink-0">{paletteCountNotVisited}</div>
@@ -946,8 +948,8 @@ export default function QuizRunner({
                            innerClass += "bg-slate-200 border border-slate-400 rounded-md box-border hover:bg-slate-300 drop-shadow";
                        } else {
                            // 'not_answered' (visited)
-                           containerClass += "text-black";
-                           innerClass += "bg-white border border-slate-400 rounded-md box-border hover:bg-slate-50 drop-shadow";
+                           containerClass += "text-white";
+                           innerClass += "bg-red-600 drop-shadow shadow-red-900";
                        }
                        
                        if (i === currentIdx) {
@@ -958,12 +960,14 @@ export default function QuizRunner({
                        let shapeStyles: any = {};
                        if (st === 'saved') {
                            shapeStyles.clipPath = 'polygon(50% 0%, 100% 25%, 100% 100%, 0 100%, 0 25%)';
+                       } else if (st === 'not_answered') {
+                           shapeStyles.clipPath = 'polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%)';
                        }
 
                        return (
                            <div key={i} onClick={() => setCurrentIdx(i)} className={containerClass}>
                               <div className={innerClass} style={shapeStyles}>
-                                  <span className={st === 'saved' ? "mt-1.5" : ""}>{i + 1}</span>
+                                  <span className={st === 'saved' ? "mt-1.5" : st === 'not_answered' ? "mb-1" : ""}>{i + 1}</span>
                               </div>
                               {st === 'review_answered' && (
                                   <div className="absolute right-0 bottom-0 bg-green-500 rounded-full w-3.5 h-3.5 border-2 border-[#e4ebf5] z-10 flex items-center justify-center">

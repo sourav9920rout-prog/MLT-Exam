@@ -34,8 +34,11 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
   // Generation method
   const [genMethod, setGenMethod] = useState<'manual' | 'auto'>('auto');
   
-  // Auto Gen Form
-  const [targetSubject, setTargetSubject] = useState('');
+  // Auto Gen Form (Composition Rules)
+  const [compositionRules, setCompositionRules] = useState<{subject: string, difficulty: string, count: number}[]>([]);
+  const [draftSubject, setDraftSubject] = useState('Pathology');
+  const [draftDifficulty, setDraftDifficulty] = useState('any');
+  const [draftCount, setDraftCount] = useState(10);
 
   // Manual Gen Form
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
@@ -89,16 +92,35 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
       finalQIds = selectedQuestionIds;
     } else {
       let pool = [...bankQuestions];
-      if (targetSubject) {
-        pool = pool.filter(q => q.subject === targetSubject);
-      }
-      if (pool.length < totalQuestions) {
-        onNotify(`Not enough questions in bank for ${targetSubject || 'Any Subject'}. Found ${pool.length}, need ${totalQuestions}.`, true);
+      
+      let rulesQuestionsCount = compositionRules.reduce((acc, curr) => acc + curr.count, 0);
+      if (rulesQuestionsCount !== totalQuestions) {
+        onNotify(`Composition Error: The sum of your rules (${rulesQuestionsCount}) must exactly equal the total questions required (${totalQuestions}).`, true);
         return;
       }
-      // Shuffle & Slice
-      pool = pool.sort(() => 0.5 - Math.random());
-      finalQIds = pool.slice(0, totalQuestions).map(q => q.id);
+
+      for (let i = 0; i < compositionRules.length; i++) {
+        const rule = compositionRules[i];
+        let rulePool = pool.filter(q => q.subject === rule.subject && (rule.difficulty === 'any' || q.difficulty === rule.difficulty));
+        
+        if (rulePool.length < rule.count) {
+          onNotify(`Not enough questions in bank for ${rule.subject} (${rule.difficulty}). Found ${rulePool.length}, need ${rule.count}.`, true);
+          return;
+        }
+        
+        // Shuffle & Slice
+        rulePool = rulePool.sort(() => 0.5 - Math.random());
+        const selected = rulePool.slice(0, rule.count);
+        finalQIds.push(...selected.map(q => q.id));
+        
+        // Remove from master pool
+        const selectedIds = new Set(selected.map(q => q.id));
+        pool = pool.filter(q => !selectedIds.has(q.id));
+      }
+
+      // Shuffle final compilation so sections are mixed (or leave them ordered by subjects?)
+      // We will shuffle the finalQIds globally
+      finalQIds = finalQIds.sort(() => 0.5 - Math.random());
     }
 
     // Build configured sections
@@ -181,22 +203,22 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
         {/* Section Engine Structure */}
         <section className="space-y-4">
           <h3 className="font-bold text-sm text-slate-700 bg-slate-50 p-2 rounded">2. Exam Structure Engine</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 px-2">
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Total Questions</label>
-               <input type="number" min="1" max="500" value={totalQuestions} readOnly className="w-full border rounded px-3 py-2 text-sm bg-slate-50 text-slate-500 focus:outline-none cursor-not-allowed" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Questions</label>
+               <input type="number" min="1" max="500" value={totalQuestions} readOnly className="w-full border rounded px-2 py-1.5 text-xs bg-slate-50 text-slate-500 focus:outline-none cursor-not-allowed min-w-0" />
             </div>
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Total Sections</label>
-               <input type="number" min="1" max="20" value={totalSections} onChange={e=>setTotalSections(Number(e.target.value))} className="w-full border rounded px-3 py-2 text-sm focus:border-amber-400 focus:outline-none" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Sections</label>
+               <input type="number" min="1" max="20" value={totalSections} onChange={e=>setTotalSections(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Questions Per Sec</label>
-               <input type="number" min="1" max="200" value={questionsPerSection} onChange={e=>setQuestionsPerSection(Number(e.target.value))} className="w-full border rounded px-3 py-2 text-sm focus:border-amber-400 focus:outline-none" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Questions Per Sec</label>
+               <input type="number" min="1" max="200" value={questionsPerSection} onChange={e=>setQuestionsPerSection(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Time Per Sec (Min)</label>
-               <input type="number" min="1" max="300" value={timePerSection} onChange={e=>setTimePerSection(Number(e.target.value))} className="w-full border rounded px-3 py-2 text-sm focus:border-amber-400 focus:outline-none" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Time Per Sec (Min)</label>
+               <input type="number" min="1" max="300" value={timePerSection} onChange={e=>setTimePerSection(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
           </div>
           <div className="bg-emerald-50 text-emerald-800 p-3 rounded text-xs border border-emerald-200 flex items-start gap-2 mx-2">
@@ -208,25 +230,25 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
         {/* Schedule & Marking */}
         <section className="space-y-4">
           <h3 className="font-bold text-sm text-slate-700 bg-slate-50 p-2 rounded">3. Schedule & Rules</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 px-2">
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Start Date</label>
-               <input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} required className="w-full border rounded px-3 py-2 text-sm font-mono focus:border-amber-400 focus:outline-none" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Start Date</label>
+               <input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} required className="w-full border rounded px-2 py-1.5 text-xs font-mono focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">End Date</label>
-               <input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} required className="w-full border rounded px-3 py-2 text-sm font-mono focus:border-amber-400 focus:outline-none" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">End Date</label>
+               <input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} required className="w-full border rounded px-2 py-1.5 text-xs font-mono focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Time Band Start</label>
-               <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} required className="w-full border rounded px-3 py-2 text-sm font-mono focus:border-amber-400 focus:outline-none" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Time Band Start</label>
+               <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)} required className="w-full border rounded px-2 py-1.5 text-xs font-mono focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Time Band End</label>
-               <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} required className="w-full border rounded px-3 py-2 text-sm font-mono focus:border-amber-400 focus:outline-none" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Time Band End</label>
+               <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} required className="w-full border rounded px-2 py-1.5 text-xs font-mono focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 px-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
             <div>
                <label className="block text-xs font-bold text-emerald-700 mb-1">Positive Marks (+)</label>
                <input type="number" step="0.5" value={positiveMarks} onChange={e=>setPositiveMarks(Number(e.target.value))} className="w-full border rounded px-3 py-2 text-sm bg-emerald-50 focus:outline-none" />
@@ -251,16 +273,69 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
           <div className="px-2">
             {genMethod === 'auto' ? (
               <div className="space-y-4">
-                 <p className="text-xs text-slate-500">Automatically pull a random subset of {totalQuestions} questions from the global bank to construct the standard unified paper for all students.</p>
-                 <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Subject Filter</label>
-                      <select value={targetSubject} onChange={e=>setTargetSubject(e.target.value)} className="w-full border rounded px-3 py-2 text-sm">
-                        <option value="">Any Subject (Mixed)</option>
-                        {uniqueSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                 <p className="text-xs text-slate-500">Add generation rules until you reach the total of {totalQuestions} required questions.</p>
+                 <div className="bg-slate-50 p-3 rounded-md border border-slate-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3 items-end">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Subject</label>
+                        <select value={draftSubject} onChange={e=>setDraftSubject(e.target.value)} className="w-full border rounded px-2 py-1.5 text-xs min-w-0">
+                          <option value="Pathology">Pathology</option>
+                          <option value="Biochemistry">Biochemistry</option>
+                          <option value="Microbiology">Microbiology</option>
+                          <option value="Blood Bank">Blood Bank</option>
+                          <option value="Anatomy">Anatomy</option>
+                          <option value="Math">Math</option>
+                          <option value="English">English</option>
+                          <option value="General Knowledge">General Knowledge</option>
+                          <option value="Reasoning">Reasoning</option>
+                          <option value="Miscellaneous">Miscellaneous</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Difficulty</label>
+                        <select value={draftDifficulty} onChange={e=>setDraftDifficulty(e.target.value)} className="w-full border rounded px-2 py-1.5 text-xs min-w-0">
+                          <option value="any">Any</option>
+                          <option value="easy">Easy</option>
+                          <option value="medium">Medium</option>
+                          <option value="hard">Hard</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Ques. Count</label>
+                        <input type="number" min="1" max={totalQuestions} value={draftCount} onChange={e=>setDraftCount(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-amber-400 min-w-0" />
+                      </div>
+                      <div>
+                        <button type="button" disabled={compositionRules.reduce((a,c)=>a+c.count, 0) >= totalQuestions} onClick={() => {
+                          if (!draftSubject) return onNotify('Please select a subject', true);
+                          setCompositionRules(p => [...p, {subject: draftSubject, difficulty: draftDifficulty, count: draftCount}]);
+                        }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-1.5 rounded transition disabled:opacity-50 disabled:bg-slate-400">
+                          Add Rule
+                        </button>
+                      </div>
                     </div>
                  </div>
+
+                 {compositionRules.length > 0 && (
+                   <div className="mt-4 space-y-2">
+                     <p className="text-[11px] font-bold text-slate-700">
+                       Configured Rules ({compositionRules.reduce((a,c)=>a+c.count, 0)} / {totalQuestions})
+                     </p>
+                     <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                       {compositionRules.map((r, i) => (
+                         <div key={i} className="flex justify-between items-center text-[11px] bg-white border border-slate-200 px-3 py-1.5 rounded shadow-sm">
+                           <span><b>{r.count} Questions</b> • {r.subject} ({r.difficulty})</span>
+                           <button 
+                             type="button" 
+                             onClick={() => setCompositionRules(p => p.filter((_, idx)=>idx!==i))} 
+                             className="text-red-500 hover:text-red-700 ml-2 font-bold"
+                           >
+                             Remove
+                           </button>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                 )}
               </div>
             ) : (
               <div className="space-y-2 text-sm">

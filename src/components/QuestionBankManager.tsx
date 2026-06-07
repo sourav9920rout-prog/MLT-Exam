@@ -53,50 +53,57 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     setUploading(true);
     try {
       // Read file to base64
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Data = (reader.result as string).split(',')[1];
-        if (!base64Data) throw new Error("Could not parse file.");
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = (reader.result as string).split(',')[1];
+          if (result) resolve(result);
+          else reject(new Error("Could not parse file."));
+        };
+        reader.onerror = () => reject(new Error("File read error"));
+        reader.readAsDataURL(file);
+      });
 
-        onNotify("Extracting questions via Gemini AI. This may take a minute...");
+      onNotify("Extracting questions via Gemini AI. This may take a minute...");
 
-        const response = await fetch('/api/admin/extract-questions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ documentBase64: base64Data, mimeType: file.type || 'text/plain' })
+      const response = await fetch('/api/admin/extract-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentBase64: base64Data, mimeType: file.type || 'text/plain' })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      if (!data.success || !data.questions) {
+        throw new Error(data.error || "Failed to extract");
+      }
+
+      const extracted = data.questions;
+      onNotify(`Extracted ${extracted.length} questions. Saving to database...`);
+      
+      // Save all to firestore
+      for (const q of extracted) {
+        const qId = 'qb_' + Date.now() + Math.random().toString(36).substring(2, 6);
+        await setDoc(doc(db, 'questionBank', qId), {
+          id: qId,
+          englishQuestion: q.englishQuestion || "Missing English Context",
+          hindiQuestion: q.hindiQuestion || "हिंदी अनुवाद उपलब्ध नहीं है",
+          englishOptions: q.englishOptions || ["", "", "", ""],
+          hindiOptions: q.hindiOptions || ["", "", "", ""],
+          correctOptionIndex: Number(q.correctOptionIndex) || 0,
+          englishExplanation: q.englishExplanation || "No explanation provided.",
+          hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
+          subject: q.subject || "Miscellaneous",
+          difficulty: q.difficulty || "medium",
+          createdAt: Date.now()
         });
-        
-        const data = await response.json();
-        if (!data.success || !data.questions) {
-          throw new Error(data.error || "Failed to extract");
-        }
-
-        const extracted = data.questions;
-        onNotify(`Extracted ${extracted.length} questions. Saving to database...`);
-        
-        // Save all to firestore
-        for (const q of extracted) {
-          const qId = 'qb_' + Date.now() + Math.random().toString(36).substring(2, 6);
-          await setDoc(doc(db, 'questionBank', qId), {
-            id: qId,
-            englishQuestion: q.englishQuestion || "Missing English Context",
-            hindiQuestion: q.hindiQuestion || "हिंदी अनुवाद उपलब्ध नहीं है",
-            englishOptions: q.englishOptions || ["", "", "", ""],
-            hindiOptions: q.hindiOptions || ["", "", "", ""],
-            correctOptionIndex: Number(q.correctOptionIndex) || 0,
-            englishExplanation: q.englishExplanation || "No explanation provided.",
-            hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
-            subject: q.subject || "General",
-            chapter: q.chapter || "Mixed",
-            difficulty: q.difficulty || "medium",
-            createdAt: Date.now()
-          });
-        }
-        
-        onNotify(`Successfully imported ${extracted.length} questions.`);
-        fetchQuestions();
-      };
-      reader.readAsDataURL(file);
+      }
+      
+      onNotify(`Successfully imported ${extracted.length} questions.`);
+      fetchQuestions();
     } catch (err) {
       console.error(err);
       onNotify('Failed to process document upload.', true);
@@ -120,6 +127,10 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
         body: JSON.stringify({ rawText })
       });
       
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+      }
+      
       const data = await response.json();
       if (!data.success || !data.questions) {
         throw new Error(data.error || "Failed to extract");
@@ -139,8 +150,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           correctOptionIndex: Number(q.correctOptionIndex) || 0,
           englishExplanation: q.englishExplanation || "No explanation provided.",
           hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
-          subject: q.subject || "General",
-          chapter: q.chapter || "Mixed",
+          subject: q.subject || "Miscellaneous",
           difficulty: q.difficulty || "medium",
           createdAt: Date.now()
         });
@@ -175,8 +185,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
         correctOptionIndex: Number(formData.correctOptionIndex) || 0,
         englishExplanation: formData.englishExplanation || "",
         hindiExplanation: formData.hindiExplanation || "",
-        subject: formData.subject || "General",
-        chapter: formData.chapter || "Mixed",
+        subject: formData.subject || "Miscellaneous",
         difficulty: formData.difficulty || "medium",
         createdAt: formData.createdAt || Date.now()
       };
@@ -209,8 +218,6 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     const matchDiff = filterDifficulty ? q.difficulty === filterDifficulty : true;
     return matchTerm && matchSub && matchDiff;
   });
-
-  const uniqueSubjects = Array.from(new Set(questions.map(q => q.subject || 'General'))).sort();
 
   return (
     <div className="space-y-6">
@@ -270,7 +277,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
           <input 
             type="text"
-            placeholder="Search questions or chapters..."
+            placeholder="Search questions or subjects..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded focus:outline-blue-500"
@@ -283,7 +290,16 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded bg-white text-slate-700"
           >
             <option value="">All Subjects</option>
-            {uniqueSubjects.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+            <option value="Pathology">Pathology</option>
+            <option value="Biochemistry">Biochemistry</option>
+            <option value="Microbiology">Microbiology</option>
+            <option value="Blood Bank">Blood Bank</option>
+            <option value="Anatomy">Anatomy</option>
+            <option value="Math">Math</option>
+            <option value="English">English</option>
+            <option value="General Knowledge">General Knowledge</option>
+            <option value="Reasoning">Reasoning</option>
+            <option value="Miscellaneous">Miscellaneous</option>
           </select>
         </div>
         <div>
@@ -327,6 +343,9 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
                     <td className="px-6 py-4">
                       <div className="font-semibold text-slate-800 line-clamp-1">{q.englishQuestion}</div>
                       <div className="text-xs text-slate-500 mt-1 line-clamp-1">{q.hindiQuestion}</div>
+                      <div className="mt-2 text-[11px] font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded w-fit border border-green-200">
+                        {`Ans: Option ${Number(q.correctOptionIndex) + 1} - ${q.englishOptions?.[q.correctOptionIndex] || "N/A"}`}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded font-bold text-[10px]">
@@ -416,32 +435,41 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
               {/* Options Grid */}
               <div className="space-y-3">
                 <label className="block text-xs font-bold text-slate-700">Options (En & Hi)</label>
-                {[0, 1, 2, 3].map(idx => (
+                {[0, 1, 2, 3].map(idx => {
+                  const isCorrect = Number(formData.correctOptionIndex) === idx;
+                  return (
                   <div key={idx} className="flex gap-4">
                     <input type="text" placeholder={`English Opt ${idx+1}`} value={formData.englishOptions?.[idx] || ''} onChange={e => {
                       const nu = [...(formData.englishOptions || [])]; nu[idx] = e.target.value;
                       setFormData({...formData, englishOptions: nu});
-                    }} className="flex-1 text-sm border rounded px-3 py-2" required />
+                    }} className={`flex-1 text-sm border rounded px-3 py-2 ${isCorrect ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : ''}`} required />
                     <input type="text" placeholder={`Hindi Opt ${idx+1}`} value={formData.hindiOptions?.[idx] || ''} onChange={e => {
                       const nu = [...(formData.hindiOptions || [])]; nu[idx] = e.target.value;
                       setFormData({...formData, hindiOptions: nu});
-                    }} className="flex-1 text-sm border rounded px-3 py-2" />
+                    }} className={`flex-1 text-sm border rounded px-3 py-2 ${isCorrect ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : ''}`} />
                   </div>
-                ))}
+                )})}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Correct Opt Index (0-3)</label>
                   <input type="number" min="0" max="3" required value={formData.correctOptionIndex ?? 0} onChange={e => setFormData({...formData, correctOptionIndex: Number(e.target.value)})} className="w-full border rounded px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Subject</label>
-                  <input type="text" value={formData.subject || ''} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full border rounded px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Chapter</label>
-                  <input type="text" value={formData.chapter || ''} onChange={e => setFormData({...formData, chapter: e.target.value})} className="w-full border rounded px-3 py-2 text-sm" />
+                  <select value={formData.subject || 'Miscellaneous'} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full border rounded px-3 py-2 text-sm">
+                    <option value="Pathology">Pathology</option>
+                    <option value="Biochemistry">Biochemistry</option>
+                    <option value="Microbiology">Microbiology</option>
+                    <option value="Blood Bank">Blood Bank</option>
+                    <option value="Anatomy">Anatomy</option>
+                    <option value="Math">Math</option>
+                    <option value="English">English</option>
+                    <option value="General Knowledge">General Knowledge</option>
+                    <option value="Reasoning">Reasoning</option>
+                    <option value="Miscellaneous">Miscellaneous</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Difficulty</label>

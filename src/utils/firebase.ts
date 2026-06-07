@@ -1,22 +1,26 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
-import aiStudioConfig from '../../firebase-applet-config.json';
 
-// Use standard environment variables on Vercel, fallback to AI Studio auto-config if they aren't set
-const firebaseConfig = import.meta.env.VITE_FIREBASE_API_KEY ? {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-} : aiStudioConfig;
+// Helper to get string and prevent empty strings
+const getEnv = (key: string, fallback: string) => {
+  const val = import.meta.env[key];
+  return (val && val.trim().length > 0) ? val.trim() : fallback;
+};
+
+// User's provided Firebase Project credentials from mlt-exams
+const firebaseConfig = {
+  apiKey: getEnv('VITE_FIREBASE_API_KEY', "AIzaSyCfB7yZ6H41hvBmOqeJy18NXUBG7FBPXQc"),
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN', "mlt-exams.firebaseapp.com"),
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID', "mlt-exams"),
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET', "mlt-exams.firebasestorage.app"),
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', "220269475062"),
+  appId: getEnv('VITE_FIREBASE_APP_ID', "1:220269475062:web:894203b6a1ee12b49b28d7")
+};
 
 const app = initializeApp(firebaseConfig);
-const firestoreDbId = import.meta.env.VITE_FIREBASE_API_KEY 
-  ? (import.meta.env.VITE_FIREBASE_DATABASE_ID || "(default)")
-  : (aiStudioConfig as any).firestoreDatabaseId;
+const firestoreDbId = typeof import.meta !== 'undefined' ? getEnv('VITE_FIREBASE_DATABASE_ID', "(default)") : "(default)";
+
 export const db = getFirestore(app, firestoreDbId);
 export const auth = getAuth(app);
 

@@ -10,7 +10,8 @@ import { decrypt, encrypt } from './src/utils/crypto.ts';
 import { appendResultToGoogleSheet } from './src/utils/googleSheets.ts';
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const PORT = 3000;
 
@@ -456,8 +457,7 @@ Each question MUST follow this EXACT Schema:
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
       "hindiExplanation": "string",
-      "subject": "string",
-      "chapter": "string",
+      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
@@ -511,8 +511,7 @@ STRICT JSON SCHEMA:
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
       "hindiExplanation": "string",
-      "subject": "string",
-      "chapter": "string",
+      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]

@@ -34,7 +34,6 @@ export interface BankQuestion {
   englishExplanation: string;
   hindiExplanation: string;
   subject: string;
-  chapter: string;
   difficulty: 'easy' | 'medium' | 'hard';
   createdAt: number;
 }
