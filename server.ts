@@ -123,6 +123,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const transporter = nodemailer.createTransport({
       host: smtp1.host,
       port: smtp1.port,
+      family: 4,
       secure: smtp1.port === 465,
       auth: {
         user: smtp1.username,
@@ -213,6 +214,7 @@ app.post('/api/auth/notify-registration', async (req, res) => {
     const transporter = nodemailer.createTransport({
       host: smtp2.host,
       port: smtp2.port,
+      family: 4,
       secure: smtp2.port === 465,
       auth: {
         user: smtp2.username,
@@ -290,6 +292,7 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
     const transporter = nodemailer.createTransport({
       host: smtp2.host,
       port: smtp2.port,
+      family: 4,
       secure: smtp2.port === 465,
       auth: {
         user: smtp2.username,
@@ -367,6 +370,7 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
     const transporter = nodemailer.createTransport({
       host: smtp2.host,
       port: smtp2.port,
+      family: 4,
       secure: smtp2.port === 465,
       auth: {
         user: smtp2.username,
@@ -770,6 +774,7 @@ app.post('/api/exams/submit', async (req, res) => {
       const transporter = nodemailer.createTransport({
         host: smtp3.host,
         port: smtp3.port,
+        family: 4,
         secure: smtp3.port === 465,
         auth: {
           user: smtp3.username,
