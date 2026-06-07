@@ -43,6 +43,17 @@ export default function AdminManager({ onNotify }: { onNotify: (msg: string, isE
         email: emailLower,
         addedAt: new Date().toISOString()
       });
+      
+      try {
+        await fetch('/api/admin/notify-new-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newAdminEmail: emailLower })
+        });
+      } catch (emailErr) {
+        console.error('Failed to dispatch admin invite email:', emailErr);
+      }
+
       onNotify(`Added ${emailLower} as an admin.`);
       setNewEmail('');
       fetchEmails();

@@ -343,6 +343,56 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
   }
 });
 
+/**
+ * Dispatch admin notification upon being added as an admin (SMTP 2)
+ */
+app.post('/api/admin/notify-new-admin', async (req, res) => {
+  const { newAdminEmail } = req.body;
+  if (!newAdminEmail) {
+    return res.status(400).json({ error: 'Missing new admin email.' });
+  }
+
+  try {
+    const smtp2 = await getSMTPServerConfig(2);
+    if (!smtp2 || !smtp2.host) {
+      console.log(`[SMTP 2 Pending] Admin invitation notify skipped for: ${newAdminEmail}`);
+      return res.json({ success: true, smtpConfigured: false });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: smtp2.host,
+      port: smtp2.port,
+      secure: smtp2.port === 465,
+      auth: {
+        user: smtp2.username,
+        pass: smtp2.password
+      }
+    } as any);
+
+    const mailOptions = {
+      from: `"${smtp2.fromName || 'MLT System Administrator'}" <${smtp2.fromEmail}>`,
+      to: newAdminEmail,
+      subject: 'Invitation to Join MLT Exam Portal as Administrator',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
+          <h2 style="color: #2563eb; margin-bottom: 8px;">Administrator Access Granted</h2>
+          <p>Dear Administrator,</p>
+          <p>The MLT Exam Portal has requested you to join our platform as an administrator.</p>
+          <p>Kindly log into the portal using your Google account (${newAdminEmail}) to access your administrative capabilities.</p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin-top: 25px;" />
+          <p style="font-size: 11px; color: #64748b;">This message was dispatched securely using MLT System registration administrators SMTP 2 channels.</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.json({ success: true, smtpConfigured: true });
+  } catch (error) {
+    console.error('SMTP 2 admin invitation email dispatch failed:', error);
+    return res.json({ success: true, error: 'Failed dispatching mail' });
+  }
+});
+
 
 /**
  * SMTP Config Save endpoint (Admins only)
