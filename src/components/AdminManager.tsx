@@ -45,16 +45,24 @@ export default function AdminManager({ onNotify }: { onNotify: (msg: string, isE
       });
       
       try {
-        await fetch('/api/admin/notify-new-admin', {
+        const response = await fetch('/api/admin/notify-new-admin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ newAdminEmail: emailLower })
         });
+        const data = await response.json();
+        if (data.success && data.smtpConfigured) {
+          onNotify(`Added ${emailLower} as an admin. Invitation email sent!`);
+        } else if (data.success && !data.smtpConfigured) {
+          onNotify(`Added ${emailLower} as an admin. (Email skipped: SMTP not configured)`, true);
+        } else {
+          onNotify(`Added ${emailLower}. Email failed: ${data.error}`, true);
+        }
       } catch (emailErr) {
         console.error('Failed to dispatch admin invite email:', emailErr);
+        onNotify(`Added ${emailLower}. Failed to send email (Network Error).`);
       }
 
-      onNotify(`Added ${emailLower} as an admin.`);
       setNewEmail('');
       fetchEmails();
     } catch (err) {

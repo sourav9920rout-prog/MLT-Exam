@@ -200,7 +200,10 @@ app.post('/api/auth/notify-registration', async (req, res) => {
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    const adminEmailAddress = 'sourav.9920rout@gmail.com';
+    // Fetch dynamic admin emails
+    const adminEmailsSnap = await getDocs(collection(db, 'adminEmails'));
+    const adminEmailsList = adminEmailsSnap.docs.map(d => d.id);
+    const adminEmailsString = adminEmailsList.join(', ');
 
     if (!smtp2 || !smtp2.host) {
       console.log(`[SMTP 2 Pending SMTP settings] Registration notifications skipped for: ${studentEmail}`);
@@ -218,25 +221,28 @@ app.post('/api/auth/notify-registration', async (req, res) => {
     } as any);
 
     // 1. Admin Email Notification
-    const adminMail = {
-      from: `"${smtp2.fromName || 'MLT Registration Manager'}" <${smtp2.fromEmail}>`,
-      to: adminEmailAddress,
-      subject: 'New Student Registration Request Needs Approval',
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #d97706; margin-bottom: 8px;">New Student Signup Request</h2>
-          <p>A new student has registered on the platform and is currently marked as <strong>Pending Approval</strong>.</p>
-          <div style="background-color: #fcfbeb; border-left: 4px solid #d97706; padding: 15px; margin: 15px 0; border-radius: 4px;">
-            <strong>Student details:</strong><br/>
-            - Name: ${studentName}<br/>
-            - Email: ${studentEmail}<br/>
-            - Mobile: ${studentMobile || 'N/A'}<br/>
-            - Date: ${new Date().toLocaleDateString()}
+    if (adminEmailsString) {
+      const adminMail = {
+        from: `"${smtp2.fromName || 'MLT Registration Manager'}" <${smtp2.fromEmail}>`,
+        to: adminEmailsString,
+        subject: 'New Student Registration Request Needs Approval',
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
+            <h2 style="color: #d97706; margin-bottom: 8px;">New Student Signup Request</h2>
+            <p>A new student has registered on the platform and is currently marked as <strong>Pending Approval</strong>.</p>
+            <div style="background-color: #fcfbeb; border-left: 4px solid #d97706; padding: 15px; margin: 15px 0; border-radius: 4px;">
+              <strong>Student details:</strong><br/>
+              - Name: ${studentName}<br/>
+              - Email: ${studentEmail}<br/>
+              - Mobile: ${studentMobile || 'N/A'}<br/>
+              - Date: ${new Date().toLocaleDateString()}
+            </div>
+            <p>Please log in to your Super Admin Dashboard to Approve or Reject this applicant.</p>
           </div>
-          <p>Please log in to your Super Admin Dashboard to Approve or Reject this applicant.</p>
-        </div>
-      `
-    };
+        `
+      };
+      await transporter.sendMail(adminMail);
+    }
 
     // 2. Student Email Notification
     const studentMail = {
@@ -255,13 +261,12 @@ app.post('/api/auth/notify-registration', async (req, res) => {
       `
     };
 
-    await transporter.sendMail(adminMail);
     await transporter.sendMail(studentMail);
 
     return res.json({ success: true });
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error dispatching registration SMTP 2 notifications:', err);
-    return res.json({ success: true, reason: 'Failed dispatch' });
+    return res.json({ success: false, error: err.message || 'Failed dispatch' });
   }
 });
 
@@ -337,9 +342,9 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
 
     await transporter.sendMail(mailOptions);
     return res.json({ success: true, smtpConfigured: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('SMTP 2 status email dispatch failed:', error);
-    return res.json({ success: true, error: 'Failed dispatching mail' });
+    return res.json({ success: false, error: error.message || 'Failed dispatching mail' });
   }
 });
 
@@ -387,9 +392,9 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
 
     await transporter.sendMail(mailOptions);
     return res.json({ success: true, smtpConfigured: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('SMTP 2 admin invitation email dispatch failed:', error);
-    return res.json({ success: true, error: 'Failed dispatching mail' });
+    return res.json({ success: false, error: error.message || 'Failed dispatching mail' });
   }
 });
 
@@ -525,7 +530,7 @@ Each question MUST follow this EXACT Schema:
   "questions": [
     {
       "englishQuestion": "string",
-      "hindiQuestion": "string (translate to Hindi if not present)",
+      "hindiQuestion": "string (leave empty string if source text is purely English)",
       "englishOptions": ["string", "string", "string", "string"],
       "hindiOptions": ["string", "string", "string", "string"],
       "correctOptionIndex": number (0-3),
@@ -536,7 +541,7 @@ Each question MUST follow this EXACT Schema:
     }
   ]
 }
-If the document only has English, provide accurate professional Hindi translations. 
+If the document only has English, do NOT provide Hindi translations. Leave Hindi fields as empty strings. 
 Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`json.`;
 
     const response = await gClient.models.generateContent({
@@ -579,7 +584,7 @@ STRICT JSON SCHEMA:
   "questions": [
     {
       "englishQuestion": "string",
-      "hindiQuestion": "string (translate to Hindi if not present)",
+      "hindiQuestion": "string (leave empty string if source text is purely English)",
       "englishOptions": ["string", "string", "string", "string"],
       "hindiOptions": ["string", "string", "string", "string"],
       "correctOptionIndex": number (0-3),
@@ -590,7 +595,7 @@ STRICT JSON SCHEMA:
     }
   ]
 }
-If the text only has English, provide accurate professional Hindi translations. 
+If the text only has English, do NOT provide Hindi translations. Leave Hindi fields as empty strings. 
 Return ONLY the raw JSON object.`;
 
     const response = await gClient.models.generateContent({
