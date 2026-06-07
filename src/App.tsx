@@ -109,13 +109,50 @@ export default function App() {
           const studentSnap = await getDoc(doc(db, 'students', user.uid));
           if (studentSnap.exists()) {
             const data = studentSnap.data() as StudentProfile;
-            setStudentProfile(data);
-            setStudentStatus(data.status);
-            setUserRole('student');
+            if (data.status === 'deleted') {
+              // Create it back as pending
+              const updatedData = { ...data, status: 'pending' as const };
+              await updateDoc(doc(db, 'students', user.uid), { status: 'pending' });
+              
+              // Email dispatch ignored during auto-login context to prevent spam, 
+              // but we restore their state
+              setStudentProfile(updatedData);
+              setStudentStatus('pending');
+              setUserRole('student');
+            } else {
+              setStudentProfile(data);
+              setStudentStatus(data.status);
+              setUserRole('student');
+            }
           } else {
-            // Mismatch or first time setup fallback
+            // Document was completely deleted from Firestore (Permanently Expelled)
+            // But user is still logged into Firebase Auth. We must re-create their registration.
+            const studentData: StudentProfile = {
+              uid: user.uid,
+              fullName: user.displayName || 'No Name Provided',
+              mobileNumber: 'Not provided',
+              email: user.email?.toLowerCase() || '',
+              status: 'pending',
+              createdAt: new Date().toISOString()
+            };
+            
+            await setDoc(doc(db, 'students', user.uid), studentData);
+            
             setUserRole('student');
             setStudentStatus('pending');
+            setStudentProfile(studentData);
+            
+            try {
+              await fetch('/api/auth/notify-registration', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({
+                   studentName: studentData.fullName,
+                   studentEmail: studentData.email,
+                   studentMobile: studentData.mobileNumber
+                 })
+              });
+            } catch(e) {}
           }
         }
       } else {
@@ -225,11 +262,37 @@ export default function App() {
       
       if (studentSnap.exists()) {
         const data = studentSnap.data() as StudentProfile;
-        setStudentProfile(data);
-        setStudentStatus(data.status);
-        setUserRole('student');
-        setCurrentUser(credentialUser);
-        showNotification('Authenticated as Student successfully.');
+        
+        if (data.status === 'deleted' || data.status === 'rejected') {
+          const updatedData = { ...data, status: 'pending' };
+          await updateDoc(doc(db, 'students', credentialUser.uid), { status: 'pending' });
+          
+          try {
+            await fetch('/api/auth/notify-registration', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                studentName: updatedData.fullName,
+                studentEmail: updatedData.email,
+                studentMobile: updatedData.mobileNumber
+              })
+            });
+          } catch (emailErr) {
+            console.error('Failed to dispatch registration email:', emailErr);
+          }
+
+          setStudentProfile(updatedData as StudentProfile);
+          setStudentStatus('pending');
+          setUserRole('student');
+          setCurrentUser(credentialUser);
+          showNotification('New access request submitted successfully.');
+        } else {
+          setStudentProfile(data);
+          setStudentStatus(data.status);
+          setUserRole('student');
+          setCurrentUser(credentialUser);
+          showNotification('Authenticated as Student successfully.');
+        }
       } else {
         // Standard user does not have details. Map as pending student
         const adminCheck = await getDoc(doc(db, 'admins', credentialUser.uid));
