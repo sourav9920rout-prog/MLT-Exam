@@ -42,16 +42,37 @@ const SMTP_CONFIG_FILE = path.join(process.cwd(), 'smtp-config.json');
 
 async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
   try {
+    // 1. Check for Environment Variables (Priority for Vercel/Production)
+    const envHost = process.env[`SMTP${smtpIndex}_HOST`];
+    const envPort = process.env[`SMTP${smtpIndex}_PORT`];
+    const envUser = process.env[`SMTP${smtpIndex}_USER`];
+    const envPass = process.env[`SMTP${smtpIndex}_PASS`];
+    const envFromName = process.env[`SMTP${smtpIndex}_FROM_NAME`];
+    const envFromEmail = process.env[`SMTP${smtpIndex}_FROM_EMAIL`];
+
+    if (envHost && envUser && envPass) {
+      return {
+        host: envHost,
+        port: Number(envPort) || 587,
+        username: envUser,
+        password: envPass,
+        fromName: envFromName || '',
+        fromEmail: envFromEmail || envUser
+      };
+    }
+
     if (!fs.existsSync(SMTP_CONFIG_FILE)) return null;
     const data = JSON.parse(fs.readFileSync(SMTP_CONFIG_FILE, 'utf8'));
-    const config = data[`smtp\${smtpIndex}`];
+    const config = data[`smtp${smtpIndex}`];
     if (!config) return null;
 
     return {
       host: config.host || '',
       port: Number(config.port) || 587,
       username: config.username || '',
-      password: decrypt(config.password || '')
+      password: decrypt(config.password || ''),
+      fromName: '',
+      fromEmail: config.username || ''
     };
   } catch (error) {
     console.error(`Error retrieving SMTP config:`, error);
@@ -107,7 +128,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     } as any);
 
     const mailOptions = {
-      from: `"MLT Portals OTP" <${smtp1.username}>`,
+      from: `"${smtp1.fromName || 'MLT Portals OTP'}" <${smtp1.fromEmail}>`,
       to: email,
       subject: 'Email Verification OTP Code - MLT Portal',
       html: `
@@ -195,7 +216,7 @@ app.post('/api/auth/notify-registration', async (req, res) => {
 
     // 1. Admin Email Notification
     const adminMail = {
-      from: `"MLT Registration Manager" <${smtp2.username}>`,
+      from: `"${smtp2.fromName || 'MLT Registration Manager'}" <${smtp2.fromEmail}>`,
       to: adminEmailAddress,
       subject: 'New Student Registration Request Needs Approval',
       html: `
@@ -216,7 +237,7 @@ app.post('/api/auth/notify-registration', async (req, res) => {
 
     // 2. Student Email Notification
     const studentMail = {
-      from: `"MLT Exam Portal" <${smtp2.username}>`,
+      from: `"${smtp2.fromName || 'MLT Exam Portal'}" <${smtp2.fromEmail}>`,
       to: studentEmail,
       subject: 'Registration Submitted Successfully - Pending Admin Approval',
       html: `
@@ -297,7 +318,7 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
     }
 
     const mailOptions = {
-      from: `"MLT System Administrator" <${smtp2.username}>`,
+      from: `"${smtp2.fromName || 'MLT System Administrator'}" <${smtp2.fromEmail}>`,
       to: studentEmail,
       subject: subject,
       html: `
@@ -697,7 +718,7 @@ app.post('/api/exams/submit', async (req, res) => {
       }).join('');
 
       const mailOptions = {
-        from: `"MLT Examination Reports" <${smtp3.username}>`,
+        from: `"${smtp3.fromName || 'MLT Examination Reports'}" <${smtp3.fromEmail}>`,
         to: studentEmail,
         subject: `Exam Report: ${examName} - ${passed ? 'Passed 🎉' : 'Failed 📋'}`,
         html: `

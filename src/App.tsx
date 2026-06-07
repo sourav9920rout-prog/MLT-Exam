@@ -42,7 +42,7 @@ import { StudentProfile } from './types.ts';
 
 // Dynamic Sub-Components
 import StudentManager from './components/StudentManager.tsx';
-import SMTPConfigPage from './components/SMTPConfigPage.tsx';
+import EmailSettingsPage from './components/EmailSettingsPage.tsx';
 import QuestCreator from './components/QuestCreator.tsx';
 import QuizRunner from './components/QuizRunner.tsx';
 import AdminManager from './components/AdminManager.tsx';
@@ -558,7 +558,7 @@ export default function App() {
                     adminTab === 'smtp' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  SMTP Config
+                  Email Settings
                 </button>
                 <button
                   onClick={() => setAdminTab('admins')}
@@ -575,7 +575,7 @@ export default function App() {
             <div className="transition-all duration-200">
               {adminTab === 'students' && <StudentManager onNotify={showNotification} />}
               {adminTab === 'exams' && <QuestCreator onNotify={showNotification} />}
-              {adminTab === 'smtp' && <SMTPConfigPage onNotify={showNotification} />}
+              {adminTab === 'smtp' && <EmailSettingsPage onNotify={showNotification} />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
             </div>
           </div>
