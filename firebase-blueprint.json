@@ -1,0 +1,201 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Core authentication user profile map",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student detail profile with status tracking",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "revoked", "deleted"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "fullName", "mobileNumber", "email", "status"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authenticated administrator records",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "AdminEmail": {
+      "title": "AdminEmail",
+      "description": "Authenticated administrator emails",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "addedAt": { "type": "string" }
+      },
+      "required": ["email"]
+    },
+    "BankQuestion": {
+      "title": "BankQuestion",
+      "description": "A single dual-lingual question in the global question bank",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "englishQuestion": { "type": "string" },
+        "hindiQuestion": { "type": "string" },
+        "englishOptions": { "type": "array" },
+        "hindiOptions": { "type": "array" },
+        "correctOptionIndex": { "type": "integer" },
+        "englishExplanation": { "type": "string" },
+        "hindiExplanation": { "type": "string" },
+        "subject": { "type": "string" },
+        "chapter": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["id", "englishQuestion", "englishOptions", "correctOptionIndex"]
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "Exam parameters and set of questions with sections",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "positiveMarks": { "type": "integer" },
+        "negativeMarks": { "type": "integer" },
+        "startDate": { "type": "integer" },
+        "endDate": { "type": "integer" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "durationMinutes": { "type": "integer" },
+        "passingPercentage": { "type": "integer" },
+        "questionIds": { "type": "array" },
+        "sections": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "durationMinutes", "passingPercentage"]
+    },
+    "ExamAttempt": {
+      "title": "ExamAttempt",
+      "description": "Autosaves and active exam sessions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "examId": { "type": "string" },
+        "answers": { "type": "object" },
+        "savedStates": { "type": "object" },
+        "status": { "type": "string", "enum": ["started", "submitted"] },
+        "currentSectionIndex": { "type": "integer" },
+        "timeRemainingSeconds": { "type": "integer" },
+        "startedAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "studentId", "examId", "status"]
+    },
+    "Result": {
+      "title": "Result",
+      "description": "Consolidated scoring and completion analytics of exams",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "examId": { "type": "string" },
+        "examName": { "type": "string" },
+        "score": { "type": "integer" },
+        "totalQuestions": { "type": "integer" },
+        "percentage": { "type": "integer" },
+        "passed": { "type": "boolean" },
+        "correctCount": { "type": "integer" },
+        "incorrectCount": { "type": "integer" },
+        "unansweredCount": { "type": "integer" },
+        "answers": { "type": "object" },
+        "questionIds": { "type": "array" },
+        "aiSummaryTips": { "type": "string" },
+        "timeTakenSeconds": { "type": "integer" },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["id", "studentId", "examId", "score", "totalQuestions", "percentage"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "General system configuration keys",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "portalName": { "type": "string" }
+      },
+      "required": ["id", "portalName"]
+    },
+    "EmailConfig": {
+      "title": "EmailConfig",
+      "description": "Encrypted credentials for internal SMTP servers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "smtp1": { "type": "object" },
+        "smtp2": { "type": "object" },
+        "smtp3": { "type": "object" }
+      },
+      "required": ["id"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Authentication collection mapped by user UUID"
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Profiles of registered students"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Explicit list of administrators"
+    },
+    "/adminEmails/{emailId}": {
+      "schema": "AdminEmail",
+      "description": "List of administrator emails for global roles"
+    },
+    "/questionBank/{questionId}": {
+      "schema": "BankQuestion",
+      "description": "Flat dynamic question store"
+    },
+    "/exams/{examId}": {
+      "schema": "Exam",
+      "description": "Comprehensive list of exam models"
+    },
+    "/examAttempts/{attemptId}": {
+      "schema": "ExamAttempt",
+      "description": "Autosaved answer records during exams"
+    },
+    "/results/{resultId}": {
+      "schema": "Result",
+      "description": "End-of-exam evaluation and response archives"
+    },
+    "/settings/{settingId}": {
+      "schema": "Setting",
+      "description": "Global application properties"
+    },
+    "/emailConfigs/{configId}": {
+      "schema": "EmailConfig",
+      "description": "SMTP configurations managed by admins"
+    }
+  }
+}
