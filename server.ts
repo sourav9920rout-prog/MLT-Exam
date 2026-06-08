@@ -799,33 +799,33 @@ app.post('/api/exams/submit', async (req, res) => {
               <p style="margin: 0; color: #64748b; font-size: 14px;">MLT Exam Portal Diagnostic Service</p>
             </div>
 
-            <p>Dear <strong>\${studentName}</strong>,</p>
+            <p>Dear <strong>${studentName}</strong>,</p>
             <p>You have successfully completed the examination. Your final performance statistics are presented in detail below.</p>
 
             <!-- Score Summary Cards -->
             <div style="display: flex; gap: 15px; margin: 20px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
               <div style="flex: 1; text-align: center;">
                 <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">Final Score</span>
-                <h3 style="font-size: 24px; color: #1e293b; margin: 4px 0;">\${score} / \${totalQuestions * positiveMarks}</h3>
+                <h3 style="font-size: 24px; color: #1e293b; margin: 4px 0;">${score} / ${totalQuestions * positiveMarks}</h3>
               </div>
               <div style="flex: 1; text-align: center;">
                 <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">Percentage</span>
-                <h3 style="font-size: 24px; color: #2563eb; margin: 4px 0;">\${percentage}%</h3>
+                <h3 style="font-size: 24px; color: #2563eb; margin: 4px 0;">${percentage}%</h3>
               </div>
               <div style="flex: 1; text-align: center;">
                 <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">Result Status</span>
-                <h3 style="font-size: 24px; color: \${passed ? '#10b981' : '#ef4444'}; margin: 4px 0;">\${passed ? 'PASSED' : 'FAILED'}</h3>
+                <h3 style="font-size: 24px; color: ${passed ? '#10b981' : '#ef4444'}; margin: 4px 0;">${passed ? 'PASSED' : 'FAILED'}</h3>
               </div>
             </div>
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px;">
               <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 8px 0; color: #64748b;">Incorrect Responses:</td>
-                <td style="padding: 8px 0; font-weight: bold; text-align: right; color: #ef4444;">\${incorrectCount}</td>
+                <td style="padding: 8px 0; font-weight: bold; text-align: right; color: #ef4444;">${incorrectCount}</td>
               </tr>
               <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 8px 0; color: #64748b;">Unanswered Questions:</td>
-                <td style="padding: 8px 0; font-weight: bold; text-align: right; color: #64748b;">\${unansweredCount}</td>
+                <td style="padding: 8px 0; font-weight: bold; text-align: right; color: #64748b;">${unansweredCount}</td>
               </tr>
             </table>
 
@@ -833,14 +833,14 @@ app.post('/api/exams/submit', async (req, res) => {
             <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 4px; margin-bottom: 30px;">
               <h4 style="margin: 0 0 8px 0; color: #1e3a8a; font-size: 15px;">🤖 AI Clinical Guidance & Tutoring Analysis</h4>
               <div style="font-size: 13.5px; color: #1e40af; white-space: pre-line;">
-                \${aiSummaryTips}
+                ${aiSummaryTips}
               </div>
             </div>
 
             <!-- COMPLETE ANSWER EVALUATION SHEETS -->
             <h3 style="color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; margin: 30px 0 15px 0;">Student Answer & Correction Sheet</h3>
             <div style="margin-bottom: 30px;">
-              \${answerSheetHtml}
+              ${answerSheetHtml}
             </div>
 
             <hr style="border: none; border-top: 1px solid #cbd5e1; margin-top: 30px;" />

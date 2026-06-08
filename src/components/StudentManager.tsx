@@ -55,7 +55,8 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
           })
         });
         if (!res.ok) {
-           throw new Error(`Server returned status ${res.status}`);
+           const errText = await res.text();
+           throw new Error(`Server returned status ${res.status}: ${errText.substring(0, 100)}`);
         }
         const data = await res.json();
         if (!data.success && data.error) {
