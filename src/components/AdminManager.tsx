@@ -74,7 +74,9 @@ export default function AdminManager({ onNotify }: { onNotify: (msg: string, isE
   };
 
   const handleRemoveAdmin = async (email: string) => {
-    if (!window.confirm(`Are you sure you want to revoke admin access for ${email}?`)) return;
+    try {
+      if (!window.confirm(`Are you sure you want to revoke admin access for ${email}?`)) return;
+    } catch(e) {}
     try {
       await deleteDoc(doc(db, 'adminEmails', email));
       onNotify(`Admin access revoked for ${email}`);

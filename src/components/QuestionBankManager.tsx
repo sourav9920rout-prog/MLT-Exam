@@ -20,12 +20,23 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRawTextModalOpen, setIsRawTextModalOpen] = useState(false);
   const [rawText, setRawText] = useState('');
+  const [languageMode, setLanguageMode] = useState<'bilingual'|'english'>('bilingual');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<BankQuestion>>({
+    englishQuestion: '',
+    hindiQuestion: '',
     englishOptions: ['', '', '', ''],
-    hindiOptions: ['', '', '', '']
+    hindiOptions: ['', '', '', ''],
+    englishExplanation: '',
+    hindiExplanation: '',
+    imageUrl: '',
+    optionImageUrls: ['', '', '', ''],
+    correctOptionIndex: 0,
+    subject: 'Miscellaneous',
+    difficulty: 'medium'
   });
   const [uploading, setUploading] = useState(false);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
 
   const fetchQuestions = async () => {
     setLoading(true);
@@ -69,7 +80,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
       const response = await fetch('/api/admin/extract-questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentBase64: base64Data, mimeType: file.type || 'text/plain' })
+        body: JSON.stringify({ documentBase64: base64Data, mimeType: file.type || 'text/plain', languageMode })
       });
       
       if (!response.ok) {
@@ -124,7 +135,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
       const response = await fetch('/api/admin/extract-questions-raw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawText })
+        body: JSON.stringify({ rawText, languageMode })
       });
       
       if (!response.ok) {
@@ -180,6 +191,8 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
         id: qId,
         englishQuestion: formData.englishQuestion || "",
         hindiQuestion: formData.hindiQuestion || "",
+        imageUrl: formData.imageUrl || "",
+        optionImageUrls: formData.optionImageUrls || ["", "", "", ""],
         englishOptions: formData.englishOptions || ["", "", "", ""],
         hindiOptions: formData.hindiOptions || ["", "", "", ""],
         correctOptionIndex: Number(formData.correctOptionIndex) || 0,
@@ -200,14 +213,37 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     }
   };
 
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
+
   const deleteQuestion = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this question?")) return;
     try {
       await deleteDoc(doc(db, 'questionBank', id));
       onNotify("Question deleted.");
       fetchQuestions();
     } catch (err) {
       onNotify("Error deleting question.", true);
+    } finally {
+      setQuestionToDelete(null);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedQuestionIds.length === 0) return;
+    try {
+      setLoading(true);
+      for (const id of selectedQuestionIds) {
+        await deleteDoc(doc(db, 'questionBank', id));
+      }
+      onNotify(`Successfully deleted ${selectedQuestionIds.length} questions.`);
+      setSelectedQuestionIds([]);
+      fetchQuestions();
+    } catch (err) {
+      console.error(err);
+      onNotify("Error deleting questions in bulk.", true);
+    } finally {
+      setLoading(false);
+      setShowBulkDeleteConfirm(false);
     }
   };
 
@@ -231,12 +267,23 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
         </div>
       )}
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-slate-800">Global Question Bank</h2>
           <p className="text-sm text-slate-500">Manage bilingual questions for examinations. Total: {questions.length}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 border border-slate-200 rounded px-3 py-1.5 bg-slate-50 mr-2">
+             <span className="text-xs font-bold text-slate-500">AI Extractor Mode:</span>
+             <select 
+                value={languageMode} 
+                onChange={(e) => setLanguageMode(e.target.value as 'bilingual'|'english')}
+                className="text-xs bg-transparent font-medium text-blue-700 outline-none cursor-pointer"
+             >
+                <option value="bilingual">Bilingual (Translates English &rarr; Hindi)</option>
+                <option value="english">English Only (Faster, Skips Translation)</option>
+             </select>
+          </div>
           <input 
             type="file" 
             accept=".pdf,.doc,.docx,.txt" 
@@ -261,13 +308,33 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           <button
             onClick={() => {
               setEditingId(null);
-              setFormData({ englishOptions: ['', '', '', ''], hindiOptions: ['', '', '', ''], difficulty: 'medium' });
+              setFormData({
+                englishQuestion: '',
+                hindiQuestion: '',
+                englishOptions: ['', '', '', ''],
+                hindiOptions: ['', '', '', ''],
+                imageUrl: '',
+                optionImageUrls: ['', '', '', ''],
+                correctOptionIndex: 0,
+                englishExplanation: '',
+                hindiExplanation: '',
+                subject: 'Miscellaneous',
+                difficulty: 'medium'
+              });
               setIsModalOpen(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs transition shadow-sm"
           >
             <Plus size={16} /> Manual Entry
           </button>
+          {selectedQuestionIds.length > 0 && (
+            <button
+              onClick={() => setShowBulkDeleteConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded text-xs transition shadow-sm"
+            >
+              <Trash2 size={16} /> Delete Selected ({selectedQuestionIds.length})
+            </button>
+          )}
         </div>
       </div>
 
@@ -331,6 +398,20 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
             <table className="w-full text-left text-sm">
               <thead className="bg-[#f8fafc] text-slate-500 font-bold text-xs uppercase">
                 <tr>
+                  <th className="px-6 py-4 w-12">
+                    <input 
+                      type="checkbox"
+                      className="cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      checked={selectedQuestionIds.length === filteredQuestions.length && filteredQuestions.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedQuestionIds(filteredQuestions.map(q => q.id));
+                        } else {
+                          setSelectedQuestionIds([]);
+                        }
+                      }}
+                    />
+                  </th>
                   <th className="px-6 py-4">Question snippet (En)</th>
                   <th className="px-6 py-4">Subject</th>
                   <th className="px-6 py-4">Difficulty</th>
@@ -340,6 +421,20 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
               <tbody className="divide-y divide-slate-100">
                 {filteredQuestions.map(q => (
                   <tr key={q.id} className="hover:bg-slate-50 transition">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        className="cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        checked={selectedQuestionIds.includes(q.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedQuestionIds(prev => [...prev, q.id]);
+                          } else {
+                            setSelectedQuestionIds(prev => prev.filter(id => id !== q.id));
+                          }
+                        }}
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-slate-800 line-clamp-1">{q.englishQuestion}</div>
                       <div className="text-xs text-slate-500 mt-1 line-clamp-1">{q.hindiQuestion}</div>
@@ -361,10 +456,23 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
                       </span>
                     </td>
                     <td className="px-6 py-4 flex items-center gap-3">
-                      <button onClick={() => { setFormData(q); setEditingId(q.id); setIsModalOpen(true); }} className="text-blue-600 hover:text-blue-800 transition">
+                      <button onClick={() => { setEditingId(q.id); 
+                setFormData({
+                  ...q,
+                  englishOptions: q.englishOptions || ['', '', '', ''],
+                  hindiOptions: q.hindiOptions || ['', '', '', ''],
+                  optionImageUrls: q.optionImageUrls || ['', '', '', ''],
+                  englishExplanation: q.englishExplanation || '',
+                  hindiExplanation: q.hindiExplanation || '',
+                  imageUrl: q.imageUrl || '',
+                  subject: q.subject || 'Miscellaneous',
+                  difficulty: q.difficulty || 'medium',
+                  correctOptionIndex: q.correctOptionIndex ?? 0
+                }); 
+                setIsModalOpen(true); }} className="text-blue-600 hover:text-blue-800 transition">
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => deleteQuestion(q.id)} className="text-rose-500 hover:text-rose-700 transition">
+                      <button onClick={() => setQuestionToDelete(q.id)} className="text-rose-500 hover:text-rose-700 transition">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -395,16 +503,29 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
               placeholder="1. What is the powerhouse of the cell?\n(a) Nucleus (b) Mitochondria (c) Ribosome (d) ER\nExplanation: Mitochondria generates ATP..."
               className="w-full text-sm px-3 py-3 border border-slate-200 rounded-lg focus:outline-blue-500 resize-y mb-4"
             />
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <button type="button" onClick={() => setIsRawTextModalOpen(false)} className="px-5 py-2.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
-              <button 
-                type="button" 
-                onClick={handleRawTextSubmit} 
-                className="px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
-                disabled={uploading || !rawText.trim()}
-              >
-                {uploading ? 'Processing...' : 'Extract Questions with AI'}
-              </button>
+            <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+                 <span className="text-xs font-bold text-slate-500">Mode:</span>
+                 <select 
+                    value={languageMode} 
+                    onChange={(e) => setLanguageMode(e.target.value as 'bilingual'|'english')}
+                    className="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1.5 font-medium text-blue-700 outline-none cursor-pointer"
+                 >
+                    <option value="bilingual">Bilingual (Add Hindi Translation)</option>
+                    <option value="english">English Only (Faster AI processing)</option>
+                 </select>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button type="button" onClick={() => setIsRawTextModalOpen(false)} className="flex-1 sm:flex-none px-5 py-2.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
+                <button 
+                  type="button" 
+                  onClick={handleRawTextSubmit} 
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
+                  disabled={uploading || !rawText.trim()}
+                >
+                  {uploading ? 'Processing...' : 'Extract Questions with AI'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -421,32 +542,46 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
             </div>
             <form onSubmit={handleSaveQuestion} className="p-6 space-y-6">
               
+              <div className="mb-4">
+                <label className="block text-xs font-bold text-slate-700 mb-1">Image URL (Optional)</label>
+                <input type="url" placeholder="https://example.com/image.jpg" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
+                <p className="text-[10px] text-slate-400 mt-1">Provide a direct image URL (ends in .png, .jpg). <b>Note: Google Drive share links will not work.</b></p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">English Question *</label>
-                  <textarea rows={3} required value={formData.englishQuestion} onChange={e => setFormData({...formData, englishQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
+                  <textarea rows={3} required value={formData.englishQuestion || ''} onChange={e => setFormData({...formData, englishQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Hindi Question</label>
-                  <textarea rows={3} value={formData.hindiQuestion} onChange={e => setFormData({...formData, hindiQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
+                  <textarea rows={3} value={formData.hindiQuestion || ''} onChange={e => setFormData({...formData, hindiQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
                 </div>
               </div>
 
               {/* Options Grid */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <label className="block text-xs font-bold text-slate-700">Options (En & Hi)</label>
                 {[0, 1, 2, 3].map(idx => {
                   const isCorrect = Number(formData.correctOptionIndex) === idx;
                   return (
-                  <div key={idx} className="flex gap-4">
-                    <input type="text" placeholder={`English Opt ${idx+1}`} value={formData.englishOptions?.[idx] || ''} onChange={e => {
-                      const nu = [...(formData.englishOptions || [])]; nu[idx] = e.target.value;
-                      setFormData({...formData, englishOptions: nu});
-                    }} className={`flex-1 text-sm border rounded px-3 py-2 ${isCorrect ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : ''}`} required />
-                    <input type="text" placeholder={`Hindi Opt ${idx+1}`} value={formData.hindiOptions?.[idx] || ''} onChange={e => {
-                      const nu = [...(formData.hindiOptions || [])]; nu[idx] = e.target.value;
-                      setFormData({...formData, hindiOptions: nu});
-                    }} className={`flex-1 text-sm border rounded px-3 py-2 ${isCorrect ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : ''}`} />
+                  <div key={idx} className={`p-3 rounded-lg border ${isCorrect ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : 'border-slate-200'}`}>
+                    <div className="flex flex-col md:flex-row gap-4 mb-2">
+                      <input type="text" placeholder={`English Opt ${idx+1}`} value={formData.englishOptions?.[idx] || ''} onChange={e => {
+                        const nu = [...(formData.englishOptions || [])]; nu[idx] = e.target.value;
+                        setFormData({...formData, englishOptions: nu});
+                      }} className="flex-1 text-sm border rounded px-3 py-2 bg-white" required />
+                      <input type="text" placeholder={`Hindi Opt ${idx+1}`} value={formData.hindiOptions?.[idx] || ''} onChange={e => {
+                        const nu = [...(formData.hindiOptions || [])]; nu[idx] = e.target.value;
+                        setFormData({...formData, hindiOptions: nu});
+                      }} className="flex-1 text-sm border rounded px-3 py-2 bg-white" />
+                    </div>
+                    <div>
+                      <input type="url" placeholder={`Option ${idx+1} Image URL (Optional)`} value={formData.optionImageUrls?.[idx] || ''} onChange={e => {
+                        const nu = [...(formData.optionImageUrls || ['', '', '', ''])]; nu[idx] = e.target.value;
+                        setFormData({...formData, optionImageUrls: nu});
+                      }} className="w-full text-xs border rounded px-3 py-2 bg-white text-slate-600 focus:outline-blue-500" />
+                    </div>
                   </div>
                 )})}
               </div>
@@ -484,11 +619,11 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">English Explanation</label>
-                  <textarea rows={2} value={formData.englishExplanation} onChange={e => setFormData({...formData, englishExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
+                  <textarea rows={2} value={formData.englishExplanation || ''} onChange={e => setFormData({...formData, englishExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Hindi Explanation</label>
-                  <textarea rows={2} value={formData.hindiExplanation} onChange={e => setFormData({...formData, hindiExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
+                  <textarea rows={2} value={formData.hindiExplanation || ''} onChange={e => setFormData({...formData, hindiExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
                 </div>
               </div>
 
@@ -500,6 +635,46 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           </div>
         </div>
       )}
+      {/* Delete Confirmation Modals */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl p-6 text-center">
+            <Trash2 size={48} className="mx-auto text-rose-500 mb-4 opacity-80" />
+            <h3 className="font-bold text-lg text-slate-800 mb-2">Delete Selected?</h3>
+            <p className="text-sm text-slate-500 mb-6">Are you sure you want to permanently delete {selectedQuestionIds.length} questions?</p>
+            <div className="flex justify-center gap-3">
+              <button onClick={() => setShowBulkDeleteConfirm(false)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
+              <button 
+                onClick={handleBulkDelete}
+                disabled={loading}
+                className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm"
+              >
+                {loading ? 'Deleting...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {questionToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl p-6 text-center">
+            <Trash2 size={48} className="mx-auto text-rose-500 mb-4 opacity-80" />
+            <h3 className="font-bold text-lg text-slate-800 mb-2">Delete Question?</h3>
+            <p className="text-sm text-slate-500 mb-6">This action cannot be undone.</p>
+            <div className="flex justify-center gap-3">
+              <button onClick={() => setQuestionToDelete(null)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
+              <button 
+                onClick={() => deleteQuestion(questionToDelete)}
+                className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
