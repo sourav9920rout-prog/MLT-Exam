@@ -125,6 +125,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
       port: smtp1.port,
       secure: smtp1.port === 465,
       family: 4,
+      connectionTimeout: 5000,
+      socketTimeout: 5000,
       auth: {
         user: smtp1.username,
         pass: smtp1.password
@@ -216,6 +218,8 @@ app.post('/api/auth/notify-registration', async (req, res) => {
       port: smtp2.port,
       secure: smtp2.port === 465,
       family: 4,
+      connectionTimeout: 5000,
+      socketTimeout: 5000,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -294,6 +298,8 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
       port: smtp2.port,
       secure: smtp2.port === 465,
       family: 4,
+      connectionTimeout: 5000,
+      socketTimeout: 5000,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -372,6 +378,8 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
       port: smtp2.port,
       secure: smtp2.port === 465,
       family: 4,
+      connectionTimeout: 5000,
+      socketTimeout: 5000,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -497,6 +505,8 @@ app.post('/api/admin/test-smtp', async (req, res) => {
       port: Number(port),
       secure: Number(port) === 465,
       family: 4,
+      connectionTimeout: 5000,
+      socketTimeout: 5000,
       auth: {
         user: username,
         pass: actualPassword
@@ -777,6 +787,8 @@ app.post('/api/exams/submit', async (req, res) => {
         port: smtp3.port,
         secure: smtp3.port === 465,
         family: 4,
+      connectionTimeout: 5000,
+      socketTimeout: 5000,
         auth: {
           user: smtp3.username,
           pass: smtp3.password
