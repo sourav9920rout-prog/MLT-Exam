@@ -858,8 +858,19 @@ app.post('/api/exams/submit', async (req, res) => {
         `
       };
 
-      await transporter.sendMail(mailOptions);
-      console.log(`Successfully dispatched SMTP 3 results report email to: ${studentEmail}`);
+      try {
+        const sendMailWithTimeout = (transporter: any, options: any) => {
+          return Promise.race([
+            transporter.sendMail(options),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP connection timed out')), 8000))
+          ]);
+        };
+
+        await sendMailWithTimeout(transporter, mailOptions);
+        console.log(`Successfully dispatched SMTP 3 results report email to: ${studentEmail}`);
+      } catch (mailErr) {
+        console.error('SMTP 3 result email failed but will continue submission:', mailErr);
+      }
     } else {
       console.log(`[SMTP 3 Pending SMTP configs] Skipped result mail to: ${studentEmail}`);
     }
