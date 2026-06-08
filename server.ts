@@ -220,20 +220,23 @@ app.post('/api/admin/test-smtp', async (req, res) => {
       port: Number(port),
       secure: Number(port) === 465,
       auth: { user: username, pass: password },
-      connectionTimeout: 15000,
-      socketTimeout: 15000
+      connectionTimeout: 20000,
+      socketTimeout: 20000,
+      family: 4
     });
 
     await transporter.verify();
     
-    await transporter.sendMail({
-      from: username,
-      to: toEmail,
-      subject: 'SMTP Connection Test',
-      text: 'SMTP configuration is working correctly!'
-    });
+    if (toEmail) {
+      await transporter.sendMail({
+        from: username,
+        to: toEmail,
+        subject: 'SMTP Connection Test',
+        text: 'SMTP configuration is working correctly!'
+      });
+    }
     
-    return res.json({ success: true, message: 'Test email sent successfully.' });
+    return res.json({ success: true, message: 'Test verification successful.' });
   } catch (error: any) {
     console.error('SMTP test failed:', error);
     return res.status(500).json({ success: false, error: `SMTP Debug: Failed for host ${host}, user ${username}. Error: ${error.message}` });
@@ -374,14 +377,7 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
       `
     };
 
-    const sendMailWithTimeout = (transporter: any, options: any) => {
-      return Promise.race([
-        transporter.sendMail(options),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP connection timed out after 8 seconds')), 8000))
-      ]);
-    };
-
-    await sendMailWithTimeout(transporter, mailOptions);
+    await transporter.sendMail(mailOptions);
     return res.json({ success: true, smtpConfigured: true });
   } catch (error: any) {
     console.error('SMTP 2 status email dispatch failed:', error);
@@ -433,42 +429,7 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
 
 
 
-/**
- * Connection Active testing for specific SMTP
- */
-app.post('/api/admin/test-smtp', async (req, res) => {
-  const { index, host, port, username, password } = req.body;
-  if (!host || !username) {
-    return res.status(400).json({ error: 'Host and Username are required to test connection.' });
-  }
 
-  try {
-    const actualPassword = password; // Decrypted or provided directly in test prompt
-    const transporter = nodemailer.createTransport({
-      host: host,
-      port: Number(port),
-      secure: Number(port) === 465,
-      family: 4,
-      connectionTimeout: 15000,
-      socketTimeout: 15000,
-      auth: {
-        user: username,
-        pass: actualPassword
-      },
-      connectTimeout: 5000
-    } as any);
-
-    await transporter.verify();
-    return res.json({ success: true, status: 'Connected', message: `SMTP Server ${index} connection verified successfully!` });
-  } catch (err) {
-    console.error(`SMTP Test Error:`, err);
-    return res.json({ 
-      success: false, 
-      status: 'Disconnected',
-      error: err instanceof Error ? err.message : String(err)
-    });
-  }
-});
 
 /**
  * Endpoint to extract questions from a document using Gemini AI.
@@ -818,14 +779,7 @@ app.post('/api/exams/submit', async (req, res) => {
       };
 
       try {
-        const sendMailWithTimeout = (transporter: any, options: any) => {
-          return Promise.race([
-            transporter.sendMail(options),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP connection timed out')), 8000))
-          ]);
-        };
-
-        await sendMailWithTimeout(transporter, mailOptions);
+        await transporter.sendMail(mailOptions);
         console.log(`Successfully dispatched SMTP 3 results report email to: ${studentEmail}`);
       } catch (mailErr) {
         console.error('SMTP 3 result email failed but will continue submission:', mailErr);
