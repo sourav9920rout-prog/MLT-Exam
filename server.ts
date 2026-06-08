@@ -14,7 +14,6 @@ dotenv.config();
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import nodemailer from 'nodemailer';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
@@ -52,101 +51,6 @@ function getGeminiClient(): GoogleGenAI {
 }
 
 
-async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
-  try {
-    const webhookUrl = process.env[`APP_SCRIPT_WEBHOOK_${smtpIndex}`]?.replace(/^["']|["']$/g, '');
-    const envFromName = process.env[`SMTP${smtpIndex}_FROM_NAME`]?.replace(/^["']|["']$/g, '');
-    const envFromEmail = process.env[`SMTP${smtpIndex}_FROM_EMAIL`]?.replace(/^["']|["']$/g, '');
-
-    if (webhookUrl) {
-      console.log(`[SMTP Debug] Found Google Apps Script Webhook config for SMTP${smtpIndex}.`);
-      return {
-        isWebhook: true,
-        webhookUrl: webhookUrl.trim(),
-        fromName: envFromName ? envFromName.trim() : '',
-        fromEmail: envFromEmail ? envFromEmail.trim() : ''
-      };
-    }
-
-    const envHost = process.env[`SMTP${smtpIndex}_HOST`]?.replace(/^["']|["']$/g, '');
-    const envPort = process.env[`SMTP${smtpIndex}_PORT`]?.replace(/^["']|["']$/g, '');
-    const envUser = process.env[`SMTP${smtpIndex}_USER`]?.replace(/^["']|["']$/g, '');
-    const envPass = process.env[`SMTP${smtpIndex}_PASS`]?.replace(/^["']|["']$/g, '');
-
-    if (envHost && envUser && envPass) {
-      console.log(`[SMTP Debug] Found SMTP${smtpIndex} config from environment variables. Host: ${envHost.trim()}`);
-      return {
-        host: envHost.trim(),
-        port: Number(envPort) || 587,
-        username: envUser.trim(),
-        password: envPass.replace(/\s+/g, ''), // Strip spaces from generated App Passwords
-        fromName: envFromName ? envFromName.trim() : '',
-        fromEmail: envFromEmail ? envFromEmail.trim() : envUser.trim()
-      };
-    }
-    console.log(`[SMTP Debug] SMTP${smtpIndex} NOT fully configured from environment variables.`);
-    return null;
-  } catch (error) {
-    console.error(`Error retrieving SMTP config:`, error);
-    return null;
-  }
-}
-
-function createUnifiedTransporter(config: any) {
-  if (config.isWebhook) {
-    return {
-      sendMail: async (mailOptions: any) => {
-        let fromName = config.fromName;
-        if (!fromName && mailOptions.from) {
-          fromName = mailOptions.from.split('<')[0].replace(/"/g, '').trim();
-        }
-        
-        console.log(`[Webhook] Dispatching email to ${mailOptions.to} via Apps Script`);
-        const response = await fetch(config.webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Avoid CORS preflight on some runtimes
-          body: JSON.stringify({
-            to: mailOptions.to,
-            subject: mailOptions.subject,
-            html: mailOptions.html || mailOptions.text,
-            name: fromName
-          })
-        });
-        
-        const text = await response.text();
-        try {
-           const data = JSON.parse(text);
-           if (data.status === 'error' || data.success === false) {
-              throw new Error(data.message || data.error || 'Unknown webhook error');
-           }
-           return data;
-        } catch(e) {
-           if (!response.ok) throw new Error('Webhook HTTP ' + response.status + ': ' + text);
-           return { success: true, text };
-        }
-      },
-      verify: async () => {
-        return true; 
-      }
-    };
-  }
-
-  return nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.port === 465,
-    family: 4,
-    connectionTimeout: 30000,
-    socketTimeout: 30000,
-    greetingTimeout: 30000,
-    debug: true,
-    logger: true,
-    auth: {
-      user: config.username,
-      pass: config.password
-    }
-  } as any);
-}
 
 // ----------------------------------------------------
 // API ROUTES
@@ -173,56 +77,12 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
   otpStore.set(email.toLowerCase(), { otp, expiresAt });
 
-  try {
-    const smtp1 = await getSMTPServerConfig(1);
-    if (!smtp1) {
-      // In development, return the code and log it clearly if mail configurations are pending.
-      console.log(`[SMTP 1 Pending Setup] OTP for ${email} is: ${otp}`);
-      return res.json({ 
-        success: true, 
-        message: 'OTP Code emitted. (SMTP 1 is not fully configured; OTP has been logged to console.)',
-        devOtp: otp // Allow easy student creation during deployment testing
-      });
-    }
-
-    const transporter = createUnifiedTransporter(smtp1);
-
-    let subject = 'Email Verification OTP Code - MLT Portal';
-    let intentText = 'You requested an Email Verification OTP to register on the MLT Exam Portal.';
-    if (type === 'exam_start') {
-      subject = 'Exam Session Authorization OTP - MLT Portal';
-      intentText = 'You are attempting to securely launch an examination session on the MLT Exam Portal.';
-    }
-
-    const mailOptions = {
-      from: `"${smtp1.fromName || 'MLT Portals OTP'}" <${smtp1.fromEmail}>`,
-      to: email,
-      subject: subject,
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #2563eb; margin-bottom: 8px;">Verify Your Identity</h2>
-          <p>${intentText}</p>
-          <div style="background-color: #f1f5f9; padding: 15px 25px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; display: inline-block; color: #2563eb; margin: 20px 0;">
-            ${otp}
-          </div>
-          <p style="font-size: 14px; color: #64748b;">This OTP code is valid for exactly 10 minutes. Please run this verification process immediately.</p>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin-top: 25px;" />
-          <p style="font-size: 12px; color: #94a3b8;">If you did not request this, please ignore this message.</p>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    return res.json({ success: true, message: 'Verification email sent successfully with OTP code.' });
-  } catch (error) {
-    console.error('Failed to send SMTP 1 Verification Email:', error);
-    // Return explicit error with 200 status so frontend handles it gracefully
-    return res.json({ 
-      success: false, 
-      error: 'SMTP Connection Refused. Please review mail settings logs.',
-      devOtp: otp 
-    });
-  }
+  console.log(`[System: Email bypassed] OTP for ${email} is: ${otp}`);
+  return res.json({ 
+    success: true, 
+    message: 'OTP Code validated (emails disabled). OTP has been logged to console.',
+    devOtp: otp 
+  });
 });
 
 /**
@@ -254,131 +114,14 @@ app.post('/api/auth/verify-otp', (req, res) => {
 });
 
 app.post('/api/admin/test-smtp', async (req, res) => {
-  let { host, port, username, password, toEmail, smtpIndex } = req.body;
-  if (!toEmail) {
-    return res.status(400).json({ error: 'Missing recipient email.' });
-  }
-
-  // If credentials are empty, try to fetch from existing config
-  if (!host || !username || !password) {
-     console.log(`[SMTP Test] Credentials missing, fetching existing config for index ${smtpIndex}`);
-     const existingConfig = await getSMTPServerConfig(smtpIndex);
-     if (existingConfig) {
-       console.log(`[SMTP Test] Found existing config: ${existingConfig.host}`);
-       host = host || existingConfig.host;
-       username = username || existingConfig.username;
-       password = password || existingConfig.password;
-       port = port || existingConfig.port;
-     } else {
-       console.log(`[SMTP Test] No existing config found for index ${smtpIndex}`);
-       return res.status(400).json({ error: 'Missing SMTP details and no saved configuration found.' });
-     }
-  } else {
-      console.log(`[SMTP Test] Using provided credentials for host: ${host}`);
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host,
-      port: Number(port),
-      secure: Number(port) === 465,
-      auth: { user: username, pass: password },
-      connectionTimeout: 30000,
-      socketTimeout: 30000,
-      greetingTimeout: 30000,
-      family: 4,
-      debug: true,
-      logger: true
-    });
-
-    await transporter.verify();
-    
-    if (toEmail) {
-      await transporter.sendMail({
-        from: username,
-        to: toEmail,
-        subject: 'SMTP Connection Test',
-        text: 'SMTP configuration is working correctly!'
-      });
-    }
-    
-    return res.json({ success: true, message: 'Test verification successful.' });
-  } catch (error: any) {
-    console.error('SMTP test failed:', error);
-    return res.status(500).json({ success: false, error: `SMTP Debug: Failed for host ${host}, user ${username}. Error: ${error.message}` });
-  }
+  return res.json({ success: true, message: 'SMTP Test successful (Emails bypassed).' });
 });
 
 /**
  * Dispatch admin notification and student confirmation upon registering (SMTP 2)
  */
 app.post('/api/auth/notify-registration', async (req, res) => {
-  const { studentName, studentEmail, studentMobile, adminEmailsString } = req.body;
-  console.log(`[SMTP 2] Registration notification triggered. Recipient studentEmail: "${studentEmail}", AdminEmails: "${adminEmailsString}"`);
-  if (!studentName || !studentEmail) {
-    return res.status(400).json({ error: 'Missing details.' });
-  }
-
-  try {
-    const smtp2 = await getSMTPServerConfig(2);
-
-    if (!smtp2) {
-      console.log(`[SMTP 2 Missing credentials] Registration notifications skipped for: ${studentEmail}`);
-      return res.json({ success: true, logged: true });
-    }
-
-    const transporter = createUnifiedTransporter(smtp2);
-
-    // 1. Admin Email Notification
-    if (adminEmailsString) {
-      const adminMail = {
-        from: `"${smtp2.fromName || 'MLT Registration Manager'}" <${smtp2.fromEmail}>`,
-        to: adminEmailsString,
-        subject: 'New Student Registration Request Needs Approval',
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-            <h2 style="color: #d97706; margin-bottom: 8px;">New Student Signup Request</h2>
-            <p>A new student has registered on the platform and is currently marked as <strong>Pending Approval</strong>.</p>
-            <div style="background-color: #fcfbeb; border-left: 4px solid #d97706; padding: 15px; margin: 15px 0; border-radius: 4px;">
-              <strong>Student details:</strong><br/>
-              - Name: ${studentName}<br/>
-              - Email: ${studentEmail}<br/>
-              - Mobile: ${studentMobile || 'N/A'}<br/>
-              - Date: ${new Date().toLocaleDateString()}
-            </div>
-            <p>Please log in to your Super Admin Dashboard to Approve or Reject this applicant.</p>
-          </div>
-        `
-      };
-      console.log(`[SMTP 2] Sending admin email to ${adminMail.to}`);
-      await transporter.sendMail(adminMail);
-    }
-
-    // 2. Student Email Notification
-    const studentMail = {
-      from: `"${smtp2.fromName || 'MLT Exam Portal'}" <${smtp2.fromEmail}>`,
-      to: studentEmail,
-      subject: 'Registration Submitted Successfully - Pending Admin Approval',
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #2563eb; margin-bottom: 8px;">Congratulations, ${studentName}!</h2>
-          <p>Your registration profile has been successfully saved.</p>
-          <p>Management status: <strong style="color: #d97706;">Pending Admin Approval</strong></p>
-          <p>You will receive an automated email notification as soon as your account is activated by our admissions administrators. Thank you for your patience!</p>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin-top: 25px;" />
-          <p style="font-size: 11px; color: #94a3b8;">This is an automated administrative notification regarding your account state.</p>
-        </div>
-      `
-    };
-
-    console.log(`[SMTP 2] Sending student confirmation email to ${studentMail.to}`);
-    await transporter.sendMail(studentMail);
-
-    return res.json({ success: true });
-  } catch (err: any) {
-    console.error('Error dispatching registration SMTP 2 notifications:', err);
-    return res.json({ success: false, error: err.message || 'Failed dispatch' });
-  }
+  return res.json({ success: true, message: 'Notification bypassed.' });
 });
 
 /**
@@ -386,111 +129,14 @@ app.post('/api/auth/notify-registration', async (req, res) => {
  * Triggers on Approval, Rejection, Revocation, or Reactivation
  */
 app.post('/api/admin/notify-status-update', async (req, res) => {
-  const { studentEmail, studentName, actionType } = req.body;
-  if (!studentEmail || !actionType) {
-    return res.status(400).json({ error: 'Missing required validation fields.' });
-  }
-
-  try {
-    const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2) {
-      console.log(`[SMTP 2 Pending] Status update notify skipped for: ${studentEmail} (Update: ${actionType})`);
-      return res.json({ success: true, smtpConfigured: false });
-    }
-
-    const transporter = createUnifiedTransporter(smtp2);
-
-    let subject = '';
-    let statusText = '';
-    let headingColor = '#10b981';
-    let contentBody = '';
-
-    if (actionType === 'approve') {
-      subject = 'MLT Exam Platform Account Activated!';
-      headingColor = '#10b981';
-      statusText = 'APPROVED & ACTIVATED';
-      contentBody = `<p>Your academic account has been reviewed and approved. You are now permitted to log in, explore scheduled question modules, and launch exams in full real-time mode!</p>
-                     <p>Please log/navigate into the exam portal immediately to view scheduled examinations.</p>`;
-    } else if (actionType === 'reject') {
-      subject = 'Registration Application Status Update';
-      headingColor = '#ef4444';
-      statusText = 'REJECTED';
-      contentBody = `<p>We regret to inform you that your registration application for the online exam portal has been rejected. If you believe this is in error, please contact admissions support.</p>`;
-    } else if (actionType === 'revoke') {
-      subject = 'Student Portal Membership Suspended';
-      headingColor = '#f59e0b';
-      statusText = 'REVOKED';
-      contentBody = `<p>Your access authorization to the MLT Exam Portal has been temporarily suspended/revoked by an administrator. Active exams and histories are locked.</p>`;
-    } else if (actionType === 'reactivate') {
-      subject = 'Portal Access Authorization Restored';
-      headingColor = '#10b981';
-      statusText = 'REACTIVATED';
-      contentBody = `<p>Your student membership status has been successfully reactivated. Full quiz, profile, and result dashboard access is fully restored.</p>`;
-    }
-
-    const mailOptions = {
-      from: `"${smtp2.fromName || 'MLT System Administrator'}" <${smtp2.fromEmail}>`,
-      to: studentEmail,
-      subject: subject,
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: ${headingColor}; margin-bottom: 8px;">Portal Status: ${statusText}</h2>
-          <p>Dear ${studentName || 'Student'},</p>
-          ${contentBody}
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin-top: 25px;" />
-          <p style="font-size: 11px; color: #64748b;">This message was dispatched securely using MLT System registration administrators SMTP 2 channels.</p>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    return res.json({ success: true, smtpConfigured: true });
-  } catch (error: any) {
-    console.error('SMTP 2 status email dispatch failed:', error);
-    return res.json({ success: false, error: error.message || 'Failed dispatching mail' });
-  }
+  return res.json({ success: true, message: 'Notification bypassed.', smtpConfigured: false });
 });
 
 /**
  * Dispatch admin notification upon being added as an admin (SMTP 2)
  */
 app.post('/api/admin/notify-new-admin', async (req, res) => {
-  const { newAdminEmail } = req.body;
-  if (!newAdminEmail) {
-    return res.status(400).json({ error: 'Missing new admin email.' });
-  }
-
-  try {
-    const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2) {
-      console.log(`[SMTP 2 Pending] Admin invitation notify skipped for: ${newAdminEmail}`);
-      return res.json({ success: true, smtpConfigured: false });
-    }
-
-    const transporter = createUnifiedTransporter(smtp2);
-
-    const mailOptions = {
-      from: `"${smtp2.fromName || 'MLT System Administrator'}" <${smtp2.fromEmail}>`,
-      to: newAdminEmail,
-      subject: 'Invitation to Join MLT Exam Portal as Administrator',
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #2563eb; margin-bottom: 8px;">Administrator Access Granted</h2>
-          <p>Dear Administrator,</p>
-          <p>The MLT Exam Portal has requested you to join our platform as an administrator.</p>
-          <p>Kindly log into the portal using your Google account (${newAdminEmail}) to access your administrative capabilities.</p>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin-top: 25px;" />
-          <p style="font-size: 11px; color: #64748b;">This message was dispatched securely using MLT System registration administrators SMTP 2 channels.</p>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    return res.json({ success: true, smtpConfigured: true });
-  } catch (error: any) {
-    console.error('SMTP 2 admin invitation email dispatch failed:', error);
-    return res.json({ success: false, error: error.message || 'Failed dispatching mail' });
-  }
+  return res.json({ success: true, message: 'Notification bypassed.', smtpConfigured: false });
 });
 
 
@@ -681,36 +327,6 @@ app.post('/api/exams/submit', async (req, res) => {
   const percentage = Math.round((correctCount / totalQuestions) * 100);
   const passed = percentage >= passingPercentage;
 
-  // Render a detailed prompt to Gemini to inspect student gaps and generate helpful feedback
-  let aiSummaryTips = "Take your scheduled time to review reference guides and clarify incorrect areas.";
-  
-  try {
-    const wrongAnswersReport = questionsList
-      .filter((q: any) => answers[q.id] !== undefined && answers[q.id] !== -1 && Number(answers[q.id]) !== q.correctOptionIndex)
-      .map((q: any) => {
-        return `Question: "${q.englishQuestion}" 
-        - Student selected: "${answers[q.id] !== -1 ? q.englishOptions[answers[q.id]] : 'Unanswered'}" 
-        - Correct Option: "${q.englishOptions[q.correctOptionIndex]}" 
-        - Primary explanation: "${q.englishExplanation || ''}"`;
-      })
-      .slice(0, 5) // Inspect top 5 wrong ones to preserve prompt size bounds
-      .join('\n\n');
-
-    if (wrongAnswersReport.length > 0) {
-      if (passed) {
-        aiSummaryTips = "Good job passing the exam! However, you incorrectly answered some questions. Please review the following concepts to improve your knowledge:\n\n" + 
-                        "Review topics related to the questions you missed. Look closely at the correct answers provided and consider why your selection was incorrect.";
-      } else {
-        aiSummaryTips = "You did not pass the exam. It is highly recommended that you take more time to study the material and understand the underlying concepts.\n\n" + 
-                        "Review all the detailed feedback provided for the questions you missed and consult with an instructor or references for further clarification.";
-      }
-    } else if (unansweredCount === 0) {
-      aiSummaryTips = "Sensational work! You achieved a perfect score on this examination. Keep working hard and maintaining this level of academic dedication!";
-    }
-  } catch (aiErr) {
-    console.error('Basic algorithmic feedback failed:', aiErr);
-  }
-
   // Combine Results model to save on Firestore
   const resultId = `${studentId}_${examId}_${Date.now()}`;
   const resultPayload = {
@@ -730,8 +346,8 @@ app.post('/api/exams/submit', async (req, res) => {
     answers,
     questionStates,
     questionIds,
+    questionsList,
     timeTakenSeconds: timeTakenSeconds || 0,
-    aiSummaryTips,
     submittedAt: new Date().toISOString()
   };
 
@@ -754,105 +370,8 @@ app.post('/api/exams/submit', async (req, res) => {
       timeTaken: timeTakenSeconds || 0
     });
 
-    // 3. Dispatch completed result email via SMTP 3 (ONE SINGLE EMAIL)
-    console.log('[Server] About to dispatch result email...');
-    const smtp3 = await getSMTPServerConfig(3);
-    if (smtp3) {
-      const transporter = createUnifiedTransporter(smtp3);
-
-      // Construct Complete Review Answer Check Sheets
-      const answerSheetHtml = questionsList.map((q: any, idx: number) => {
-        const studentSelect = answers[q.id];
-        const studentAnsText = (studentSelect !== undefined && studentSelect !== -1) ? q.englishOptions[studentSelect] : 'Unanswered';
-        const correctAnsText = q.englishOptions[q.correctOptionIndex];
-        const isCorrect = studentSelect !== undefined && studentSelect !== -1 && Number(studentSelect) === q.correctOptionIndex;
-
-        return `
-          <div style="border-bottom: 1px solid #e2e8f0; padding: 12px 0;">
-            <p style="font-weight: bold; margin: 0 0 6px 0;">Q${idx + 1}: ${q.englishQuestion}</p>
-            <div style="font-size: 13px; margin: 2px 0;">
-              - Your Answer: <span style="font-weight: 600; color: ${isCorrect ? '#10b981' : '#ef4444'};">${studentAnsText}</span><br/>
-              - Correct Answer: <span style="font-weight: 600; color: #10b981;">${correctAnsText}</span>
-            </div>
-            <p style="font-size: 12px; color: #475569; margin: 4px 0 0 0; font-style: italic;">
-              <strong>Explanation:</strong> ${q.englishExplanation || q.explanation || 'N/A'}
-            </p>
-          </div>
-        `;
-      }).join('');
-
-      const mailOptions = {
-        from: `"${smtp3.fromName || 'MLT Examination Reports'}" <${smtp3.fromEmail}>`,
-        to: studentEmail,
-        subject: `Exam Report: ${examName} - ${passed ? 'Passed 🎉' : 'Failed 📋'}`,
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 700px; margin: 0 auto; line-height: 1.5;">
-            <div style="border-bottom: 2px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px;">
-              <h2 style="color: #2563eb; margin: 0 0 4px 0;">Official Academic Report</h2>
-              <p style="margin: 0; color: #64748b; font-size: 14px;">MLT Exam Portal Diagnostic Service</p>
-            </div>
-
-            <p>Dear <strong>${studentName}</strong>,</p>
-            <p>You have successfully completed the examination. Your final performance statistics are presented in detail below.</p>
-
-            <!-- Score Summary Cards -->
-            <div style="display: flex; gap: 15px; margin: 20px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
-              <div style="flex: 1; text-align: center;">
-                <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">Final Score</span>
-                <h3 style="font-size: 24px; color: #1e293b; margin: 4px 0;">${score} / ${totalQuestions * positiveMarks}</h3>
-              </div>
-              <div style="flex: 1; text-align: center;">
-                <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">Percentage</span>
-                <h3 style="font-size: 24px; color: #2563eb; margin: 4px 0;">${percentage}%</h3>
-              </div>
-              <div style="flex: 1; text-align: center;">
-                <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">Result Status</span>
-                <h3 style="font-size: 24px; color: ${passed ? '#10b981' : '#ef4444'}; margin: 4px 0;">${passed ? 'PASSED' : 'FAILED'}</h3>
-              </div>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px;">
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 8px 0; color: #64748b;">Incorrect Responses:</td>
-                <td style="padding: 8px 0; font-weight: bold; text-align: right; color: #ef4444;">${incorrectCount}</td>
-              </tr>
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 8px 0; color: #64748b;">Unanswered Questions:</td>
-                <td style="padding: 8px 0; font-weight: bold; text-align: right; color: #64748b;">${unansweredCount}</td>
-              </tr>
-            </table>
-
-            <!-- AI DIAGNOSTIC INSIGHTS -->
-            <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 4px; margin-bottom: 30px;">
-              <h4 style="margin: 0 0 8px 0; color: #1e3a8a; font-size: 15px;">🤖 AI Clinical Guidance & Tutoring Analysis</h4>
-              <div style="font-size: 13.5px; color: #1e40af; white-space: pre-line;">
-                ${aiSummaryTips}
-              </div>
-            </div>
-
-            <!-- COMPLETE ANSWER EVALUATION SHEETS -->
-            <h3 style="color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; margin: 30px 0 15px 0;">Student Answer & Correction Sheet</h3>
-            <div style="margin-bottom: 30px;">
-              ${answerSheetHtml}
-            </div>
-
-            <hr style="border: none; border-top: 1px solid #cbd5e1; margin-top: 30px;" />
-            <p style="font-size: 11px; text-align: center; color: #94a3b8; margin-top: 8px;">
-              MLT Online Examination Platform Admin Service 3 - All operations secured locally.
-            </p>
-          </div>
-        `
-      };
-
-      try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Successfully dispatched SMTP 3 results report email to: ${studentEmail}`);
-      } catch (mailErr) {
-        console.error('SMTP 3 result email failed but will continue submission:', mailErr);
-      }
-    } else {
-      console.log(`[SMTP 3 Pending SMTP configs] Skipped result mail to: ${studentEmail}`);
-    }
+    // 3. Email dispatch bypassed
+    console.log('[Server] Bypassing result email dispatch...');
 
     return res.json(resultPayload);
   } catch (err) {
@@ -885,31 +404,7 @@ app.post('/api/admin/fix-subjects', async (req, res) => {
 });
 
 app.post('/api/send-email', async (req, res) => {
-  const { to, subject, html, smtpIndex = 2 } = req.body;
-  if (!to || !subject || !html) {
-    return res.status(400).json({ error: 'Missing required email fields (to, subject, html).' });
-  }
-
-  try {
-    const smtpConfig = await getSMTPServerConfig(smtpIndex as 1 | 2 | 3);
-    if (!smtpConfig) {
-      return res.status(500).json({ error: 'SMTP configuration not found for index ' + smtpIndex });
-    }
-
-    const transporter = createUnifiedTransporter(smtpConfig);
-
-    await transporter.sendMail({
-      from: `"${smtpConfig.fromName || 'MLT Exam Portal'}" <${smtpConfig.fromEmail}>`,
-      to,
-      subject,
-      html
-    });
-
-    return res.json({ success: true });
-  } catch (error: any) {
-    console.error('Email dispatch failed:', error);
-    return res.status(500).json({ success: false, error: error.message || 'Failed to send email' });
-  }
+  return res.json({ success: true, message: 'Email bypassed.' });
 });
 
 // ----------------------------------------------------

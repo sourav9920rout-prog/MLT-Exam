@@ -655,17 +655,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* CLINICAL AI GENERATED INSIGHT REPORT */}
-                <div className="bg-blue-600 text-white rounded-xl p-6 md:p-8 space-y-4 shadow-md border border-blue-500">
-                  <div className="flex items-center gap-2 bg-white/10 max-w-fit px-3 py-1.5 rounded-lg border border-white/10">
-                    <CheckCircle className="text-amber-300 animate-pulse" size={16} />
-                    <span className="text-xs font-mono font-bold tracking-wider uppercase text-yellow-100">🤖 AI Diagnostic Tutoring Recommendation</span>
-                  </div>
-                  <div className="text-sm leading-relaxed whitespace-pre-line text-blue-50">
-                    {reviewResult.aiSummaryTips}
-                  </div>
-                </div>
-
                 {/* Historical answers mapping list */}
                 <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
                   <h4 className="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Questions Review Block</h4>
@@ -678,7 +667,8 @@ export default function App() {
                         return (
                           <div key={q.id} className="py-4 space-y-3">
                             <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-[10px] font-mono text-slate-600">Question #{idx + 1}</span>
-                            <h5 className="font-medium text-slate-900 leading-relaxed text-sm md:text-base">{q.questionText}</h5>
+                            <h5 className="font-medium text-slate-900 leading-relaxed text-sm md:text-base whitespace-pre-wrap">{q.englishQuestion}</h5>
+                            {q.hindiQuestion && <h5 className="font-medium text-slate-800 leading-relaxed text-sm md:text-base mt-2 whitespace-pre-wrap">{q.hindiQuestion}</h5>}
                             {q.imageUrl && (
                                <div className="flex justify-center mt-2 mb-3">
                                   <img src={q.imageUrl} alt="Reference Detail" className="max-w-full h-auto max-h-48 object-contain rounded-lg border border-slate-200" referrerPolicy="no-referrer" />
@@ -686,7 +676,7 @@ export default function App() {
                             )}
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                              {q.options.map((optText: string, oIdx: number) => {
+                              {q.englishOptions.map((optText: string, oIdx: number) => {
                                 const isSelected = studentChoiceIdx === oIdx;
                                 const isCorrectKey = q.correctOptionIndex === oIdx;
 
@@ -706,6 +696,7 @@ export default function App() {
                                     </span>
                                     <div className="flex flex-col gap-2">
                                       {optText && <span>{optText}</span>}
+                                      {q.hindiOptions?.[oIdx] && <span className="text-slate-600">{q.hindiOptions[oIdx]}</span>}
                                       {q.optionImageUrls?.[oIdx] && (
                                         <img src={q.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 object-contain rounded border border-slate-200" referrerPolicy="no-referrer" />
                                       )}
@@ -716,7 +707,7 @@ export default function App() {
                             </div>
 
                             <p className="text-xs text-slate-550 leading-relaxed font-mono bg-slate-100 p-3 rounded-lg mt-3 border border-slate-200">
-                              <strong className="text-slate-800">Rationale Guide:</strong> {q.explanation || 'No rationale linked yet.'}
+                              <strong className="text-slate-800">Rationale Guide:</strong> {q.englishExplanation || q.hindiExplanation || 'No rationale linked yet.'}
                             </p>
                           </div>
                         );
