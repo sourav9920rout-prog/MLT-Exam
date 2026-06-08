@@ -37,7 +37,8 @@ import {
   ListOrdered,
   Eye,
   BriefcaseMedical,
-  Vote
+  Vote,
+  Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -451,7 +452,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* SYSTEM NAV HEADER HEADER */}
-      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-8 sticky top-0 z-30">
+      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-8 sticky top-0 z-30 print:hidden">
         <div className="flex items-center gap-3">
           <svg viewBox="0 0 225 150" className="w-8 h-6 md:w-10 md:h-7 shrink-0 rounded-sm overflow-hidden border border-slate-200" xmlns="http://www.w3.org/2000/svg">
             <rect width="225" height="50" fill="#FF9933"/>
@@ -637,12 +638,20 @@ export default function App() {
                     <h3 className="text-xl font-bold text-slate-900">Quiz Analytics: {reviewResult.examName}</h3>
                     <p className="text-xs text-slate-550">Review correct options, diagnostic justifications, and AI Clinical guidance</p>
                   </div>
-                  <button
-                    onClick={() => setReviewResult(null)}
-                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-200 hover:bg-slate-300 cursor-pointer transition"
-                  >
-                    Back to Results
-                  </button>
+                  <div className="flex gap-2 items-center print:hidden">
+                    <button
+                      onClick={() => window.print()}
+                      className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 cursor-pointer flex items-center gap-2 transition"
+                    >
+                      <Printer size={14} /> Print / Save as PDF
+                    </button>
+                    <button
+                      onClick={() => setReviewResult(null)}
+                      className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-200 hover:bg-slate-300 cursor-pointer transition"
+                    >
+                      Back to Results
+                    </button>
+                  </div>
                 </div>
 
                 {/* Score and percentage cards */}

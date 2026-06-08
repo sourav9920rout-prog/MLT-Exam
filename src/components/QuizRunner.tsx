@@ -54,6 +54,7 @@ export default function QuizRunner({
   const [violations, setViolations] = useState(0);
   const [banned, setBanned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isFrozen, setIsFrozen] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitModalMessage, setSubmitModalMessage] = useState('');
   
@@ -260,6 +261,7 @@ export default function QuizRunner({
   useEffect(() => {
     if (examStarted && !loading && !submitting && sectionTimeLeft === 0 && sections.length > 0) {
       clearInterval(timerInterval.current);
+      setIsFrozen(true);
       handleSectionEndAuto();
     }
   }, [sectionTimeLeft, examStarted, loading, submitting, sections.length]);
@@ -301,6 +303,14 @@ export default function QuizRunner({
     };
   }, [loading, submitting, examStarted]);
 
+  useEffect(() => {
+    if (violations >= 8 && !submitting && !isFrozen) {
+      onNotify("Maximum violations reached. Auto-submitting exam.", true);
+      setIsFrozen(true);
+      executeQuizSubmission();
+    }
+  }, [violations, submitting, isFrozen]);
+
   const triggerAutosave = async () => {
     try {
       const payload: Partial<ExamAttempt> = {
@@ -333,7 +343,7 @@ export default function QuizRunner({
 
   const handleSectionEndAuto = () => {
       console.log(`[QuizRunner] handleSectionEndAuto triggered. currentSectionIdx: ${currentSectionIdx}, sectionsLength: ${sections.length}`);
-      onNotify(`Section completed successfully. The next section will now begin.`);
+      onNotify(currentSectionIdx < sections.length - 1 ? `Section time up! Freezing and advancing...` : `Time up! Handing over to evaluation...`, true);
       
       // Auto-save the states for safety
       triggerAutosave();
@@ -345,6 +355,7 @@ export default function QuizRunner({
               setCurrentSectionIdx(nextSec);
               setCurrentIdx(0);
               setSectionTimeLeft(nextTime);
+              setIsFrozen(false);
               
               // Ensure we save the next section immediately so refresh doesn't jump back
               const forceSave = async () => {
@@ -361,6 +372,7 @@ export default function QuizRunner({
       } else {
           // Changed to true flag for onNotify so they know it's auto-submitting
           console.log(`[QuizRunner] Auto-submitting exam.`);
+          setSubmitting(true);
           onNotify(`Final section completed successfully. Finalizing exam...`);
           setTimeout(() => executeQuizSubmission(), 1500);
       }
@@ -666,8 +678,12 @@ export default function QuizRunner({
   }
 
   return (
-    <div className="w-full min-h-screen bg-slate-100 flex flex-col font-sans select-none overflow-hidden">
+    <div className={`fixed inset-0 z-50 w-full h-full bg-slate-100 flex flex-col font-sans select-none overflow-hidden ${(isFrozen || submitting) ? 'pointer-events-none opacity-[0.98]' : ''}`}>
       
+      {(isFrozen || submitting) && (
+        <div className="fixed inset-0 z-[9999] bg-transparent cursor-not-allowed"></div>
+      )}
+
       {/* Submit Confirmation Modal */}
       {showSubmitModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -749,18 +765,18 @@ export default function QuizRunner({
       </div>
 
       {/* MAIN CONTAINER */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row landscape:flex-row flex-1 overflow-hidden">
 
           {/* LEFT: QUESTION PANEL */}
           <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
 
              {/* SUB HEADER 2: Q.No and Marks */}
-             <div className="flex justify-between items-center bg-white border-b border-slate-200 px-4 py-2 shrink-0">
+             <div className="flex justify-between items-center bg-white border-b border-slate-200 px-3 md:px-4 py-2 shrink-0">
                 <div className="flex items-center gap-6">
                     <span className="font-bold font-sans text-sm text-black">Q.No: <span className="text-lg">{currentIdx + 1}</span></span>
                 </div>
                 <div className="flex items-center gap-1.5 font-bold text-sm shadow-sm border border-slate-200 rounded px-2 text-black bg-white">
-                    <span>Marks</span>
+                    <span className="hidden sm:inline">Marks</span>
                     <span className="bg-green-600 text-white px-1.5 rounded-sm text-xs py-px">+{exam.positiveMarks}</span>
                     <span className="text-slate-300">|</span>
                     <span className="bg-red-600 text-white px-1.5 rounded-sm text-xs py-px">-{exam.negativeMarks}</span>
@@ -768,29 +784,29 @@ export default function QuizRunner({
              </div>
              
              {/* Question Area */}
-             <div className="flex-1 overflow-y-auto px-6 py-6 pb-20">
+             <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 pb-20">
                  
                  {currentQuestion.imageUrl && (
                      <div className="mb-5 flex justify-center">
-                         <img src={currentQuestion.imageUrl} alt="Question Reference" className="max-w-full h-auto max-h-64 object-contain rounded-xl border border-slate-200" referrerPolicy="no-referrer" />
+                         <img src={currentQuestion.imageUrl} alt="Question Reference" className="max-w-full h-auto max-h-48 md:max-h-64 object-contain rounded-xl border border-slate-200" referrerPolicy="no-referrer" />
                      </div>
                  )}
 
                  {examLanguage === 'english' && (
                      <div className="mb-6">
-                         <p className="text-[15px] font-medium text-slate-900 leading-snug mb-5 whitespace-pre-wrap">
+                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-4 md:mb-5 whitespace-pre-wrap">
                            {currentQuestion.englishQuestion}
                          </p>
-                         <div className="space-y-4">
+                         <div className="space-y-3 md:space-y-4">
                            {currentQuestion.englishOptions.map((opt, oIdx) => {
                               const isSel = answers[currentQuestion.id] === oIdx;
                               return (
-                                <label key={oIdx} className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition w-fit pr-4 py-1 rounded">
-                                   <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0" />
-                                   <div className="flex flex-col gap-2">
-                                     {opt && <span className="text-[15px] text-slate-800 ">{opt}</span>}
+                                <label key={oIdx} className="flex items-start gap-3 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-4 py-1.5 md:py-1 rounded">
+                                   <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0 shrink-0" />
+                                   <div className="flex flex-col gap-2 flex-1">
+                                     {opt && <span className="text-[14px] md:text-[15px] text-slate-800 leading-tight md:leading-normal">{opt}</span>}
                                      {currentQuestion.optionImageUrls?.[oIdx] && (
-                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
+                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
                                      )}
                                    </div>
                                 </label>
@@ -802,19 +818,19 @@ export default function QuizRunner({
 
                  {examLanguage === 'hindi' && (
                      <div className="mb-6">
-                         <p className="text-[15px] font-medium text-slate-900 leading-snug mb-5 block whitespace-pre-wrap">
+                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-4 md:mb-5 block whitespace-pre-wrap">
                            {currentQuestion.hindiQuestion || currentQuestion.englishQuestion}
                          </p>
-                         <div className="space-y-4">
+                         <div className="space-y-3 md:space-y-4">
                            {(currentQuestion.hindiOptions && currentQuestion.hindiOptions[0] ? currentQuestion.hindiOptions : currentQuestion.englishOptions).map((opt, oIdx) => {
                               const isSel = answers[currentQuestion.id] === oIdx;
                               return (
-                                <label key={oIdx} className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition w-fit pr-4 py-1 rounded">
-                                   <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0" />
-                                   <div className="flex flex-col gap-2">
-                                     {opt && <span className="text-[15px] text-slate-800 ">{opt}</span>}
+                                <label key={oIdx} className="flex items-start gap-3 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-4 py-1.5 md:py-1 rounded">
+                                   <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0 shrink-0" />
+                                   <div className="flex flex-col gap-2 flex-1">
+                                     {opt && <span className="text-[14px] md:text-[15px] text-slate-800 leading-tight md:leading-normal">{opt}</span>}
                                      {currentQuestion.optionImageUrls?.[oIdx] && (
-                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
+                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
                                      )}
                                    </div>
                                 </label>
@@ -827,17 +843,9 @@ export default function QuizRunner({
              </div>
 
              {/* Action Control Bar - Bottom Absolute */}
-             <div className="absolute pl-4 pr-1 py-3 bg-white border-t border-slate-300 w-[100%] flex items-center justify-between bottom-0">
-                 <div className="flex gap-2">
-                     <button onClick={handleMarkReviewAndNext} className="bg-white border border-slate-400 text-slate-700 px-5 py-2.5 text-sm font-semibold rounded hover:bg-slate-100 transition shadow-sm">
-                        Mark for Review & Next
-                     </button>
-                     <button onClick={handleClearResponse} className="bg-white border border-slate-400 text-slate-700 px-5 py-2.5 text-sm font-semibold rounded hover:bg-slate-100 transition shadow-sm">
-                        Clear Response
-                     </button>
-                 </div>
-                 <div className="flex gap-2 bg-slate-200 border-l border-t border-b border-r-0 border-white">
-                      <button onClick={handleSaveAndNext} className="bg-sky-600 text-white px-8 py-2.5 text-sm font-bold rounded shadow hover:bg-sky-700 transition">
+             <div className="absolute px-2 md:pl-4 md:pr-1 py-2 md:py-3 bg-white border-t border-slate-300 w-[100%] flex flex-wrap md:flex-nowrap items-center justify-end bottom-0 gap-2">
+                 <div className="flex gap-2 bg-slate-200 md:border-l md:border-t-0 md:border-b-0 border-white shrink-0">
+                      <button onClick={handleSaveAndNext} className="bg-sky-600 text-white px-8 md:px-12 py-2 md:py-2.5 text-sm md:text-base font-bold rounded shadow hover:bg-sky-700 transition">
                         Save & Next
                      </button>
                  </div>
@@ -845,7 +853,7 @@ export default function QuizRunner({
           </div>
 
           {/* RIGHT: PALETTE PANEL */}
-          <div className="w-[300px] bg-slate-100/80 flex flex-col shrink-0 border-l-[3px] border-slate-300">
+          <div className="w-full md:w-[300px] landscape:w-[260px] bg-slate-100/80 flex flex-col shrink-0 border-t-[3px] md:border-t-0 md:border-l-[3px] landscape:border-t-0 landscape:border-l-[3px] border-slate-300">
               
               {/* Profile Block */}
               <div className="bg-white border-b border-slate-300 flex items-center gap-3 py-2 px-3 shrink-0 drop-shadow-sm z-10">

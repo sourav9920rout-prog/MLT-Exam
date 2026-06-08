@@ -365,45 +365,6 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                 <option value="english">English Only (Faster, Skips Translation)</option>
              </select>
           </div>
-          <button
-            onClick={handleAutoClassify}
-            disabled={classifying || questions.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs transition disabled:opacity-50 shadow-sm"
-          >
-            {classifying ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-            {classifying ? 'Classifying...' : 'Auto-Classify Subjects'}
-          </button>
-          <button
-            onClick={async () => {
-              const confirm = window.confirm('Fix subject mappings?');
-              if (!confirm) return;
-              let changed = 0;
-              for (const q of questions) {
-                const currentSubject = q.subject || '';
-                const subjectLower = currentSubject.toLowerCase().trim();
-                let newSubject = currentSubject;
-                if (subjectLower === 'haematology' || subjectLower === 'hematology' || subjectLower === 'histology') {
-                  newSubject = 'Pathology';
-                } else if (subjectLower === 'serology' || subjectLower === 'parasitology' || subjectLower === 'immunology') {
-                  newSubject = 'Microbiology';
-                } else if (subjectLower === 'physiology') {
-                  newSubject = 'Anatomy';
-                } else if (subjectLower === 'biostatistics' || subjectLower === 'clinical biochemistry') {
-                  newSubject = 'Biochemistry';
-                }
-                if (newSubject !== currentSubject) {
-                  await setDoc(doc(db, 'questionBank', q.id), { subject: newSubject }, { merge: true });
-                  changed++;
-                }
-              }
-              onNotify(`Fixed ${changed} subjects!`);
-              fetchQuestions();
-            }}
-            disabled={classifying || questions.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition disabled:opacity-50 shadow-sm"
-          >
-            Fix Subject Mappings
-          </button>
           <input 
             type="file" 
             accept=".pdf,.doc,.docx,.txt" 
