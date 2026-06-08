@@ -618,7 +618,7 @@ Each question MUST follow this EXACT Schema:
       ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
+      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous. CRITICAL: If the question is related to Hematology or Histology, categorize it as Pathology.)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
@@ -684,7 +684,7 @@ STRICT JSON SCHEMA:
       ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
+      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous. CRITICAL: If the question is related to Hematology or Histology, categorize it as Pathology.)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
@@ -945,6 +945,29 @@ app.post('/api/exams/submit', async (req, res) => {
   } catch (err) {
     console.error('Failed to register exam results:', err);
     return res.status(500).json({ error: 'Failed result compilation' });
+  }
+});
+
+/**
+ * One-time migration route to map Hematology/Histology subjects to Pathology
+ */
+app.post('/api/admin/fix-subjects', async (req, res) => {
+  try {
+    const snap = await getDocs(collection(db, 'questionBank'));
+    let updatedCount = 0;
+    
+    for (const d of snap.docs) {
+      const data = d.data();
+      const subject = data.subject;
+      if (subject === 'Hematology' || subject === 'Histology') {
+        await updateDoc(d.ref, { subject: 'Pathology' });
+        updatedCount++;
+      }
+    }
+    return res.json({ success: true, updatedCount });
+  } catch (err) {
+    console.error('Migration error:', err);
+    return res.status(500).json({ error: String(err) });
   }
 });
 

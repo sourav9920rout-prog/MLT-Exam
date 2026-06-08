@@ -306,6 +306,23 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           >
             <Plus size={16} /> Manual Entry
           </button>
+          <button
+            onClick={async () => {
+              if (confirm('Are you sure you want to map Hematology/Histology questions to Pathology?')) {
+                const res = await fetch('/api/admin/fix-subjects', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                  onNotify(`Successfully updated ${data.updatedCount} questions.`);
+                  fetchQuestions();
+                } else {
+                  onNotify('Error during migration.', true);
+                }
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded text-xs transition shadow-sm"
+          >
+            <RefreshCw size={16} /> Fix Subjects
+          </button>
           {selectedQuestionIds.length > 0 && (
             <button
               onClick={() => setShowBulkDeleteConfirm(true)}
