@@ -53,6 +53,7 @@ async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
     const envFromEmail = process.env[`SMTP${smtpIndex}_FROM_EMAIL`];
 
     if (envHost && envUser && envPass) {
+      console.log(`[SMTP Debug] Found SMTP${smtpIndex} config from environment variables.`);
       return {
         host: envHost,
         port: Number(envPort) || 587,
@@ -62,7 +63,7 @@ async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
         fromEmail: envFromEmail || envUser
       };
     }
-    
+    console.log(`[SMTP Debug] SMTP${smtpIndex} NOT fully configured from environment variables.`);
     return null;
   } catch (error) {
     console.error(`Error retrieving SMTP config:`, error);
@@ -781,7 +782,7 @@ app.post('/api/exams/submit', async (req, res) => {
               - Correct Answer: <span style="font-weight: 600; color: #10b981;">${correctAnsText}</span>
             </div>
             <p style="font-size: 12px; color: #475569; margin: 4px 0 0 0; font-style: italic;">
-              <strong>Explanation:</strong> ${q.englishExplanation || 'N/A'}
+              <strong>Explanation:</strong> ${q.englishExplanation || q.explanation || 'N/A'}
             </p>
           </div>
         `;
