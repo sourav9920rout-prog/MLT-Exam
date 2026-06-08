@@ -54,13 +54,15 @@ export default function AdminManager({ onNotify }: { onNotify: (msg: string, isE
         if (data.success && data.smtpConfigured) {
           onNotify(`Added ${emailLower} as an admin. Invitation email sent!`);
         } else if (data.success && !data.smtpConfigured) {
-          onNotify(`Added ${emailLower} as an admin. (Email skipped: SMTP not configured)`, true);
+          onNotify(`Added ${emailLower} as an admin.`);
+          console.log(`(Email skipped: SMTP not configured)`);
         } else {
-          onNotify(`Added ${emailLower}. Email failed: ${data.error}`, true);
+          onNotify(`Added ${emailLower} as an admin.`);
+          console.warn(`Email failed: ${data.error}`);
         }
       } catch (emailErr) {
-        console.error('Failed to dispatch admin invite email:', emailErr);
-        onNotify(`Added ${emailLower}. Failed to send email (Network Error).`);
+        console.warn('Failed to dispatch admin invite email:', emailErr);
+        onNotify(`Added ${emailLower} as an admin.`);
       }
 
       setNewEmail('');

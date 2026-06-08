@@ -62,13 +62,12 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
         }
         const data = await res.json();
         if (!data.success && data.error) {
-           onNotify(`Status updated, but email to student failed: ${data.error}`, true);
+           console.warn(`Status updated, but email to student failed: ${data.error}`);
         } else if (data.success && data.smtpConfigured === false) {
-           onNotify(`Status updated. (Email skipped: SMTP not configured)`, true);
+           console.log(`Status updated. (Email skipped: SMTP not configured)`);
         }
       } catch (err: any) {
-         console.error('Update email dispatch error:', err);
-         onNotify(`Status updated, but notification email failed to send: ${err.message}`, true);
+         console.warn('Update email dispatch error:', err);
       }
 
       fetchStudents();
