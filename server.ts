@@ -54,12 +54,24 @@ function getGeminiClient(): GoogleGenAI {
 
 async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
   try {
+    const webhookUrl = process.env[`APP_SCRIPT_WEBHOOK_${smtpIndex}`]?.replace(/^["']|["']$/g, '');
+    const envFromName = process.env[`SMTP${smtpIndex}_FROM_NAME`]?.replace(/^["']|["']$/g, '');
+    const envFromEmail = process.env[`SMTP${smtpIndex}_FROM_EMAIL`]?.replace(/^["']|["']$/g, '');
+
+    if (webhookUrl) {
+      console.log(`[SMTP Debug] Found Google Apps Script Webhook config for SMTP${smtpIndex}.`);
+      return {
+        isWebhook: true,
+        webhookUrl: webhookUrl.trim(),
+        fromName: envFromName ? envFromName.trim() : '',
+        fromEmail: envFromEmail ? envFromEmail.trim() : ''
+      };
+    }
+
     const envHost = process.env[`SMTP${smtpIndex}_HOST`]?.replace(/^["']|["']$/g, '');
     const envPort = process.env[`SMTP${smtpIndex}_PORT`]?.replace(/^["']|["']$/g, '');
     const envUser = process.env[`SMTP${smtpIndex}_USER`]?.replace(/^["']|["']$/g, '');
     const envPass = process.env[`SMTP${smtpIndex}_PASS`]?.replace(/^["']|["']$/g, '');
-    const envFromName = process.env[`SMTP${smtpIndex}_FROM_NAME`]?.replace(/^["']|["']$/g, '');
-    const envFromEmail = process.env[`SMTP${smtpIndex}_FROM_EMAIL`]?.replace(/^["']|["']$/g, '');
 
     if (envHost && envUser && envPass) {
       console.log(`[SMTP Debug] Found SMTP${smtpIndex} config from environment variables. Host: ${envHost.trim()}`);
@@ -81,13 +93,54 @@ async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
 }
 
 function createUnifiedTransporter(config: any) {
+  if (config.isWebhook) {
+    return {
+      sendMail: async (mailOptions: any) => {
+        let fromName = config.fromName;
+        if (!fromName && mailOptions.from) {
+          fromName = mailOptions.from.split('<')[0].replace(/"/g, '').trim();
+        }
+        
+        console.log(`[Webhook] Dispatching email to ${mailOptions.to} via Apps Script`);
+        const response = await fetch(config.webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Avoid CORS preflight on some runtimes
+          body: JSON.stringify({
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            html: mailOptions.html || mailOptions.text,
+            name: fromName
+          })
+        });
+        
+        const text = await response.text();
+        try {
+           const data = JSON.parse(text);
+           if (data.status === 'error' || data.success === false) {
+              throw new Error(data.message || data.error || 'Unknown webhook error');
+           }
+           return data;
+        } catch(e) {
+           if (!response.ok) throw new Error('Webhook HTTP ' + response.status + ': ' + text);
+           return { success: true, text };
+        }
+      },
+      verify: async () => {
+        return true; 
+      }
+    };
+  }
+
   return nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.port === 465,
     family: 4,
-    connectionTimeout: 15000,
-    socketTimeout: 15000,
+    connectionTimeout: 30000,
+    socketTimeout: 30000,
+    greetingTimeout: 30000,
+    debug: true,
+    logger: true,
     auth: {
       user: config.username,
       pass: config.password
@@ -230,9 +283,12 @@ app.post('/api/admin/test-smtp', async (req, res) => {
       port: Number(port),
       secure: Number(port) === 465,
       auth: { user: username, pass: password },
-      connectionTimeout: 20000,
-      socketTimeout: 20000,
-      family: 4
+      connectionTimeout: 30000,
+      socketTimeout: 30000,
+      greetingTimeout: 30000,
+      family: 4,
+      debug: true,
+      logger: true
     });
 
     await transporter.verify();
