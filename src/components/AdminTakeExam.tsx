@@ -4,13 +4,11 @@ import { db } from '../utils/firebase.ts';
 import { Exam } from '../types.ts';
 import { Play, Trash2 } from 'lucide-react';
 import QuizRunner from './QuizRunner.tsx';
-import ResultViewer from './ResultViewer.tsx';
 
 export default function AdminTakeExam() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
-  const [result, setResult] = useState<any | null>(null);
 
   const fetchExams = async () => {
     try {
@@ -30,24 +28,16 @@ export default function AdminTakeExam() {
   }, []);
 
   const handleDeleteExam = async (examId: string) => {
-    try {
-      if (!window.confirm("Are you sure you want to completely delete this exam? Students will no longer be able to see or take it.")) return;
-    } catch(e) {}
+    if (!window.confirm("Are you sure you want to completely delete this exam? Students will no longer be able to see or take it.")) return;
     try {
       await deleteDoc(doc(db, 'exams', examId));
+      alert("Exam deleted successfully.");
       fetchExams();
     } catch (err) {
       console.error(err);
+      alert("Error deleting exam.");
     }
   };
-
-  if (result) {
-      return (
-        <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto p-6">
-           <ResultViewer reviewResult={result} onBack={() => { setResult(null); setActiveExam(null); }} />
-        </div>
-      );
-  }
 
   if (activeExam) {
      return (
@@ -59,7 +49,8 @@ export default function AdminTakeExam() {
              studentEmail="admin@mltexamportal.com"
              isAdminTesting={true}
              onFinished={(res) => {
-                 setResult(res);
+                 alert("Exam Completed in Admin Test Mode. Result ID: " + res?.id);
+                 setActiveExam(null);
              }}
              onCancel={() => setActiveExam(null)}
              onNotify={(msg) => console.log(msg)}

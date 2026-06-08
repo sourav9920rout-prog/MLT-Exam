@@ -238,7 +238,7 @@ export default function QuizRunner({
              const response = await fetch('/api/auth/send-otp', {
                  method: 'POST',
                  headers: {'Content-Type': 'application/json'},
-                 body: JSON.stringify({ email: studentEmail, type: 'exam_start' })
+                 body: JSON.stringify({ email: studentEmail })
              });
              const data = await response.json();
              if (response.ok) {
@@ -389,7 +389,6 @@ export default function QuizRunner({
   };
 
   const handleSectionEndAuto = () => {
-      console.log(`[QuizRunner] handleSectionEndAuto triggered. currentSectionIdx: ${currentSectionIdx}, sectionsLength: ${sections.length}`);
       onNotify(`Section completed successfully. The next section will now begin.`);
       
       // Auto-save the states for safety
@@ -417,7 +416,6 @@ export default function QuizRunner({
           }, 3000); // give enough time to read the notification (3s)
       } else {
           // Changed to true flag for onNotify so they know it's auto-submitting
-          console.log(`[QuizRunner] Auto-submitting exam.`);
           onNotify(`Final section completed successfully. Finalizing exam...`);
           setTimeout(() => executeQuizSubmission(), 1500);
       }
@@ -473,7 +471,6 @@ export default function QuizRunner({
   };
 
   const executeQuizSubmission = async () => {
-    console.log(`[QuizRunner] executeQuizSubmission called. submitting: ${submitting}`);
     setSubmitting(true);
     clearInterval(timerInterval.current);
     clearInterval(autosaveInterval.current);
@@ -481,10 +478,8 @@ export default function QuizRunner({
 
     try {
       // Force final save so we don't lose anything
-      console.log(`[QuizRunner] Triggering final autosave...`);
       await triggerAutosave();
 
-      console.log(`[QuizRunner] Fetching /api/exams/submit...`);
       const response = await fetch('/api/exams/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -498,7 +493,7 @@ export default function QuizRunner({
           positiveMarks: exam.positiveMarks,
           negativeMarks: exam.negativeMarks,
           answers,
-          questionStates: savedStates,
+          questionStates,
           questionsList: questions,
           timeTakenSeconds: overallTimeTaken,
           violations
@@ -506,7 +501,6 @@ export default function QuizRunner({
       });
 
       if (response.ok) {
-        console.log(`[QuizRunner] Submission successful.`);
         const resultObject = await response.json();
         
         try {
@@ -523,11 +517,10 @@ export default function QuizRunner({
         onFinished(resultObject);
       } else {
         const errText = await response.text();
-        console.error(`[QuizRunner] Submission failed: ${errText}`);
         onNotify(`Failed to finalize result computation: ${errText}`, true);
       }
     } catch (err) {
-      console.error('[QuizRunner] Submission error:', err);
+      console.error(err);
       onNotify('Failed to establish API sync with core grading engines.', true);
     } finally {
       setSubmitting(false);
@@ -820,12 +813,6 @@ export default function QuizRunner({
              {/* Question Area */}
              <div className="flex-1 overflow-y-auto px-6 py-6 pb-20">
                  
-                 {currentQuestion.imageUrl && (
-                     <div className="mb-5 flex justify-center">
-                         <img src={currentQuestion.imageUrl} alt="Question Reference" className="max-w-full h-auto max-h-64 object-contain rounded-xl border border-slate-200" referrerPolicy="no-referrer" />
-                     </div>
-                 )}
-
                  {examLanguage === 'english' && (
                      <div className="mb-6">
                          <p className="text-[15px] font-medium text-slate-900 leading-snug mb-5 whitespace-pre-wrap">
@@ -837,12 +824,7 @@ export default function QuizRunner({
                               return (
                                 <label key={oIdx} className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition w-fit pr-4 py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0" />
-                                   <div className="flex flex-col gap-2">
-                                     {opt && <span className="text-[15px] text-slate-800 ">{opt}</span>}
-                                     {currentQuestion.optionImageUrls?.[oIdx] && (
-                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
-                                     )}
-                                   </div>
+                                   <span className="text-[15px] text-slate-800 ">{opt}</span>
                                 </label>
                               )
                            })}
@@ -861,12 +843,7 @@ export default function QuizRunner({
                               return (
                                 <label key={oIdx} className="flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition w-fit pr-4 py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0" />
-                                   <div className="flex flex-col gap-2">
-                                     {opt && <span className="text-[15px] text-slate-800 ">{opt}</span>}
-                                     {currentQuestion.optionImageUrls?.[oIdx] && (
-                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
-                                     )}
-                                   </div>
+                                   <span className="text-[15px] text-slate-800">{opt}</span>
                                 </label>
                               )
                            })}

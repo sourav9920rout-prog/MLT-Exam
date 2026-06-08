@@ -44,26 +44,27 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
       onNotify(`Student "${student.fullName}" status updated to ${newStatus}.`);
       
       // Dispatch Backend SMTP 2 notification
-      try {
-        const res = await fetch('/api/admin/notify-status-update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            studentEmail: student.email,
-            studentName: student.fullName,
-            actionType: actionLabel // approve, reject, revoke, reactivate
-          })
-        });
-        const data = await res.json();
+      fetch('/api/admin/notify-status-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentEmail: student.email,
+          studentName: student.fullName,
+          actionType: actionLabel // approve, reject, revoke, reactivate
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
         if (!data.success && data.error) {
            onNotify(`Status updated, but email to student failed: ${data.error}`, true);
         } else if (data.success && data.smtpConfigured === false) {
            onNotify(`Status updated. (Email skipped: SMTP not configured)`, true);
         }
-      } catch (err) {
+      })
+      .catch(err => {
          console.error('Update email dispatch error:', err);
          onNotify(`Status updated, but notification email failed to send.`, true);
-      }
+      });
 
       fetchStudents();
     } catch (e) {
@@ -73,11 +74,9 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   };
 
   const handlePermanentDelete = async (student: StudentProfile) => {
-    try {
-      if (!window.confirm(`Are you absolutely sure you want to permanently delete student "${student.fullName}"? This action cannot be undone.`)) {
-        return;
-      }
-    } catch(e) {}
+    if (!window.confirm(`Are you absolutely sure you want to permanently delete student "${student.fullName}"? This action cannot be undone.`)) {
+      return;
+    }
     try {
       await deleteDoc(doc(db, 'students', student.uid));
       onNotify(`Student "${student.fullName}" permanently removed.`);

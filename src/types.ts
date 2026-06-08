@@ -28,8 +28,6 @@ export interface BankQuestion {
   id: string; // The doc ID
   englishQuestion: string;
   hindiQuestion: string;
-  imageUrl?: string;
-  optionImageUrls?: string[];
   englishOptions: string[];
   hindiOptions: string[];
   correctOptionIndex: number; // 0-based

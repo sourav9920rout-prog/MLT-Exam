@@ -9,27 +9,17 @@ const getEnv = (key: string, fallback: string) => {
 };
 
 // User's provided Firebase Project credentials from mlt-exams
-// Fallback to reading from the json if running locally without envs
-let localConfig: any = {};
-try {
-  // Try to inline it during build via Vite if the file exists
-  // For production environments, environment variables will override it
-  localConfig = require('../../firebase-applet-config.json');
-} catch(e) {}
-
-let firebaseConfig = {
-  apiKey: getEnv('VITE_FIREBASE_API_KEY', localConfig.apiKey || "AIzaSyCfB7yZ6H41hvBmOqeJy18NXUBG7FBPXQc"),
-  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN', localConfig.authDomain || "studied-entropy-q07pf.firebaseapp.com"),
-  projectId: getEnv('VITE_FIREBASE_PROJECT_ID', localConfig.projectId || "studied-entropy-q07pf"),
-  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET', localConfig.storageBucket || "studied-entropy-q07pf.firebasestorage.app"),
-  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', localConfig.messagingSenderId || "220269475062"),
-  appId: getEnv('VITE_FIREBASE_APP_ID', localConfig.appId || "1:220269475062:web:894203b6a1ee12b49b28d7")
+const firebaseConfig = {
+  apiKey: getEnv('VITE_FIREBASE_API_KEY', "AIzaSyCfB7yZ6H41hvBmOqeJy18NXUBG7FBPXQc"),
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN', "mlt-exams.firebaseapp.com"),
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID', "mlt-exams"),
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET', "mlt-exams.firebasestorage.app"),
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', "220269475062"),
+  appId: getEnv('VITE_FIREBASE_APP_ID', "1:220269475062:web:894203b6a1ee12b49b28d7")
 };
 
-console.log("Firebase Client Config loaded:", firebaseConfig);
-
 const app = initializeApp(firebaseConfig);
-const firestoreDbId = typeof import.meta !== 'undefined' ? getEnv('VITE_FIREBASE_DATABASE_ID', localConfig.firestoreDatabaseId || "(default)") : "(default)";
+const firestoreDbId = typeof import.meta !== 'undefined' ? getEnv('VITE_FIREBASE_DATABASE_ID', "(default)") : "(default)";
 
 export const db = getFirestore(app, firestoreDbId);
 export const auth = getAuth(app);

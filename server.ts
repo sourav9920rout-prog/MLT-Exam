@@ -41,6 +41,7 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
+const SMTP_CONFIG_FILE = path.join(process.cwd(), 'smtp-config.json');
 
 async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
   try {
@@ -63,12 +64,8 @@ async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
       };
     }
 
-    // 2. Fetch from Firestore
-    const docRef = doc(db, 'emailConfigs', 'global_smtps');
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return null;
-    
-    const data = docSnap.data();
+    if (!fs.existsSync(SMTP_CONFIG_FILE)) return null;
+    const data = JSON.parse(fs.readFileSync(SMTP_CONFIG_FILE, 'utf8'));
     const config = data[`smtp${smtpIndex}`];
     if (!config) return null;
 
@@ -100,7 +97,7 @@ app.get('/api/health', (req, res) => {
  * sends it beautifully to the student's email address.
  */
 app.post('/api/auth/send-otp', async (req, res) => {
-  const { email, type } = req.body;
+  const { email } = req.body;
   if (!email || !email.includes('@')) {
     return res.status(400).json({ error: 'Valid email address is required.' });
   }
@@ -113,12 +110,12 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
   try {
     const smtp1 = await getSMTPServerConfig(1);
-    if (!smtp1 || !smtp1.host || !smtp1.username || !smtp1.password) {
+    if (!smtp1 || !smtp1.host || !smtp1.username) {
       // In development, return the code and log it clearly if mail configurations are pending.
       console.log(`[SMTP 1 Pending Setup] OTP for ${email} is: ${otp}`);
       return res.json({ 
         success: true, 
-        message: 'OTP Code emitted. (SMTP 1 is not fully configured; OTP has been logged to console.)',
+        message: 'OTP Code emitted. (SMTP 1 is not configured yet; OTP has been logged to console.)',
         devOtp: otp // Allow easy student creation during deployment testing
       });
     }
@@ -127,30 +124,20 @@ app.post('/api/auth/send-otp', async (req, res) => {
       host: smtp1.host,
       port: smtp1.port,
       secure: smtp1.port === 465,
-      family: 4,
-      connectionTimeout: 5000,
-      socketTimeout: 5000,
       auth: {
         user: smtp1.username,
         pass: smtp1.password
       }
     } as any);
 
-    let subject = 'Email Verification OTP Code - MLT Portal';
-    let intentText = 'You requested an Email Verification OTP to register on the MLT Exam Portal.';
-    if (type === 'exam_start') {
-      subject = 'Exam Session Authorization OTP - MLT Portal';
-      intentText = 'You are attempting to securely launch an examination session on the MLT Exam Portal.';
-    }
-
     const mailOptions = {
       from: `"${smtp1.fromName || 'MLT Portals OTP'}" <${smtp1.fromEmail}>`,
       to: email,
-      subject: subject,
+      subject: 'Email Verification OTP Code - MLT Portal',
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #2563eb; margin-bottom: 8px;">Verify Your Identity</h2>
-          <p>${intentText}</p>
+          <h2 style="color: #2563eb; margin-bottom: 8px;">Verify Your Email Address</h2>
+          <p>You requested an Email Verification OTP to register on the MLT Exam Portal.</p>
           <div style="background-color: #f1f5f9; padding: 15px 25px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; display: inline-block; color: #2563eb; margin: 20px 0;">
             ${otp}
           </div>
@@ -165,10 +152,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
     return res.json({ success: true, message: 'Verification email sent successfully with OTP code.' });
   } catch (error) {
     console.error('Failed to send SMTP 1 Verification Email:', error);
-    // Return explicit error with 200 status so frontend handles it gracefully
+    // Graceful fallback to let development proceed smoothly
     return res.json({ 
-      success: false, 
-      error: 'SMTP Connection Refused. Please review mail settings logs.',
+      success: true, 
+      message: 'OTP successfully computed. (Email dispatch failed - SMTP connection checked failed or refused.)',
       devOtp: otp 
     });
   }
@@ -202,71 +189,24 @@ app.post('/api/auth/verify-otp', (req, res) => {
   return res.json({ success: true, message: 'Email address verified successfully.' });
 });
 
-app.post('/api/admin/test-smtp', async (req, res) => {
-  let { host, port, username, password, toEmail, smtpIndex } = req.body;
-  if (!toEmail) {
-    return res.status(400).json({ error: 'Missing recipient email.' });
-  }
-
-  // If credentials are empty, try to fetch from existing config
-  if (!host || !username || !password) {
-     console.log(`[SMTP Test] Credentials missing, fetching existing config for index ${smtpIndex}`);
-     const existingConfig = await getSMTPServerConfig(smtpIndex);
-     if (existingConfig) {
-       console.log(`[SMTP Test] Found existing config: ${existingConfig.host}`);
-       host = host || existingConfig.host;
-       username = username || existingConfig.username;
-       password = password || existingConfig.password;
-       port = port || existingConfig.port;
-     } else {
-       console.log(`[SMTP Test] No existing config found for index ${smtpIndex}`);
-       return res.status(400).json({ error: 'Missing SMTP details and no saved configuration found.' });
-     }
-  } else {
-      console.log(`[SMTP Test] Using provided credentials for host: ${host}`);
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host,
-      port: Number(port),
-      secure: Number(port) === 465,
-      auth: { user: username, pass: password },
-      connectionTimeout: 5000,
-      socketTimeout: 5000
-    });
-
-    await transporter.verify();
-    
-    await transporter.sendMail({
-      from: username,
-      to: toEmail,
-      subject: 'SMTP Connection Test',
-      text: 'SMTP configuration is working correctly!'
-    });
-    
-    return res.json({ success: true, message: 'Test email sent successfully.' });
-  } catch (error: any) {
-    console.error('SMTP test failed:', error);
-    return res.status(500).json({ success: false, error: `SMTP Debug: Failed for host ${host}, user ${username}. Error: ${error.message}` });
-  }
-});
-
 /**
  * Dispatch admin notification and student confirmation upon registering (SMTP 2)
  */
 app.post('/api/auth/notify-registration', async (req, res) => {
-  const { studentName, studentEmail, studentMobile, adminEmailsString } = req.body;
-  console.log(`[SMTP 2] Registration notification triggered. Recipient studentEmail: "${studentEmail}", AdminEmails: "${adminEmailsString}"`);
+  const { studentName, studentEmail, studentMobile } = req.body;
   if (!studentName || !studentEmail) {
     return res.status(400).json({ error: 'Missing details.' });
   }
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
+    // Fetch dynamic admin emails
+    const adminEmailsSnap = await getDocs(collection(db, 'adminEmails'));
+    const adminEmailsList = adminEmailsSnap.docs.map(d => d.id);
+    const adminEmailsString = adminEmailsList.join(', ');
 
-    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
-      console.log(`[SMTP 2 Missing credentials] Registration notifications skipped for: ${studentEmail}`);
+    if (!smtp2 || !smtp2.host) {
+      console.log(`[SMTP 2 Pending SMTP settings] Registration notifications skipped for: ${studentEmail}`);
       return res.json({ success: true, logged: true });
     }
 
@@ -274,9 +214,6 @@ app.post('/api/auth/notify-registration', async (req, res) => {
       host: smtp2.host,
       port: smtp2.port,
       secure: smtp2.port === 465,
-      family: 4,
-      connectionTimeout: 5000,
-      socketTimeout: 5000,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -304,7 +241,6 @@ app.post('/api/auth/notify-registration', async (req, res) => {
           </div>
         `
       };
-      console.log(`[SMTP 2] Sending admin email to ${adminMail.to}`);
       await transporter.sendMail(adminMail);
     }
 
@@ -325,7 +261,6 @@ app.post('/api/auth/notify-registration', async (req, res) => {
       `
     };
 
-    console.log(`[SMTP 2] Sending student confirmation email to ${studentMail.to}`);
     await transporter.sendMail(studentMail);
 
     return res.json({ success: true });
@@ -347,7 +282,7 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
+    if (!smtp2 || !smtp2.host) {
       console.log(`[SMTP 2 Pending] Status update notify skipped for: ${studentEmail} (Update: ${actionType})`);
       return res.json({ success: true, smtpConfigured: false });
     }
@@ -356,9 +291,6 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
       host: smtp2.host,
       port: smtp2.port,
       secure: smtp2.port === 465,
-      family: 4,
-      connectionTimeout: 5000,
-      socketTimeout: 5000,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -427,7 +359,7 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
+    if (!smtp2 || !smtp2.host) {
       console.log(`[SMTP 2 Pending] Admin invitation notify skipped for: ${newAdminEmail}`);
       return res.json({ success: true, smtpConfigured: false });
     }
@@ -436,9 +368,6 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
       host: smtp2.host,
       port: smtp2.port,
       secure: smtp2.port === 465,
-      family: 4,
-      connectionTimeout: 5000,
-      socketTimeout: 5000,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -482,31 +411,32 @@ app.post('/api/admin/save-smtp', async (req, res) => {
 
   try {
     const payload = {
+      id: configId || 'global_smtps',
       smtp1: {
-        host: smtp1.host || '',
-        port: Number(smtp1.port) || 587,
-        username: smtp1.username || '',
+        host: smtp1.host,
+        port: Number(smtp1.port),
+        username: smtp1.username,
         password: smtp1.password ? encrypt(smtp1.password) : ''
       },
       smtp2: {
-        host: smtp2.host || '',
-        port: Number(smtp2.port) || 587,
-        username: smtp2.username || '',
+        host: smtp2.host,
+        port: Number(smtp2.port),
+        username: smtp2.username,
         password: smtp2.password ? encrypt(smtp2.password) : ''
       },
       smtp3: {
-        host: smtp3.host || '',
-        port: Number(smtp3.port) || 587,
-        username: smtp3.username || '',
+        host: smtp3.host,
+        port: Number(smtp3.port),
+        username: smtp3.username,
         password: smtp3.password ? encrypt(smtp3.password) : ''
       }
     };
 
-    await setDoc(doc(db, 'emailConfigs', configId || 'global_smtps'), payload, { merge: true });
-    return res.json({ success: true, message: 'SMTP configs saved and encrypted in Firestore.' });
+    fs.writeFileSync(SMTP_CONFIG_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    return res.json({ success: true, message: 'SMTP configs saved and encrypted locally.' });
   } catch (err) {
     console.error('Failed to save SMTP configs:', err);
-    return res.status(500).json({ error: 'Firestore transaction error.' });
+    return res.status(500).json({ error: 'File transaction error.' });
   }
 });
 
@@ -515,14 +445,10 @@ app.post('/api/admin/save-smtp', async (req, res) => {
  */
 app.get('/api/admin/smtp-configs', async (req, res) => {
   try {
-    const docRef = doc(db, 'emailConfigs', 'global_smtps');
-    const docSnap = await getDoc(docRef);
-    
-    if (!docSnap.exists()) {
+    if (!fs.existsSync(SMTP_CONFIG_FILE)) {
       return res.json({ smtp1: {}, smtp2: {}, smtp3: {} });
     }
-    
-    const data = docSnap.data();
+    const data = JSON.parse(fs.readFileSync(SMTP_CONFIG_FILE, 'utf8'));
     
     const configResponse = {
       smtp1: {
@@ -566,9 +492,6 @@ app.post('/api/admin/test-smtp', async (req, res) => {
       host: host,
       port: Number(port),
       secure: Number(port) === 465,
-      family: 4,
-      connectionTimeout: 5000,
-      socketTimeout: 5000,
       auth: {
         user: username,
         pass: actualPassword
@@ -593,7 +516,7 @@ app.post('/api/admin/test-smtp', async (req, res) => {
  * Receives base64 encoded document (PDF, DOCX, TXT) and parses.
  */
 app.post('/api/admin/extract-questions', async (req, res) => {
-  const { documentBase64, mimeType, languageMode } = req.body;
+  const { documentBase64, mimeType } = req.body;
   if (!documentBase64 || !mimeType) {
     return res.status(400).json({ error: 'Document data required.' });
   }
@@ -601,35 +524,24 @@ app.post('/api/admin/extract-questions', async (req, res) => {
   try {
     const gClient = getGeminiClient();
     
-    // Build prompt based on languageMode
-    const hindiInstructions = languageMode === 'english'
-      ? `"hindiQuestion": "",
-      "hindiOptions": ["", "", "", ""],
-      "hindiExplanation": "",`
-      : `"hindiQuestion": "string (leave empty string if source text is purely English)",
-      "hindiOptions": ["string", "string", "string", "string"],
-      "hindiExplanation": "string",`;
-      
-    const extraInstruction = languageMode === 'english' 
-      ? `CRITICAL: You are in English-Only mode. Do NOT translate anything to Hindi. Provide empty strings for all Hindi fields. This saves processing time.`
-      : `CRITICAL: You are in Bilingual mode. You MUST provide Hindi translations for the englishQuestion, englishOptions, and englishExplanation fields in the corresponding hindiQuestion, hindiOptions, and hindiExplanation fields.`;
-
     const extractionPrompt = `You are a strict data extraction assistant. Extract ALL multiple-choice questions from the provided document into a JSON array.
 Each question MUST follow this EXACT Schema:
 {
   "questions": [
     {
       "englishQuestion": "string",
+      "hindiQuestion": "string (leave empty string if source text is purely English)",
       "englishOptions": ["string", "string", "string", "string"],
-      ${hindiInstructions}
+      "hindiOptions": ["string", "string", "string", "string"],
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous. CRITICAL: If the question is related to Hematology or Histology, categorize it as Pathology.)",
+      "hindiExplanation": "string",
+      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
 }
-${extraInstruction}
+If the document only has English, do NOT provide Hindi translations. Leave Hindi fields as empty strings. 
 Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`json.`;
 
     const response = await gClient.models.generateContent({
@@ -656,25 +568,11 @@ Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`j
 });
 
 app.post('/api/admin/extract-questions-raw', async (req, res) => {
-  const { rawText, languageMode } = req.body;
+  const { rawText } = req.body;
   if (!rawText) return res.status(400).json({ error: 'No rawText provided.' });
 
   try {
     const gClient = getGeminiClient();
-
-    // Build prompt based on languageMode
-    const hindiInstructions = languageMode === 'english'
-      ? `"hindiQuestion": "",
-      "hindiOptions": ["", "", "", ""],
-      "hindiExplanation": "",`
-      : `"hindiQuestion": "string (leave empty string if source text is purely English)",
-      "hindiOptions": ["string", "string", "string", "string"],
-      "hindiExplanation": "string",`;
-      
-    const extraInstruction = languageMode === 'english' 
-      ? `CRITICAL: You are in English-Only mode. Do NOT translate anything to Hindi. Provide empty strings for all Hindi fields. This saves processing time.`
-      : `CRITICAL: You are in Bilingual mode. You MUST provide Hindi translations for the englishQuestion, englishOptions, and englishExplanation fields in the corresponding hindiQuestion, hindiOptions, and hindiExplanation fields.`;
-
     const extractionPrompt = `You are a Medical Data extraction Assistant. 
 Extract all educational quiz/exam questions from the following text and format as JSON.
 
@@ -686,16 +584,18 @@ STRICT JSON SCHEMA:
   "questions": [
     {
       "englishQuestion": "string",
+      "hindiQuestion": "string (leave empty string if source text is purely English)",
       "englishOptions": ["string", "string", "string", "string"],
-      ${hindiInstructions}
+      "hindiOptions": ["string", "string", "string", "string"],
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous. CRITICAL: If the question is related to Hematology or Histology, categorize it as Pathology.)",
+      "hindiExplanation": "string",
+      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
 }
-${extraInstruction}
+If the text only has English, do NOT provide Hindi translations. Leave Hindi fields as empty strings. 
 Return ONLY the raw JSON object.`;
 
     const response = await gClient.models.generateContent({
@@ -721,17 +621,14 @@ Return ONLY the raw JSON object.`;
  * query Gemini for dynamic analytical explanation summary, and send ONE consolidated email report.
  */
 app.post('/api/exams/submit', async (req, res) => {
-  console.log(`[Server] /api/exams/submit received request payload keys: ${Object.keys(req.body)}`);
   const { 
     studentId, studentName, studentEmail, examId, examName, answers, questionStates, questionsList, timeTakenSeconds,
     passingPercentage: passedPassingPercentage, positiveMarks: passedPositiveMarks, negativeMarks: passedNegativeMarks
   } = req.body;
 
   if (!studentId || !examId || !answers || !questionsList) {
-    console.error('[Server] Incomplete exam attempt parameters.', { studentId, examId, answers: !!answers, questionsList: !!questionsList });
     return res.status(400).json({ error: 'Incomplete exam attempt parameters submitted.' });
   }
-  console.log('[Server] Attempt parameters validated.');
 
   let correctCount = 0;
   let incorrectCount = 0;
@@ -831,7 +728,6 @@ app.post('/api/exams/submit', async (req, res) => {
     // await setDoc(doc(db, 'results', resultId), resultPayload);
 
     // 2. Append result row into Google Sheets API reporting
-    console.log('[Server] About to append to Google Sheets...');
     await appendResultToGoogleSheet({
       studentName,
       studentEmail,
@@ -846,16 +742,12 @@ app.post('/api/exams/submit', async (req, res) => {
     });
 
     // 3. Dispatch completed result email via SMTP 3 (ONE SINGLE EMAIL)
-    console.log('[Server] About to dispatch result email...');
     const smtp3 = await getSMTPServerConfig(3);
-    if (smtp3 && smtp3.host && smtp3.username && smtp3.password) {
+    if (smtp3 && smtp3.host) {
       const transporter = nodemailer.createTransport({
         host: smtp3.host,
         port: smtp3.port,
         secure: smtp3.port === 465,
-        family: 4,
-      connectionTimeout: 5000,
-      socketTimeout: 5000,
         auth: {
           user: smtp3.username,
           pass: smtp3.password
@@ -956,29 +848,6 @@ app.post('/api/exams/submit', async (req, res) => {
   } catch (err) {
     console.error('Failed to register exam results:', err);
     return res.status(500).json({ error: 'Failed result compilation' });
-  }
-});
-
-/**
- * One-time migration route to map Hematology/Histology subjects to Pathology
- */
-app.post('/api/admin/fix-subjects', async (req, res) => {
-  try {
-    const snap = await getDocs(collection(db, 'questionBank'));
-    let updatedCount = 0;
-    
-    for (const d of snap.docs) {
-      const data = d.data();
-      const subject = data.subject;
-      if (subject === 'Hematology' || subject === 'Histology') {
-        await updateDoc(d.ref, { subject: 'Pathology' });
-        updatedCount++;
-      }
-    }
-    return res.json({ success: true, updatedCount });
-  } catch (err) {
-    console.error('Migration error:', err);
-    return res.status(500).json({ error: String(err) });
   }
 });
 
