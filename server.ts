@@ -393,7 +393,14 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    const sendMailWithTimeout = (transporter: any, options: any) => {
+      return Promise.race([
+        transporter.sendMail(options),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP connection timed out after 8 seconds')), 8000))
+      ]);
+    };
+
+    await sendMailWithTimeout(transporter, mailOptions);
     return res.json({ success: true, smtpConfigured: true });
   } catch (error: any) {
     console.error('SMTP 2 status email dispatch failed:', error);
