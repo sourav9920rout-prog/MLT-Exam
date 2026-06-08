@@ -1,4 +1,14 @@
 import dotenv from 'dotenv';
+import dns from 'node:dns';
+
+// Force node to prefer IPv4. This resolves the ENETUNREACH error on environments (like Render)
+// that lack IPv6 routes but still attempt to connect to dual-stack endpoints (like smtp.gmail.com).
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch (e) {
+  // Ignore if fallback needed
+}
+
 dotenv.config();
 
 import express from 'express';
