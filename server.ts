@@ -97,7 +97,7 @@ app.get('/api/health', (req, res) => {
  * sends it beautifully to the student's email address.
  */
 app.post('/api/auth/send-otp', async (req, res) => {
-  const { email } = req.body;
+  const { email, type } = req.body;
   if (!email || !email.includes('@')) {
     return res.status(400).json({ error: 'Valid email address is required.' });
   }
@@ -110,12 +110,12 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
   try {
     const smtp1 = await getSMTPServerConfig(1);
-    if (!smtp1 || !smtp1.host || !smtp1.username) {
+    if (!smtp1 || !smtp1.host || !smtp1.username || !smtp1.password) {
       // In development, return the code and log it clearly if mail configurations are pending.
       console.log(`[SMTP 1 Pending Setup] OTP for ${email} is: ${otp}`);
       return res.json({ 
         success: true, 
-        message: 'OTP Code emitted. (SMTP 1 is not configured yet; OTP has been logged to console.)',
+        message: 'OTP Code emitted. (SMTP 1 is not fully configured; OTP has been logged to console.)',
         devOtp: otp // Allow easy student creation during deployment testing
       });
     }
@@ -133,14 +133,21 @@ app.post('/api/auth/send-otp', async (req, res) => {
       }
     } as any);
 
+    let subject = 'Email Verification OTP Code - MLT Portal';
+    let intentText = 'You requested an Email Verification OTP to register on the MLT Exam Portal.';
+    if (type === 'exam_start') {
+      subject = 'Exam Session Authorization OTP - MLT Portal';
+      intentText = 'You are attempting to securely launch an examination session on the MLT Exam Portal.';
+    }
+
     const mailOptions = {
       from: `"${smtp1.fromName || 'MLT Portals OTP'}" <${smtp1.fromEmail}>`,
       to: email,
-      subject: 'Email Verification OTP Code - MLT Portal',
+      subject: subject,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #2563eb; margin-bottom: 8px;">Verify Your Email Address</h2>
-          <p>You requested an Email Verification OTP to register on the MLT Exam Portal.</p>
+          <h2 style="color: #2563eb; margin-bottom: 8px;">Verify Your Identity</h2>
+          <p>${intentText}</p>
           <div style="background-color: #f1f5f9; padding: 15px 25px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; display: inline-block; color: #2563eb; margin: 20px 0;">
             ${otp}
           </div>
@@ -155,10 +162,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
     return res.json({ success: true, message: 'Verification email sent successfully with OTP code.' });
   } catch (error) {
     console.error('Failed to send SMTP 1 Verification Email:', error);
-    // Graceful fallback to let development proceed smoothly
+    // Return explicit error with 200 status so frontend handles it gracefully
     return res.json({ 
-      success: true, 
-      message: 'OTP successfully computed. (Email dispatch failed - SMTP connection checked failed or refused.)',
+      success: false, 
+      error: 'SMTP Connection Refused. Please review mail settings logs.',
       devOtp: otp 
     });
   }
@@ -192,24 +199,70 @@ app.post('/api/auth/verify-otp', (req, res) => {
   return res.json({ success: true, message: 'Email address verified successfully.' });
 });
 
+app.post('/api/admin/test-smtp', async (req, res) => {
+  let { host, port, username, password, toEmail, smtpIndex } = req.body;
+  if (!toEmail) {
+    return res.status(400).json({ error: 'Missing recipient email.' });
+  }
+
+  // If credentials are empty, try to fetch from existing config
+  if (!host || !username || !password) {
+     console.log(`[SMTP Test] Credentials missing, fetching existing config for index ${smtpIndex}`);
+     const existingConfig = await getSMTPServerConfig(smtpIndex);
+     if (existingConfig) {
+       console.log(`[SMTP Test] Found existing config: ${existingConfig.host}`);
+       host = host || existingConfig.host;
+       username = username || existingConfig.username;
+       password = password || existingConfig.password;
+       port = port || existingConfig.port;
+     } else {
+       console.log(`[SMTP Test] No existing config found for index ${smtpIndex}`);
+       return res.status(400).json({ error: 'Missing SMTP details and no saved configuration found.' });
+     }
+  } else {
+      console.log(`[SMTP Test] Using provided credentials for host: ${host}`);
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port: Number(port),
+      secure: Number(port) === 465,
+      auth: { user: username, pass: password },
+      connectionTimeout: 5000,
+      socketTimeout: 5000
+    });
+
+    await transporter.verify();
+    
+    await transporter.sendMail({
+      from: username,
+      to: toEmail,
+      subject: 'SMTP Connection Test',
+      text: 'SMTP configuration is working correctly!'
+    });
+    
+    return res.json({ success: true, message: 'Test email sent successfully.' });
+  } catch (error: any) {
+    console.error('SMTP test failed:', error);
+    return res.status(500).json({ success: false, error: `SMTP Debug: Failed for host ${host}, user ${username}. Error: ${error.message}` });
+  }
+});
+
 /**
  * Dispatch admin notification and student confirmation upon registering (SMTP 2)
  */
 app.post('/api/auth/notify-registration', async (req, res) => {
-  const { studentName, studentEmail, studentMobile } = req.body;
+  const { studentName, studentEmail, studentMobile, adminEmailsString } = req.body;
   if (!studentName || !studentEmail) {
     return res.status(400).json({ error: 'Missing details.' });
   }
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    // Fetch dynamic admin emails
-    const adminEmailsSnap = await getDocs(collection(db, 'adminEmails'));
-    const adminEmailsList = adminEmailsSnap.docs.map(d => d.id);
-    const adminEmailsString = adminEmailsList.join(', ');
 
-    if (!smtp2 || !smtp2.host) {
-      console.log(`[SMTP 2 Pending SMTP settings] Registration notifications skipped for: ${studentEmail}`);
+    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
+      console.log(`[SMTP 2 Missing credentials] Registration notifications skipped for: ${studentEmail}`);
       return res.json({ success: true, logged: true });
     }
 
@@ -288,7 +341,7 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2 || !smtp2.host) {
+    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
       console.log(`[SMTP 2 Pending] Status update notify skipped for: ${studentEmail} (Update: ${actionType})`);
       return res.json({ success: true, smtpConfigured: false });
     }
@@ -368,7 +421,7 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2 || !smtp2.host) {
+    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
       console.log(`[SMTP 2 Pending] Admin invitation notify skipped for: ${newAdminEmail}`);
       return res.json({ success: true, smtpConfigured: false });
     }
@@ -781,7 +834,7 @@ app.post('/api/exams/submit', async (req, res) => {
 
     // 3. Dispatch completed result email via SMTP 3 (ONE SINGLE EMAIL)
     const smtp3 = await getSMTPServerConfig(3);
-    if (smtp3 && smtp3.host) {
+    if (smtp3 && smtp3.host && smtp3.username && smtp3.password) {
       const transporter = nodemailer.createTransport({
         host: smtp3.host,
         port: smtp3.port,

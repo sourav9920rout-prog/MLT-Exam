@@ -44,27 +44,26 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
       onNotify(`Student "${student.fullName}" status updated to ${newStatus}.`);
       
       // Dispatch Backend SMTP 2 notification
-      fetch('/api/admin/notify-status-update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentEmail: student.email,
-          studentName: student.fullName,
-          actionType: actionLabel // approve, reject, revoke, reactivate
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
+      try {
+        const res = await fetch('/api/admin/notify-status-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentEmail: student.email,
+            studentName: student.fullName,
+            actionType: actionLabel // approve, reject, revoke, reactivate
+          })
+        });
+        const data = await res.json();
         if (!data.success && data.error) {
            onNotify(`Status updated, but email to student failed: ${data.error}`, true);
         } else if (data.success && data.smtpConfigured === false) {
            onNotify(`Status updated. (Email skipped: SMTP not configured)`, true);
         }
-      })
-      .catch(err => {
+      } catch (err) {
          console.error('Update email dispatch error:', err);
          onNotify(`Status updated, but notification email failed to send.`, true);
-      });
+      }
 
       fetchStudents();
     } catch (e) {

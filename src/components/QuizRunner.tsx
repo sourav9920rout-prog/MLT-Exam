@@ -238,7 +238,7 @@ export default function QuizRunner({
              const response = await fetch('/api/auth/send-otp', {
                  method: 'POST',
                  headers: {'Content-Type': 'application/json'},
-                 body: JSON.stringify({ email: studentEmail })
+                 body: JSON.stringify({ email: studentEmail, type: 'exam_start' })
              });
              const data = await response.json();
              if (response.ok) {

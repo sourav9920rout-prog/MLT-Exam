@@ -57,6 +57,15 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
         const updatedData = { ...data, status: 'pending' };
         await updateDoc(doc(db, 'students', credentialUser.uid), { status: 'pending' });
         
+        // Get admin emails
+        let adminEmailsString = '';
+        try {
+           const adminEmailsSnap = await getDocs(collection(db, 'adminEmails'));
+           adminEmailsString = adminEmailsSnap.docs.map(d => d.id).join(', ');
+        } catch (adminErr) {
+           console.warn("Failed to fetch admin emails for notification: ", adminErr);
+        }
+
         try {
           await fetch('/api/auth/notify-registration', {
             method: 'POST',
@@ -64,7 +73,8 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
             body: JSON.stringify({
               studentName: updatedData.fullName,
               studentEmail: updatedData.email,
-              studentMobile: updatedData.mobileNumber
+              studentMobile: updatedData.mobileNumber,
+              adminEmailsString
             })
           });
         } catch (emailErr) {}
@@ -99,15 +109,29 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
           createdAt: new Date().toISOString()
         });
 
-        fetch('/api/auth/notify-registration', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            studentName: studentData.fullName,
-            studentEmail: studentData.email,
-            studentMobile: studentData.mobileNumber
-          })
-        }).catch(console.error);
+        // Get admin emails
+        let adminEmailsString = '';
+        try {
+           const adminEmailsSnap = await getDocs(collection(db, 'adminEmails'));
+           adminEmailsString = adminEmailsSnap.docs.map(d => d.id).join(', ');
+        } catch (adminErr) {
+           console.warn("Failed to fetch admin emails for notification: ", adminErr);
+        }
+
+        try {
+          await fetch('/api/auth/notify-registration', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              studentName: studentData.fullName,
+              studentEmail: studentData.email,
+              studentMobile: studentData.mobileNumber,
+              adminEmailsString
+            })
+          });
+        } catch (e) {
+          console.error(e);
+        }
 
         onAuthSuccess(credentialUser, 'student', 'pending', studentData);
         if (isNewSignup) {
@@ -168,7 +192,7 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase() })
+        body: JSON.stringify({ email: email.toLowerCase(), type: 'registration' })
       });
       const data = await res.json();
       if (data.success) {

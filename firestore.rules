@@ -42,7 +42,7 @@ service cloud.firestore {
 
     // AdminEmails collection rule
     match /adminEmails/{emailId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow write: if isAdmin() || (isSignedIn() && request.auth.token.email == 'sourav.9920rout@gmail.com');
     }
 
