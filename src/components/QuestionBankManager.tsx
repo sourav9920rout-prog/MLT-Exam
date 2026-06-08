@@ -241,10 +241,11 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     let apiErrorCount = 0;
     let lastApiError = "";
 
-    const subjects = [
+    const subjects = Array.from(new Set([
       "Pathology", "Biochemistry", "Microbiology", "Blood Bank", 
-      "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous"
-    ];
+      "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous",
+      ...questions.map(q => q.subject || 'Miscellaneous')
+    ]));
 
     try {
       // Chunk processing to avoid overwhelming the server

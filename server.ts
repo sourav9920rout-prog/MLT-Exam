@@ -16,8 +16,6 @@ import path from 'path';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
-import { doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
-import { db } from './src/utils/firebaseServer.ts';
 import { decrypt, encrypt } from './src/utils/crypto.ts';
 import { appendResultToGoogleSheet } from './src/utils/googleSheets.ts';
 
@@ -122,7 +120,7 @@ Each question MUST follow this EXACT Schema:
       ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous. CRITICAL: If the question is related to Hematology or Histology, categorize it as Pathology.)",
+      "subject": "string (Extract or infer the most appropriate academic or professional subject. E.g., Pathology, Biochemistry, Microbiology, Physics, etc. Categorize Hematology/Histology as Pathology)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
@@ -188,7 +186,7 @@ STRICT JSON SCHEMA:
       ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (MUST be one of: Pathology, Biochemistry, Microbiology, Blood Bank, Anatomy, Math, English, General Knowledge, Reasoning, Miscellaneous. CRITICAL: If the question is related to Hematology or Histology, categorize it as Pathology.)",
+      "subject": "string (Extract or infer the most appropriate academic or professional subject. E.g., Pathology, Biochemistry, Microbiology, Physics, etc. Categorize Hematology/Histology as Pathology)",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
@@ -320,42 +318,6 @@ app.post('/api/exams/submit', async (req, res) => {
   } catch (err) {
     console.error('Failed to register exam results:', err);
     return res.status(500).json({ error: 'Failed result compilation' });
-  }
-});
-
-/**
- * One-time migration route to map specific subjects
- */
-app.post('/api/admin/fix-subjects', async (req, res) => {
-  try {
-    const snap = await getDocs(collection(db, 'questionBank'));
-    let updatedCount = 0;
-    
-    for (const d of snap.docs) {
-      const data = d.data();
-      const currentSubject = data.subject || '';
-      const subjectLower = currentSubject.toLowerCase().trim();
-      let newSubject = currentSubject;
-
-      if (subjectLower === 'haematology' || subjectLower === 'hematology' || subjectLower === 'histology') {
-        newSubject = 'Pathology';
-      } else if (subjectLower === 'serology' || subjectLower === 'parasitology' || subjectLower === 'immunology') {
-        newSubject = 'Microbiology';
-      } else if (subjectLower === 'physiology') {
-        newSubject = 'Anatomy';
-      } else if (subjectLower === 'biostatistics' || subjectLower === 'clinical biochemistry') {
-        newSubject = 'Biochemistry';
-      }
-
-      if (newSubject !== currentSubject) {
-        await updateDoc(d.ref, { subject: newSubject });
-        updatedCount++;
-      }
-    }
-    return res.json({ success: true, updatedCount });
-  } catch (err) {
-    console.error('Migration error:', err);
-    return res.status(500).json({ error: String(err) });
   }
 });
 

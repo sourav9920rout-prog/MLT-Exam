@@ -41,8 +41,8 @@ export const auth = getAuth(app);
 
 console.log("Firebase Server initialized with projectId:", firebaseConfig.projectId, "and dbId:", firestoreDbId);
 
-// Authenticate server silently so it can read protected documents
-signInAnonymously(auth).catch(e => console.error("Server anonymous auth failed:", e));
+// Server does not need anonymous auth for now.
+// signInAnonymously(auth).catch(e => console.error("Server anonymous auth failed:", e));
 
 export { firebaseConfig };
 export { app as firebaseApp };

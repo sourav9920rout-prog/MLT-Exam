@@ -279,16 +279,9 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 mb-1">Subject</label>
                         <select value={draftSubject} onChange={e=>setDraftSubject(e.target.value)} className="w-full border rounded px-2 py-1.5 text-xs min-w-0">
-                          <option value="Pathology">Pathology</option>
-                          <option value="Biochemistry">Biochemistry</option>
-                          <option value="Microbiology">Microbiology</option>
-                          <option value="Blood Bank">Blood Bank</option>
-                          <option value="Anatomy">Anatomy</option>
-                          <option value="Math">Math</option>
-                          <option value="English">English</option>
-                          <option value="General Knowledge">General Knowledge</option>
-                          <option value="Reasoning">Reasoning</option>
-                          <option value="Miscellaneous">Miscellaneous</option>
+                          {uniqueSubjects.map(subj => (
+                            <option key={subj} value={subj}>{subj}</option>
+                          ))}
                         </select>
                       </div>
                       <div>
