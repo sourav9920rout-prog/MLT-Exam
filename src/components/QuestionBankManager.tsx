@@ -23,8 +23,17 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
   const [languageMode, setLanguageMode] = useState<'bilingual'|'english'>('bilingual');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<BankQuestion>>({
+    englishQuestion: '',
+    hindiQuestion: '',
     englishOptions: ['', '', '', ''],
-    hindiOptions: ['', '', '', '']
+    hindiOptions: ['', '', '', ''],
+    englishExplanation: '',
+    hindiExplanation: '',
+    imageUrl: '',
+    optionImageUrls: ['', '', '', ''],
+    correctOptionIndex: 0,
+    subject: 'Miscellaneous',
+    difficulty: 'medium'
   });
   const [uploading, setUploading] = useState(false);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
@@ -306,23 +315,6 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           >
             <Plus size={16} /> Manual Entry
           </button>
-          <button
-            onClick={async () => {
-              if (confirm('Are you sure you want to map Hematology/Histology questions to Pathology?')) {
-                const res = await fetch('/api/admin/fix-subjects', { method: 'POST' });
-                const data = await res.json();
-                if (data.success) {
-                  onNotify(`Successfully updated ${data.updatedCount} questions.`);
-                  fetchQuestions();
-                } else {
-                  onNotify('Error during migration.', true);
-                }
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded text-xs transition shadow-sm"
-          >
-            <RefreshCw size={16} /> Fix Subjects
-          </button>
           {selectedQuestionIds.length > 0 && (
             <button
               onClick={() => setShowBulkDeleteConfirm(true)}
@@ -534,11 +526,11 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">English Question *</label>
-                  <textarea rows={3} required value={formData.englishQuestion} onChange={e => setFormData({...formData, englishQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
+                  <textarea rows={3} required value={formData.englishQuestion || ''} onChange={e => setFormData({...formData, englishQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Hindi Question</label>
-                  <textarea rows={3} value={formData.hindiQuestion} onChange={e => setFormData({...formData, hindiQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
+                  <textarea rows={3} value={formData.hindiQuestion || ''} onChange={e => setFormData({...formData, hindiQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
                 </div>
               </div>
 
@@ -602,11 +594,11 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">English Explanation</label>
-                  <textarea rows={2} value={formData.englishExplanation} onChange={e => setFormData({...formData, englishExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
+                  <textarea rows={2} value={formData.englishExplanation || ''} onChange={e => setFormData({...formData, englishExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Hindi Explanation</label>
-                  <textarea rows={2} value={formData.hindiExplanation} onChange={e => setFormData({...formData, hindiExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
+                  <textarea rows={2} value={formData.hindiExplanation || ''} onChange={e => setFormData({...formData, hindiExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
                 </div>
               </div>
 

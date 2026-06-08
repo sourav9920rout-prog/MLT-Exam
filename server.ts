@@ -41,7 +41,6 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
-const SMTP_CONFIG_FILE = path.join(process.cwd(), 'smtp-config.json');
 
 async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
   try {
@@ -64,8 +63,12 @@ async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
       };
     }
 
-    if (!fs.existsSync(SMTP_CONFIG_FILE)) return null;
-    const data = JSON.parse(fs.readFileSync(SMTP_CONFIG_FILE, 'utf8'));
+    // 2. Fetch from Firestore
+    const docRef = doc(db, 'emailConfigs', 'global_smtps');
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return null;
+    
+    const data = docSnap.data();
     const config = data[`smtp${smtpIndex}`];
     if (!config) return null;
 
@@ -479,7 +482,6 @@ app.post('/api/admin/save-smtp', async (req, res) => {
 
   try {
     const payload = {
-      id: configId || 'global_smtps',
       smtp1: {
         host: smtp1.host,
         port: Number(smtp1.port),
@@ -500,11 +502,11 @@ app.post('/api/admin/save-smtp', async (req, res) => {
       }
     };
 
-    fs.writeFileSync(SMTP_CONFIG_FILE, JSON.stringify(payload, null, 2), 'utf8');
-    return res.json({ success: true, message: 'SMTP configs saved and encrypted locally.' });
+    await setDoc(doc(db, 'emailConfigs', configId || 'global_smtps'), payload, { merge: true });
+    return res.json({ success: true, message: 'SMTP configs saved and encrypted in Firestore.' });
   } catch (err) {
     console.error('Failed to save SMTP configs:', err);
-    return res.status(500).json({ error: 'File transaction error.' });
+    return res.status(500).json({ error: 'Firestore transaction error.' });
   }
 });
 
@@ -513,10 +515,14 @@ app.post('/api/admin/save-smtp', async (req, res) => {
  */
 app.get('/api/admin/smtp-configs', async (req, res) => {
   try {
-    if (!fs.existsSync(SMTP_CONFIG_FILE)) {
+    const docRef = doc(db, 'emailConfigs', 'global_smtps');
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
       return res.json({ smtp1: {}, smtp2: {}, smtp3: {} });
     }
-    const data = JSON.parse(fs.readFileSync(SMTP_CONFIG_FILE, 'utf8'));
+    
+    const data = docSnap.data();
     
     const configResponse = {
       smtp1: {
