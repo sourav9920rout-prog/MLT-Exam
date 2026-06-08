@@ -427,51 +427,90 @@ export default function QuizRunner({
       console.log(`[QuizRunner] Triggering final autosave...`);
       await triggerAutosave();
 
-      console.log(`[QuizRunner] Fetching /api/exams/submit...`);
-      const response = await fetch('/api/exams/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentId,
-          studentName,
-          studentEmail,
-          examId: exam.id,
-          examName: exam.title,
-          passingPercentage: exam.passingPercentage,
-          positiveMarks: exam.positiveMarks,
-          negativeMarks: exam.negativeMarks,
-          answers,
-          questionStates: savedStates,
-          questionsList: questions,
-          timeTakenSeconds: overallTimeTaken,
-          violations
-        })
-      });
+      // Compute results locally for pure-client compatibility (Vercel)
+      let correctCount = 0;
+      let incorrectCount = 0;
+      let unansweredCount = 0;
+      const questionIds: string[] = [];
 
-      if (response.ok) {
-        console.log(`[QuizRunner] Submission successful.`);
-        const resultObject = await response.json();
-        
-        try {
-          // Save results locally using frontend user credentials
-          await setDoc(doc(db, 'results', resultObject.id), resultObject);
-          
-          const attemptDocRef = doc(db, 'examAttempts', attemptId);
-          await setDoc(attemptDocRef, { ...resultObject, status: 'submitted' }, { merge: true });
-        } catch (dbErr) {
-          console.warn('Attempt update skipped:', dbErr);
+      questions.forEach((q: any) => {
+        let selected = answers[q.id];
+        let state = savedStates[q.id];
+
+        questionIds.push(q.id);
+
+        if (state === 'review_ans' || state === 'review') {
+          selected = -1;
         }
 
-        onNotify('Examination result computed and dispatched successfully!');
-        onFinished(resultObject);
-      } else {
-        const errText = await response.text();
-        console.error(`[QuizRunner] Submission failed: ${errText}`);
-        onNotify(`Failed to finalize result computation: ${errText}`, true);
+        if (selected === undefined || selected === null || selected === -1) {
+          unansweredCount++;
+        } else if (Number(selected) === q.correctOptionIndex) {
+          correctCount++;
+        } else {
+          incorrectCount++;
+        }
+      });
+
+      const totalQuestions = questions.length;
+      let positiveMarks = exam.positiveMarks !== undefined ? exam.positiveMarks : 1;
+      let negativeMarks = exam.negativeMarks !== undefined ? exam.negativeMarks : 0;
+      let passingPercentage = exam.passingPercentage !== undefined ? exam.passingPercentage : 50;
+
+      const score = (correctCount * positiveMarks) - (incorrectCount * negativeMarks);
+      const percentage = Math.round((correctCount / totalQuestions) * 100);
+      const passed = percentage >= passingPercentage;
+
+      const resultId = `result_${studentId}_${exam.id}_${Date.now()}`;
+      const resultObject = {
+        id: resultId,
+        studentId,
+        studentName,
+        studentEmail,
+        examId: exam.id,
+        examName: exam.title,
+        score,
+        totalQuestions,
+        percentage,
+        passed,
+        correctCount,
+        incorrectCount,
+        unansweredCount,
+        answers,
+        questionStates: savedStates,
+        questionIds,
+        questionsList: questions,
+        timeTakenSeconds: overallTimeTaken,
+        submittedAt: new Date().toISOString(),
+        violations
+      };
+
+      try {
+        // Save results locally using frontend user credentials
+        await setDoc(doc(db, 'results', resultObject.id), resultObject);
+        
+        const attemptDocRef = doc(db, 'examAttempts', attemptId);
+        await setDoc(attemptDocRef, { ...resultObject, status: 'submitted' }, { merge: true });
+      } catch (dbErr) {
+        console.warn('Attempt update skipped:', dbErr);
+        // Ensure they still see their score even if they lose connection at the last second
       }
+
+      onNotify('Examination result computed and dispatched successfully!');
+      onFinished(resultObject);
+
+      // Attempt to ping the server to trigger Google Sheets append in background (fire-and-forget)
+      try {
+         fetch('/api/exams/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(resultObject)
+         }).catch(e => console.warn('Non-critical background analytics sync failed', e));
+      } catch(e) {}
+      
     } catch (err) {
       console.error('[QuizRunner] Submission error:', err);
-      onNotify('Failed to establish API sync with core grading engines.', true);
+      onNotify('Failed to finalize result computation locally.', true);
     } finally {
       setSubmitting(false);
     }
