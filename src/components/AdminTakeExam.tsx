@@ -4,11 +4,13 @@ import { db } from '../utils/firebase.ts';
 import { Exam } from '../types.ts';
 import { Play, Trash2 } from 'lucide-react';
 import QuizRunner from './QuizRunner.tsx';
+import ResultViewer from './ResultViewer.tsx';
 
 export default function AdminTakeExam() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
+  const [result, setResult] = useState<any | null>(null);
 
   const fetchExams = async () => {
     try {
@@ -39,6 +41,14 @@ export default function AdminTakeExam() {
     }
   };
 
+  if (result) {
+      return (
+        <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto p-6">
+           <ResultViewer reviewResult={result} onBack={() => { setResult(null); setActiveExam(null); }} />
+        </div>
+      );
+  }
+
   if (activeExam) {
      return (
        <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto">
@@ -49,8 +59,7 @@ export default function AdminTakeExam() {
              studentEmail="admin@mltexamportal.com"
              isAdminTesting={true}
              onFinished={(res) => {
-                 alert("Exam Completed in Admin Test Mode. Result ID: " + res?.id);
-                 setActiveExam(null);
+                 setResult(res);
              }}
              onCancel={() => setActiveExam(null)}
              onNotify={(msg) => console.log(msg)}

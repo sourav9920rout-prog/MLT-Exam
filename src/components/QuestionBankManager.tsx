@@ -308,7 +308,19 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           <button
             onClick={() => {
               setEditingId(null);
-              setFormData({ englishOptions: ['', '', '', ''], hindiOptions: ['', '', '', ''], difficulty: 'medium' });
+              setFormData({
+                englishQuestion: '',
+                hindiQuestion: '',
+                englishOptions: ['', '', '', ''],
+                hindiOptions: ['', '', '', ''],
+                imageUrl: '',
+                optionImageUrls: ['', '', '', ''],
+                correctOptionIndex: 0,
+                englishExplanation: '',
+                hindiExplanation: '',
+                subject: 'Miscellaneous',
+                difficulty: 'medium'
+              });
               setIsModalOpen(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs transition shadow-sm"
@@ -444,7 +456,20 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
                       </span>
                     </td>
                     <td className="px-6 py-4 flex items-center gap-3">
-                      <button onClick={() => { setFormData(q); setEditingId(q.id); setIsModalOpen(true); }} className="text-blue-600 hover:text-blue-800 transition">
+                      <button onClick={() => { setEditingId(q.id); 
+                setFormData({
+                  ...q,
+                  englishOptions: q.englishOptions || ['', '', '', ''],
+                  hindiOptions: q.hindiOptions || ['', '', '', ''],
+                  optionImageUrls: q.optionImageUrls || ['', '', '', ''],
+                  englishExplanation: q.englishExplanation || '',
+                  hindiExplanation: q.hindiExplanation || '',
+                  imageUrl: q.imageUrl || '',
+                  subject: q.subject || 'Miscellaneous',
+                  difficulty: q.difficulty || 'medium',
+                  correctOptionIndex: q.correctOptionIndex ?? 0
+                }); 
+                setIsModalOpen(true); }} className="text-blue-600 hover:text-blue-800 transition">
                         <Edit2 size={16} />
                       </button>
                       <button onClick={() => setQuestionToDelete(q.id)} className="text-rose-500 hover:text-rose-700 transition">

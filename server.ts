@@ -483,21 +483,21 @@ app.post('/api/admin/save-smtp', async (req, res) => {
   try {
     const payload = {
       smtp1: {
-        host: smtp1.host,
-        port: Number(smtp1.port),
-        username: smtp1.username,
+        host: smtp1.host || '',
+        port: Number(smtp1.port) || 587,
+        username: smtp1.username || '',
         password: smtp1.password ? encrypt(smtp1.password) : ''
       },
       smtp2: {
-        host: smtp2.host,
-        port: Number(smtp2.port),
-        username: smtp2.username,
+        host: smtp2.host || '',
+        port: Number(smtp2.port) || 587,
+        username: smtp2.username || '',
         password: smtp2.password ? encrypt(smtp2.password) : ''
       },
       smtp3: {
-        host: smtp3.host,
-        port: Number(smtp3.port),
-        username: smtp3.username,
+        host: smtp3.host || '',
+        port: Number(smtp3.port) || 587,
+        username: smtp3.username || '',
         password: smtp3.password ? encrypt(smtp3.password) : ''
       }
     };
@@ -721,14 +721,17 @@ Return ONLY the raw JSON object.`;
  * query Gemini for dynamic analytical explanation summary, and send ONE consolidated email report.
  */
 app.post('/api/exams/submit', async (req, res) => {
+  console.log(`[Server] /api/exams/submit received request payload keys: ${Object.keys(req.body)}`);
   const { 
     studentId, studentName, studentEmail, examId, examName, answers, questionStates, questionsList, timeTakenSeconds,
     passingPercentage: passedPassingPercentage, positiveMarks: passedPositiveMarks, negativeMarks: passedNegativeMarks
   } = req.body;
 
   if (!studentId || !examId || !answers || !questionsList) {
+    console.error('[Server] Incomplete exam attempt parameters.', { studentId, examId, answers: !!answers, questionsList: !!questionsList });
     return res.status(400).json({ error: 'Incomplete exam attempt parameters submitted.' });
   }
+  console.log('[Server] Attempt parameters validated.');
 
   let correctCount = 0;
   let incorrectCount = 0;
@@ -828,6 +831,7 @@ app.post('/api/exams/submit', async (req, res) => {
     // await setDoc(doc(db, 'results', resultId), resultPayload);
 
     // 2. Append result row into Google Sheets API reporting
+    console.log('[Server] About to append to Google Sheets...');
     await appendResultToGoogleSheet({
       studentName,
       studentEmail,
@@ -842,6 +846,7 @@ app.post('/api/exams/submit', async (req, res) => {
     });
 
     // 3. Dispatch completed result email via SMTP 3 (ONE SINGLE EMAIL)
+    console.log('[Server] About to dispatch result email...');
     const smtp3 = await getSMTPServerConfig(3);
     if (smtp3 && smtp3.host && smtp3.username && smtp3.password) {
       const transporter = nodemailer.createTransport({

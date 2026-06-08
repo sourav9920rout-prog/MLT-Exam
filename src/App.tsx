@@ -614,8 +614,8 @@ export default function App() {
                 studentPhotoURL={currentUser.photoURL}
                 onFinished={(res) => {
                   setActiveExam(null);
-                  setStudentTab('results'); // switch to review results list
-                  fetchAttemptsRoster(); // refresh attempts database list
+                  setReviewResult(res);
+                  fetchAttemptsRoster();
                 }}
                 onCancel={() => {
                   setActiveExam(null);

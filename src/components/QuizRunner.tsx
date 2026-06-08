@@ -389,6 +389,7 @@ export default function QuizRunner({
   };
 
   const handleSectionEndAuto = () => {
+      console.log(`[QuizRunner] handleSectionEndAuto triggered. currentSectionIdx: ${currentSectionIdx}, sectionsLength: ${sections.length}`);
       onNotify(`Section completed successfully. The next section will now begin.`);
       
       // Auto-save the states for safety
@@ -416,6 +417,7 @@ export default function QuizRunner({
           }, 3000); // give enough time to read the notification (3s)
       } else {
           // Changed to true flag for onNotify so they know it's auto-submitting
+          console.log(`[QuizRunner] Auto-submitting exam.`);
           onNotify(`Final section completed successfully. Finalizing exam...`);
           setTimeout(() => executeQuizSubmission(), 1500);
       }
@@ -471,6 +473,7 @@ export default function QuizRunner({
   };
 
   const executeQuizSubmission = async () => {
+    console.log(`[QuizRunner] executeQuizSubmission called. submitting: ${submitting}`);
     setSubmitting(true);
     clearInterval(timerInterval.current);
     clearInterval(autosaveInterval.current);
@@ -478,8 +481,10 @@ export default function QuizRunner({
 
     try {
       // Force final save so we don't lose anything
+      console.log(`[QuizRunner] Triggering final autosave...`);
       await triggerAutosave();
 
+      console.log(`[QuizRunner] Fetching /api/exams/submit...`);
       const response = await fetch('/api/exams/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -501,6 +506,7 @@ export default function QuizRunner({
       });
 
       if (response.ok) {
+        console.log(`[QuizRunner] Submission successful.`);
         const resultObject = await response.json();
         
         try {
@@ -517,10 +523,11 @@ export default function QuizRunner({
         onFinished(resultObject);
       } else {
         const errText = await response.text();
+        console.error(`[QuizRunner] Submission failed: ${errText}`);
         onNotify(`Failed to finalize result computation: ${errText}`, true);
       }
     } catch (err) {
-      console.error(err);
+      console.error('[QuizRunner] Submission error:', err);
       onNotify('Failed to establish API sync with core grading engines.', true);
     } finally {
       setSubmitting(false);
