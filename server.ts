@@ -254,6 +254,7 @@ app.post('/api/admin/test-smtp', async (req, res) => {
  */
 app.post('/api/auth/notify-registration', async (req, res) => {
   const { studentName, studentEmail, studentMobile, adminEmailsString } = req.body;
+  console.log(`[SMTP 2] Registration notification triggered. Recipient studentEmail: "${studentEmail}", AdminEmails: "${adminEmailsString}"`);
   if (!studentName || !studentEmail) {
     return res.status(400).json({ error: 'Missing details.' });
   }
@@ -300,6 +301,7 @@ app.post('/api/auth/notify-registration', async (req, res) => {
           </div>
         `
       };
+      console.log(`[SMTP 2] Sending admin email to ${adminMail.to}`);
       await transporter.sendMail(adminMail);
     }
 
@@ -320,6 +322,7 @@ app.post('/api/auth/notify-registration', async (req, res) => {
       `
     };
 
+    console.log(`[SMTP 2] Sending student confirmation email to ${studentMail.to}`);
     await transporter.sendMail(studentMail);
 
     return res.json({ success: true });

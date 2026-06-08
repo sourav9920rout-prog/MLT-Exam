@@ -6,9 +6,9 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 
 let firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyCfB7yZ6H41hvBmOqeJy18NXUBG7FBPXQc",
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "mlt-exams.firebaseapp.com",
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "mlt-exams",
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "mlt-exams.firebasestorage.app",
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "studied-entropy-q07pf.firebaseapp.com",
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "studied-entropy-q07pf",
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "studied-entropy-q07pf.firebasestorage.app",
   messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "220269475062",
   appId: process.env.VITE_FIREBASE_APP_ID || "1:220269475062:web:894203b6a1ee12b49b28d7"
 };
