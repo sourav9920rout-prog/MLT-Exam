@@ -894,6 +894,45 @@ app.post('/api/admin/fix-subjects', async (req, res) => {
   }
 });
 
+app.post('/api/send-email', async (req, res) => {
+  const { to, subject, html, smtpIndex = 2 } = req.body;
+  if (!to || !subject || !html) {
+    return res.status(400).json({ error: 'Missing required email fields (to, subject, html).' });
+  }
+
+  try {
+    const smtpConfig = await getSMTPServerConfig(smtpIndex as 1 | 2 | 3);
+    if (!smtpConfig || !smtpConfig.host || !smtpConfig.username || !smtpConfig.password) {
+      return res.status(500).json({ error: 'SMTP configuration not found for index ' + smtpIndex });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.port === 465,
+      family: 4,
+      connectionTimeout: 15000,
+      socketTimeout: 15000,
+      auth: {
+        user: smtpConfig.username,
+        pass: smtpConfig.password
+      }
+    } as any);
+
+    await transporter.sendMail({
+      from: `"${smtpConfig.fromName || 'MLT Exam Portal'}" <${smtpConfig.fromEmail}>`,
+      to,
+      subject,
+      html
+    });
+
+    return res.json({ success: true });
+  } catch (error: any) {
+    console.error('Email dispatch failed:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to send email' });
+  }
+});
+
 // ----------------------------------------------------
 // VITE DEV SERVER / PRODUCTION SERVING BOOTSTRAP
 // ----------------------------------------------------
