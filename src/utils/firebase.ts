@@ -8,22 +8,16 @@ const getEnv = (key: string, fallback: string) => {
   return (val && val.trim().length > 0) ? val.trim() : fallback;
 };
 
-// User's provided Firebase Project credentials from mlt-exams
 // Fallback to reading from the json if running locally without envs
-let localConfig: any = {};
-try {
-  // Try to inline it during build via Vite if the file exists
-  // For production environments, environment variables will override it
-  localConfig = require('../../firebase-applet-config.json');
-} catch(e) {}
+import localConfig from '../../firebase-applet-config.json';
 
 let firebaseConfig = {
-  apiKey: getEnv('VITE_FIREBASE_API_KEY', localConfig.apiKey || "AIzaSyCfB7yZ6H41hvBmOqeJy18NXUBG7FBPXQc"),
-  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN', localConfig.authDomain || "studied-entropy-q07pf.firebaseapp.com"),
-  projectId: getEnv('VITE_FIREBASE_PROJECT_ID', localConfig.projectId || "studied-entropy-q07pf"),
-  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET', localConfig.storageBucket || "studied-entropy-q07pf.firebasestorage.app"),
-  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', localConfig.messagingSenderId || "220269475062"),
-  appId: getEnv('VITE_FIREBASE_APP_ID', localConfig.appId || "1:220269475062:web:894203b6a1ee12b49b28d7")
+  apiKey: getEnv('VITE_FIREBASE_API_KEY', localConfig.apiKey),
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN', localConfig.authDomain),
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID', localConfig.projectId),
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET', localConfig.storageBucket),
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', localConfig.messagingSenderId),
+  appId: getEnv('VITE_FIREBASE_APP_ID', localConfig.appId)
 };
 
 console.log("Firebase Client Config loaded:", firebaseConfig);
