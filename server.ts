@@ -44,7 +44,6 @@ function getGeminiClient(): GoogleGenAI {
 
 async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
   try {
-    // 1. Check for Environment Variables (Priority for Vercel/Production)
     const envHost = process.env[`SMTP${smtpIndex}_HOST`]?.replace(/^["']|["']$/g, '');
     const envPort = process.env[`SMTP${smtpIndex}_PORT`]?.replace(/^["']|["']$/g, '');
     const envUser = process.env[`SMTP${smtpIndex}_USER`]?.replace(/^["']|["']$/g, '');
@@ -69,6 +68,21 @@ async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
     console.error(`Error retrieving SMTP config:`, error);
     return null;
   }
+}
+
+function createUnifiedTransporter(config: any) {
+  return nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.port === 465,
+    family: 4,
+    connectionTimeout: 15000,
+    socketTimeout: 15000,
+    auth: {
+      user: config.username,
+      pass: config.password
+    }
+  } as any);
 }
 
 // ----------------------------------------------------
@@ -98,7 +112,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
   try {
     const smtp1 = await getSMTPServerConfig(1);
-    if (!smtp1 || !smtp1.host || !smtp1.username || !smtp1.password) {
+    if (!smtp1) {
       // In development, return the code and log it clearly if mail configurations are pending.
       console.log(`[SMTP 1 Pending Setup] OTP for ${email} is: ${otp}`);
       return res.json({ 
@@ -108,18 +122,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
       });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtp1.host,
-      port: smtp1.port,
-      secure: smtp1.port === 465,
-      family: 4,
-      connectionTimeout: 15000,
-      socketTimeout: 15000,
-      auth: {
-        user: smtp1.username,
-        pass: smtp1.password
-      }
-    } as any);
+    const transporter = createUnifiedTransporter(smtp1);
 
     let subject = 'Email Verification OTP Code - MLT Portal';
     let intentText = 'You requested an Email Verification OTP to register on the MLT Exam Portal.';
@@ -250,23 +253,12 @@ app.post('/api/auth/notify-registration', async (req, res) => {
   try {
     const smtp2 = await getSMTPServerConfig(2);
 
-    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
+    if (!smtp2) {
       console.log(`[SMTP 2 Missing credentials] Registration notifications skipped for: ${studentEmail}`);
       return res.json({ success: true, logged: true });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtp2.host,
-      port: smtp2.port,
-      secure: smtp2.port === 465,
-      family: 4,
-      connectionTimeout: 15000,
-      socketTimeout: 15000,
-      auth: {
-        user: smtp2.username,
-        pass: smtp2.password
-      }
-    } as any);
+    const transporter = createUnifiedTransporter(smtp2);
 
     // 1. Admin Email Notification
     if (adminEmailsString) {
@@ -332,23 +324,12 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
+    if (!smtp2) {
       console.log(`[SMTP 2 Pending] Status update notify skipped for: ${studentEmail} (Update: ${actionType})`);
       return res.json({ success: true, smtpConfigured: false });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtp2.host,
-      port: smtp2.port,
-      secure: smtp2.port === 465,
-      family: 4,
-      connectionTimeout: 15000,
-      socketTimeout: 15000,
-      auth: {
-        user: smtp2.username,
-        pass: smtp2.password
-      }
-    } as any);
+    const transporter = createUnifiedTransporter(smtp2);
 
     let subject = '';
     let statusText = '';
@@ -419,23 +400,12 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
 
   try {
     const smtp2 = await getSMTPServerConfig(2);
-    if (!smtp2 || !smtp2.host || !smtp2.username || !smtp2.password) {
+    if (!smtp2) {
       console.log(`[SMTP 2 Pending] Admin invitation notify skipped for: ${newAdminEmail}`);
       return res.json({ success: true, smtpConfigured: false });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtp2.host,
-      port: smtp2.port,
-      secure: smtp2.port === 465,
-      family: 4,
-      connectionTimeout: 15000,
-      socketTimeout: 15000,
-      auth: {
-        user: smtp2.username,
-        pass: smtp2.password
-      }
-    } as any);
+    const transporter = createUnifiedTransporter(smtp2);
 
     const mailOptions = {
       from: `"${smtp2.fromName || 'MLT System Administrator'}" <${smtp2.fromEmail}>`,
@@ -760,19 +730,8 @@ app.post('/api/exams/submit', async (req, res) => {
     // 3. Dispatch completed result email via SMTP 3 (ONE SINGLE EMAIL)
     console.log('[Server] About to dispatch result email...');
     const smtp3 = await getSMTPServerConfig(3);
-    if (smtp3 && smtp3.host && smtp3.username && smtp3.password) {
-      const transporter = nodemailer.createTransport({
-        host: smtp3.host,
-        port: smtp3.port,
-        secure: smtp3.port === 465,
-        family: 4,
-      connectionTimeout: 15000,
-      socketTimeout: 15000,
-        auth: {
-          user: smtp3.username,
-          pass: smtp3.password
-        }
-      } as any);
+    if (smtp3) {
+      const transporter = createUnifiedTransporter(smtp3);
 
       // Construct Complete Review Answer Check Sheets
       const answerSheetHtml = questionsList.map((q: any, idx: number) => {
@@ -913,22 +872,11 @@ app.post('/api/send-email', async (req, res) => {
 
   try {
     const smtpConfig = await getSMTPServerConfig(smtpIndex as 1 | 2 | 3);
-    if (!smtpConfig || !smtpConfig.host || !smtpConfig.username || !smtpConfig.password) {
+    if (!smtpConfig) {
       return res.status(500).json({ error: 'SMTP configuration not found for index ' + smtpIndex });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtpConfig.host,
-      port: smtpConfig.port,
-      secure: smtpConfig.port === 465,
-      family: 4,
-      connectionTimeout: 15000,
-      socketTimeout: 15000,
-      auth: {
-        user: smtpConfig.username,
-        pass: smtpConfig.password
-      }
-    } as any);
+    const transporter = createUnifiedTransporter(smtpConfig);
 
     await transporter.sendMail({
       from: `"${smtpConfig.fromName || 'MLT Exam Portal'}" <${smtpConfig.fromEmail}>`,
