@@ -36,6 +36,8 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
     fetchStudents();
   }, []);
 
+  const [studentToDelete, setStudentToDelete] = useState<StudentProfile | null>(null);
+
   // Set action updating state on firebase & dispatch custom mail update (SMTP 2)
   const handleStatusAction = async (student: StudentProfile, newStatus: StudentProfile['status'], actionLabel: string) => {
     try {
@@ -76,19 +78,17 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
     }
   };
 
-  const handlePermanentDelete = async (student: StudentProfile) => {
+  const handlePermanentDelete = async () => {
+    if (!studentToDelete) return;
     try {
-      if (!window.confirm(`Are you absolutely sure you want to permanently delete student "${student.fullName}"? This action cannot be undone.`)) {
-        return;
-      }
-    } catch(e) {}
-    try {
-      await deleteDoc(doc(db, 'students', student.uid));
-      onNotify(`Student "${student.fullName}" permanently removed.`);
+      await deleteDoc(doc(db, 'students', studentToDelete.uid));
+      onNotify(`Student "${studentToDelete.fullName}" permanently removed.`);
       fetchStudents();
     } catch (e) {
       console.error(e);
       onNotify('Could not permanently remove student.', true);
+    } finally {
+      setStudentToDelete(null);
     }
   };
 
@@ -226,7 +226,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
                               Restore
                             </button>
                             <button
-                              onClick={() => handlePermanentDelete(student)}
+                              onClick={() => setStudentToDelete(student)}
                               title="Permanently Expell"
                               className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 cursor-pointer transition flex items-center gap-1"
                             >
@@ -243,6 +243,24 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
           </div>
         )}
       </div>
+
+      {studentToDelete && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Permanently Delete Student?</h3>
+            <p className="text-sm text-slate-500 mb-6">Are you sure you want to permanently delete "{studentToDelete.fullName}"? This action cannot be undone.</p>
+            <div className="flex justify-center gap-3">
+              <button onClick={() => setStudentToDelete(null)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
+              <button 
+                onClick={handlePermanentDelete}
+                className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm flex items-center gap-2"
+              >
+                <Trash2 size={16} /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

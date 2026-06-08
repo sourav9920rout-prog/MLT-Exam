@@ -48,6 +48,7 @@ import StudentManager from './components/StudentManager.tsx';
 import QuestCreator from './components/QuestCreator.tsx';
 import QuizRunner from './components/QuizRunner.tsx';
 import AdminManager from './components/AdminManager.tsx';
+import AdminResultsViewer from './components/AdminResultsViewer.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -59,7 +60,7 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'smtp' | 'admins'>('students');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins'>('students');
   const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
@@ -452,12 +453,18 @@ export default function App() {
       {/* SYSTEM NAV HEADER HEADER */}
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-8 sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded flex items-center justify-center text-white font-bold shrink-0">
-            <span className="text-sm md:text-base tracking-tight hidden md:inline">M</span>
-            <BriefcaseMedical size={18} className="animate-pulse md:hidden" />
-          </div>
+          <svg viewBox="0 0 225 150" className="w-8 h-6 md:w-10 md:h-7 shrink-0 rounded-sm overflow-hidden border border-slate-200" xmlns="http://www.w3.org/2000/svg">
+            <rect width="225" height="50" fill="#FF9933"/>
+            <rect y="50" width="225" height="50" fill="#FFFFFF"/>
+            <rect y="100" width="225" height="50" fill="#138808"/>
+            <circle cx="112.5" cy="75" r="20" fill="transparent" stroke="#000080" strokeWidth="2"/>
+            <circle cx="112.5" cy="75" r="4" fill="#000080"/>
+            {Array.from({ length: 24 }).map((_, i) => (
+              <line key={i} x1="112.5" y1="75" x2={112.5 + Math.cos(i * 15 * Math.PI / 180) * 20} y2={75 + Math.sin(i * 15 * Math.PI / 180) * 20} stroke="#000080" strokeWidth="1" />
+            ))}
+          </svg>
           <div>
-            <h1 className="font-bold text-slate-900 tracking-tight text-base md:text-lg leading-tight">MLT Portal</h1>
+            <h1 className="font-bold text-blue-700 tracking-tight text-base md:text-lg leading-tight">MLT Exam Portal</h1>
             <p className="text-[10px] md:text-xs text-slate-400 uppercase font-semibold tracking-widest hidden md:block">Examination System</p>
           </div>
         </div>
@@ -571,6 +578,14 @@ export default function App() {
                   Exam Bank
                 </button>
                 <button
+                  onClick={() => setAdminTab('results')}
+                  className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
+                    adminTab === 'results' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  Results
+                </button>
+                <button
                   onClick={() => setAdminTab('admins')}
                   className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
                     adminTab === 'admins' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
@@ -585,6 +600,7 @@ export default function App() {
             <div className="transition-all duration-200">
               {adminTab === 'students' && <StudentManager onNotify={showNotification} />}
               {adminTab === 'exams' && <QuestCreator onNotify={showNotification} />}
+              {adminTab === 'results' && <AdminResultsViewer />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
             </div>
           </div>

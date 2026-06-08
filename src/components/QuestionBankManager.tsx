@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, setDoc, doc, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { BankQuestion } from '../types.ts';
-import { Plus, Upload, Search, Trash2, Edit2, X, RefreshCw, Filter, Loader2 } from 'lucide-react';
+import { Plus, Upload, Search, Trash2, Edit2, X, RefreshCw, Filter, Loader2, Wand2 } from 'lucide-react';
 
 interface QuestionBankManagerProps {
   onNotify: (message: string, isError?: boolean) => void;
@@ -36,7 +36,9 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     difficulty: 'medium'
   });
   const [uploading, setUploading] = useState(false);
+  const [classifying, setClassifying] = useState(false);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const fetchQuestions = async () => {
     setLoading(true);
@@ -213,7 +215,6 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     }
   };
 
-  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
 
   const deleteQuestion = async (id: string) => {
@@ -225,6 +226,76 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
       onNotify("Error deleting question.", true);
     } finally {
       setQuestionToDelete(null);
+    }
+  };
+
+  const handleAutoClassify = async () => {
+    if (!questions.length) return;
+    const confirmClassify = window.confirm('Are you sure you want to AI-classify all questions? This may take some time depending on the number of questions.');
+    if (!confirmClassify) return;
+
+    setClassifying(true);
+    let changedCount = 0;
+    let correctlyClassifiedCount = 0;
+    let unassignedCount = 0;
+    let apiErrorCount = 0;
+    let lastApiError = "";
+
+    const subjects = [
+      "Pathology", "Biochemistry", "Microbiology", "Blood Bank", 
+      "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous"
+    ];
+
+    try {
+      // Chunk processing to avoid overwhelming the server
+      const chunkSize = 20;
+      for (let i = 0; i < questions.length; i += chunkSize) {
+        const chunk = questions.slice(i, i + chunkSize);
+        
+        onNotify(`Classifying chunk ${i / chunkSize + 1} of ${Math.ceil(questions.length / chunkSize)}...`);
+        const res = await fetch('/api/admin/auto-classify-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questions: chunk, subjects })
+        });
+        
+        if (!res.ok) throw new Error('API Error');
+        const { results } = await res.json();
+        
+        for (const item of results) {
+           const existingQuestion = chunk.find(q => q.id === item.id);
+           if (!existingQuestion) continue;
+           
+           if (item.error) {
+             unassignedCount++;
+             apiErrorCount++;
+             lastApiError = item.error;
+             console.error("Classification error:", item.error);
+           } else if (!item.suggestedSubject) {
+             unassignedCount++;
+           } else if (item.suggestedSubject === existingQuestion.subject) {
+             correctlyClassifiedCount++;
+           } else {
+             await updateDoc(doc(db, 'questionBank', item.id), { subject: item.suggestedSubject });
+             changedCount++;
+           }
+        }
+      }
+      
+      const summaryMsg = `Classification Complete!
+Total Processed: ${questions.length}
+Subjects Changed: ${changedCount}
+Already Correct: ${correctlyClassifiedCount}
+Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encountered API errors (${apiErrorCount}). Example: ${lastApiError}` : ''}`;
+      window.alert(summaryMsg);
+      onNotify('Classification completed.');
+      
+      fetchQuestions();
+    } catch (e) {
+      console.error(e);
+      onNotify('Classification encountered an error.', true);
+    } finally {
+      setClassifying(false);
     }
   };
 
@@ -257,6 +328,15 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
 
   return (
     <div className="space-y-6">
+      {classifying && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
+            <Loader2 size={40} className="text-indigo-600 animate-spin" />
+            <h3 className="text-lg font-bold text-slate-800">Auto-Classifying</h3>
+            <p className="text-sm text-slate-500 text-center">Please wait while the AI analyzes and categorizes your questions. This may take a moment...</p>
+          </div>
+        </div>
+      )}
       {uploading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
@@ -284,6 +364,45 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
                 <option value="english">English Only (Faster, Skips Translation)</option>
              </select>
           </div>
+          <button
+            onClick={handleAutoClassify}
+            disabled={classifying || questions.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs transition disabled:opacity-50 shadow-sm"
+          >
+            {classifying ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+            {classifying ? 'Classifying...' : 'Auto-Classify Subjects'}
+          </button>
+          <button
+            onClick={async () => {
+              const confirm = window.confirm('Fix subject mappings?');
+              if (!confirm) return;
+              let changed = 0;
+              for (const q of questions) {
+                const currentSubject = q.subject || '';
+                const subjectLower = currentSubject.toLowerCase().trim();
+                let newSubject = currentSubject;
+                if (subjectLower === 'haematology' || subjectLower === 'hematology' || subjectLower === 'histology') {
+                  newSubject = 'Pathology';
+                } else if (subjectLower === 'serology' || subjectLower === 'parasitology' || subjectLower === 'immunology') {
+                  newSubject = 'Microbiology';
+                } else if (subjectLower === 'physiology') {
+                  newSubject = 'Anatomy';
+                } else if (subjectLower === 'biostatistics' || subjectLower === 'clinical biochemistry') {
+                  newSubject = 'Biochemistry';
+                }
+                if (newSubject !== currentSubject) {
+                  await setDoc(doc(db, 'questionBank', q.id), { subject: newSubject }, { merge: true });
+                  changed++;
+                }
+              }
+              onNotify(`Fixed ${changed} subjects!`);
+              fetchQuestions();
+            }}
+            disabled={classifying || questions.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-xs transition disabled:opacity-50 shadow-sm"
+          >
+            Fix Subject Mappings
+          </button>
           <input 
             type="file" 
             accept=".pdf,.doc,.docx,.txt" 
@@ -357,16 +476,13 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded bg-white text-slate-700"
           >
             <option value="">All Subjects</option>
-            <option value="Pathology">Pathology</option>
-            <option value="Biochemistry">Biochemistry</option>
-            <option value="Microbiology">Microbiology</option>
-            <option value="Blood Bank">Blood Bank</option>
-            <option value="Anatomy">Anatomy</option>
-            <option value="Math">Math</option>
-            <option value="English">English</option>
-            <option value="General Knowledge">General Knowledge</option>
-            <option value="Reasoning">Reasoning</option>
-            <option value="Miscellaneous">Miscellaneous</option>
+            {Array.from(new Set([
+              "Pathology", "Biochemistry", "Microbiology", "Blood Bank", 
+              "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous",
+              ...questions.map(q => q.subject || 'Miscellaneous')
+            ])).map(subj => (
+               <option key={subj} value={subj}>{subj}</option>
+            ))}
           </select>
         </div>
         <div>
@@ -594,16 +710,14 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Subject</label>
                   <select value={formData.subject || 'Miscellaneous'} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full border rounded px-3 py-2 text-sm">
-                    <option value="Pathology">Pathology</option>
-                    <option value="Biochemistry">Biochemistry</option>
-                    <option value="Microbiology">Microbiology</option>
-                    <option value="Blood Bank">Blood Bank</option>
-                    <option value="Anatomy">Anatomy</option>
-                    <option value="Math">Math</option>
-                    <option value="English">English</option>
-                    <option value="General Knowledge">General Knowledge</option>
-                    <option value="Reasoning">Reasoning</option>
-                    <option value="Miscellaneous">Miscellaneous</option>
+                    {Array.from(new Set([
+                      "Pathology", "Biochemistry", "Microbiology", "Blood Bank", 
+                      "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous", 
+                      ...questions.map(q => q.subject || 'Miscellaneous'),
+                      formData.subject || 'Miscellaneous'
+                    ])).map(subj => (
+                      <option key={subj} value={subj}>{subj}</option>
+                    ))}
                   </select>
                 </div>
                 <div>

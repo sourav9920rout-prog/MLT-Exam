@@ -28,7 +28,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const PORT = 3000;
 
 // Dynamic In-Memory Store for OTP Codes (Email -> { otpCode, expiresAt })
-const otpStore = new Map<string, { otp: string; expiresAt: number }>();
+// Removed per user request.
 
 // Lazy-initialize Gemini AI instance to prevent crash if key is absent
 let aiClient: GoogleGenAI | null = null;
@@ -58,63 +58,6 @@ function getGeminiClient(): GoogleGenAI {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
-});
-
-/**
- * OTP Verification (SMTP 1)
- * Generates a random 6-digit OTP code valid for 10 minutes,
- * sends it beautifully to the student's email address.
- */
-app.post('/api/auth/send-otp', async (req, res) => {
-  const { email, type } = req.body;
-  if (!email || !email.includes('@')) {
-    return res.status(400).json({ error: 'Valid email address is required.' });
-  }
-
-  // Generate 6-digit pin
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes validity
-
-  otpStore.set(email.toLowerCase(), { otp, expiresAt });
-
-  console.log(`[System: Email bypassed] OTP for ${email} is: ${otp}`);
-  return res.json({ 
-    success: true, 
-    message: 'OTP Code validated (emails disabled). OTP has been logged to console.',
-    devOtp: otp 
-  });
-});
-
-/**
- * Verify OTP PIN
- */
-app.post('/api/auth/verify-otp', (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp) {
-    return res.status(400).json({ error: 'Email and OTP code are required.' });
-  }
-
-  const cached = otpStore.get(email.toLowerCase());
-  if (!cached) {
-    return res.status(400).json({ error: 'No active OTP verification session found.' });
-  }
-
-  if (Date.now() > cached.expiresAt) {
-    otpStore.delete(email.toLowerCase());
-    return res.status(400).json({ error: 'OTP code has already expired. Please request a new verification code.' });
-  }
-
-  if (cached.otp !== String(otp).trim()) {
-    return res.status(400).json({ error: 'Incorrect OTP pin code. Please try again.' });
-  }
-
-  // Clear OTP on successful verify
-  otpStore.delete(email.toLowerCase());
-  return res.json({ success: true, message: 'Email address verified successfully.' });
-});
-
-app.post('/api/admin/test-smtp', async (req, res) => {
-  return res.json({ success: true, message: 'SMTP Test successful (Emails bypassed).' });
 });
 
 /**
@@ -381,7 +324,7 @@ app.post('/api/exams/submit', async (req, res) => {
 });
 
 /**
- * One-time migration route to map Hematology/Histology subjects to Pathology
+ * One-time migration route to map specific subjects
  */
 app.post('/api/admin/fix-subjects', async (req, res) => {
   try {
@@ -390,9 +333,22 @@ app.post('/api/admin/fix-subjects', async (req, res) => {
     
     for (const d of snap.docs) {
       const data = d.data();
-      const subject = data.subject;
-      if (subject === 'Hematology' || subject === 'Histology') {
-        await updateDoc(d.ref, { subject: 'Pathology' });
+      const currentSubject = data.subject || '';
+      const subjectLower = currentSubject.toLowerCase().trim();
+      let newSubject = currentSubject;
+
+      if (subjectLower === 'haematology' || subjectLower === 'hematology' || subjectLower === 'histology') {
+        newSubject = 'Pathology';
+      } else if (subjectLower === 'serology' || subjectLower === 'parasitology' || subjectLower === 'immunology') {
+        newSubject = 'Microbiology';
+      } else if (subjectLower === 'physiology') {
+        newSubject = 'Anatomy';
+      } else if (subjectLower === 'biostatistics' || subjectLower === 'clinical biochemistry') {
+        newSubject = 'Biochemistry';
+      }
+
+      if (newSubject !== currentSubject) {
+        await updateDoc(d.ref, { subject: newSubject });
         updatedCount++;
       }
     }
@@ -403,8 +359,56 @@ app.post('/api/admin/fix-subjects', async (req, res) => {
   }
 });
 
-app.post('/api/send-email', async (req, res) => {
-  return res.json({ success: true, message: 'Email bypassed.' });
+/**
+ * Auto classify batch
+ */
+app.post('/api/admin/auto-classify-batch', async (req, res) => {
+  try {
+    const { questions, subjects } = req.body;
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ error: 'Invalid questions payload' });
+    }
+
+    const ai = getGeminiClient();
+    
+    const results = await Promise.all(questions.map(async (q: any) => {
+      if (!q.englishQuestion) return { id: q.id, suggestedSubject: null };
+      
+      const prompt = `Analyze this multiple-choice question and determine the most appropriate subject category.
+Question: """${q.englishQuestion}"""
+Options: ${JSON.stringify(q.englishOptions || [])}
+Explanation: """${q.englishExplanation || ''}"""
+
+Available Subjects:
+${subjects.map((s: string) => `- ${s}`).join('\n')}
+
+Rules:
+Return ONLY the exact string from the Available Subjects list. Do not explain.`;
+
+      try {
+        const response = await ai.models.generateContent({
+           model: 'gemini-2.5-flash',
+           contents: prompt,
+           config: { temperature: 0.1 }
+        });
+        
+        let aiSubject = (response.text || '').trim();
+        if (!subjects.includes(aiSubject)) {
+          const matched = subjects.find((s: string) => aiSubject.includes(s));
+          if (matched) aiSubject = matched;
+        }
+        return { id: q.id, suggestedSubject: subjects.includes(aiSubject) ? aiSubject : null };
+      } catch (e) {
+        console.error('Classification error for question ID', q.id, ':', e);
+        return { id: q.id, suggestedSubject: null, error: String(e) };
+      }
+    }));
+    
+    return res.json({ success: true, results });
+  } catch (err) {
+    console.error('Classification error:', err);
+    return res.status(500).json({ error: String(err) });
+  }
 });
 
 // ----------------------------------------------------

@@ -12,6 +12,8 @@ export default function AdminTakeExam() {
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
   const [result, setResult] = useState<any | null>(null);
 
+  const [examToDelete, setExamToDelete] = useState<string | null>(null);
+
   const fetchExams = async () => {
     try {
       const snap = await getDocs(collection(db, 'exams'));
@@ -29,15 +31,16 @@ export default function AdminTakeExam() {
     fetchExams();
   }, []);
 
-  const handleDeleteExam = async (examId: string) => {
+  const confirmDelete = async () => {
+    if (!examToDelete) return;
     try {
-      if (!window.confirm("Are you sure you want to completely delete this exam? Students will no longer be able to see or take it.")) return;
-    } catch(e) {}
-    try {
-      await deleteDoc(doc(db, 'exams', examId));
+      await deleteDoc(doc(db, 'exams', examToDelete));
       fetchExams();
     } catch (err) {
-      console.error(err);
+      console.error("Failed to delete", err);
+      alert("Error deleting exam: " + String(err));
+    } finally {
+      setExamToDelete(null);
     }
   };
 
@@ -102,7 +105,7 @@ export default function AdminTakeExam() {
                       <Play size={16} /> Take Exam
                    </button>
                    <button
-                      onClick={() => handleDeleteExam(ex.id)}
+                      onClick={() => setExamToDelete(ex.id)}
                       className="w-full py-2 border border-red-200 text-red-600 hover:bg-red-50 font-bold text-sm rounded transition flex items-center justify-center gap-2"
                    >
                       <Trash2 size={16} /> Delete Exam
@@ -111,6 +114,24 @@ export default function AdminTakeExam() {
               </div>
             ))}
           </div>
+      )}
+
+      {examToDelete && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Delete Examination?</h3>
+            <p className="text-sm text-slate-500 mb-6">Are you sure you want to permanently delete this exam? Students will no longer have access.</p>
+            <div className="flex justify-center gap-3">
+              <button onClick={() => setExamToDelete(null)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
+              <button 
+                onClick={confirmDelete}
+                className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -43,10 +43,6 @@ export default function QuizRunner({
   const [examStarted, setExamStarted] = useState(false);
   const [examLanguage, setExamLanguage] = useState<'english' | 'hindi'>('english');
   const [declarationChecked, setDeclarationChecked] = useState(false);
-  const [showOtpScreen, setShowOtpScreen] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpVerifying, setOtpVerifying] = useState(false);
   const [recoveredSession, setRecoveredSession] = useState<{ans: any, states: any, section: number, timeRem: number} | null>(null);
 
   // answers map: global question ID -> selected option index, or -1 for unset
@@ -226,61 +222,8 @@ export default function QuizRunner({
       }
   };
 
-  const handleStartWithOTP = async () => {
-      if (isAdminTesting) {
-          triggerFetchAndStart();
-          return;
-      }
-      setShowOtpScreen(true);
-      if (!otpSent) {
-          setOtpVerifying(true);
-          try {
-             const response = await fetch('/api/auth/send-otp', {
-                 method: 'POST',
-                 headers: {'Content-Type': 'application/json'},
-                 body: JSON.stringify({ email: studentEmail, type: 'exam_start' })
-             });
-             const data = await response.json();
-             if (response.ok) {
-                 setOtpSent(true);
-                 if (data.devOtp) {
-                     console.log(`[DEV ENVR] Auto-Verification Code: ${data.devOtp}`);
-                     setOtpCode(data.devOtp); // Auto-fill for convenience
-                 }
-                 onNotify(data.message || 'OTP verification dispatched to email!');
-             } else {
-                 onNotify(data.error || 'Failed to dispatch email verification OTP.', true);
-             }
-          } catch(e) {
-             onNotify('Network error while dispatching OTP.', true);
-          }
-          setOtpVerifying(false);
-      }
-  };
-
-  const verifyOTPandStart = async () => {
-      if (!otpCode) {
-          onNotify('Please input the 6-digit OTP code.', true);
-          return;
-      }
-      setOtpVerifying(true);
-      try {
-         const response = await fetch('/api/auth/verify-otp', {
-             method: 'POST',
-             headers: {'Content-Type': 'application/json'},
-             body: JSON.stringify({ email: studentEmail, otp: otpCode })
-         });
-         const data = await response.json();
-         if (response.ok) {
-             // Correct! Pull the 100 questions now
-             triggerFetchAndStart();
-         } else {
-             onNotify(data.error || 'Invalid OTP code.', true);
-         }
-      } catch(e) {
-         onNotify('Network fault verifying OTP.', true);
-      }
-      setOtpVerifying(false);
+  const handleStartExam = async () => {
+      triggerFetchAndStart();
   };
 
   // 2. Timers
@@ -585,40 +528,8 @@ export default function QuizRunner({
         <h4 className="font-semibold text-slate-900">No Exam Questions Linked</h4>
         <p className="text-slate-600 text-sm">Please connect with administrators to load questions.</p>
         <button onClick={onCancel} className="px-5 py-2 text-sm font-semibold rounded-lg bg-slate-200 hover:bg-slate-300 transition cursor-pointer">Go Back</button>
-      </div>
+       </div>
     );
-  }
-
-  if (!examStarted && showOtpScreen) {
-      return (
-         <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-xl shadow-sm p-8 mt-12 space-y-6 text-center">
-            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-amber-500">Security Verification</h2>
-            <p className="text-sm text-slate-600">Please provide the examination authorization token dispatched to <b>{studentEmail}</b>.</p>
-            
-            <div className="space-y-4 pt-2">
-                <input 
-                  type="text" 
-                  maxLength={6}
-                  placeholder="000000"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.toUpperCase())}
-                  className="w-full text-center tracking-widest font-mono text-2xl border border-slate-300 rounded-lg p-3 focus:border-amber-400 focus:outline-none placeholder-slate-200 uppercase"
-                />
-                
-                <button 
-                  onClick={verifyOTPandStart} 
-                  disabled={otpVerifying || otpCode.length < 6}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded transition"
-                >
-                  {otpVerifying ? 'Verifying Identity...' : 'Validate Token & Generate Questions'}
-                </button>
-                <div className="flex justify-between items-center px-1 text-xs">
-                   <button onClick={() => setShowOtpScreen(false)} className="text-slate-500 hover:text-slate-800">Return to rules</button>
-                   <button onClick={handleStartWithOTP} className="text-amber-600 hover:text-amber-700 font-bold">Resend Token</button>
-                </div>
-            </div>
-         </div>
-      );
   }
 
   if (!examStarted) {
@@ -679,12 +590,12 @@ export default function QuizRunner({
                               onNotify("Note: Fullscreen could not be started automatically. If running in an embedded preview, please open the app in a new tab.", true);
                           });
                       }
-                      handleStartWithOTP();
+                      handleStartExam();
                   }} 
                   disabled={!declarationChecked} 
                   className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded shadow-sm transition active:scale-95 text-sm disabled:opacity-50"
                  >
-                    PROCEED TO SECURITY VERIFICATION
+                    BEGIN EXAMINATION
                 </button>
             </div>
         </div>
