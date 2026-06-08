@@ -54,15 +54,18 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
             actionType: actionLabel // approve, reject, revoke, reactivate
           })
         });
+        if (!res.ok) {
+           throw new Error(`Server returned status ${res.status}`);
+        }
         const data = await res.json();
         if (!data.success && data.error) {
            onNotify(`Status updated, but email to student failed: ${data.error}`, true);
         } else if (data.success && data.smtpConfigured === false) {
            onNotify(`Status updated. (Email skipped: SMTP not configured)`, true);
         }
-      } catch (err) {
+      } catch (err: any) {
          console.error('Update email dispatch error:', err);
-         onNotify(`Status updated, but notification email failed to send.`, true);
+         onNotify(`Status updated, but notification email failed to send: ${err.message}`, true);
       }
 
       fetchStudents();

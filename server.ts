@@ -45,22 +45,22 @@ function getGeminiClient(): GoogleGenAI {
 async function getSMTPServerConfig(smtpIndex: 1 | 2 | 3) {
   try {
     // 1. Check for Environment Variables (Priority for Vercel/Production)
-    const envHost = process.env[`SMTP${smtpIndex}_HOST`];
-    const envPort = process.env[`SMTP${smtpIndex}_PORT`];
-    const envUser = process.env[`SMTP${smtpIndex}_USER`];
-    const envPass = process.env[`SMTP${smtpIndex}_PASS`];
-    const envFromName = process.env[`SMTP${smtpIndex}_FROM_NAME`];
-    const envFromEmail = process.env[`SMTP${smtpIndex}_FROM_EMAIL`];
+    const envHost = process.env[`SMTP${smtpIndex}_HOST`]?.replace(/^["']|["']$/g, '');
+    const envPort = process.env[`SMTP${smtpIndex}_PORT`]?.replace(/^["']|["']$/g, '');
+    const envUser = process.env[`SMTP${smtpIndex}_USER`]?.replace(/^["']|["']$/g, '');
+    const envPass = process.env[`SMTP${smtpIndex}_PASS`]?.replace(/^["']|["']$/g, '');
+    const envFromName = process.env[`SMTP${smtpIndex}_FROM_NAME`]?.replace(/^["']|["']$/g, '');
+    const envFromEmail = process.env[`SMTP${smtpIndex}_FROM_EMAIL`]?.replace(/^["']|["']$/g, '');
 
     if (envHost && envUser && envPass) {
-      console.log(`[SMTP Debug] Found SMTP${smtpIndex} config from environment variables.`);
+      console.log(`[SMTP Debug] Found SMTP${smtpIndex} config from environment variables. Host: ${envHost.trim()}`);
       return {
-        host: envHost,
+        host: envHost.trim(),
         port: Number(envPort) || 587,
-        username: envUser,
-        password: envPass,
-        fromName: envFromName || '',
-        fromEmail: envFromEmail || envUser
+        username: envUser.trim(),
+        password: envPass.replace(/\s+/g, ''), // Strip spaces from generated App Passwords
+        fromName: envFromName ? envFromName.trim() : '',
+        fromEmail: envFromEmail ? envFromEmail.trim() : envUser.trim()
       };
     }
     console.log(`[SMTP Debug] SMTP${smtpIndex} NOT fully configured from environment variables.`);
