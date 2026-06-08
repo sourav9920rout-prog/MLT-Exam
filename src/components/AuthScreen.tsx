@@ -165,7 +165,7 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
 
     onLoading(true);
     try {
-      const res = await fetch('/api/auth/send-verification-otp', {
+      const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.toLowerCase() })

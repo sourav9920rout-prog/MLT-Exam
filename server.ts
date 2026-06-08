@@ -124,6 +124,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
       host: smtp1.host,
       port: smtp1.port,
       secure: smtp1.port === 465,
+      family: 4,
       auth: {
         user: smtp1.username,
         pass: smtp1.password
@@ -214,6 +215,7 @@ app.post('/api/auth/notify-registration', async (req, res) => {
       host: smtp2.host,
       port: smtp2.port,
       secure: smtp2.port === 465,
+      family: 4,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -291,6 +293,7 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
       host: smtp2.host,
       port: smtp2.port,
       secure: smtp2.port === 465,
+      family: 4,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -368,6 +371,7 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
       host: smtp2.host,
       port: smtp2.port,
       secure: smtp2.port === 465,
+      family: 4,
       auth: {
         user: smtp2.username,
         pass: smtp2.password
@@ -492,6 +496,7 @@ app.post('/api/admin/test-smtp', async (req, res) => {
       host: host,
       port: Number(port),
       secure: Number(port) === 465,
+      family: 4,
       auth: {
         user: username,
         pass: actualPassword
@@ -771,6 +776,7 @@ app.post('/api/exams/submit', async (req, res) => {
         host: smtp3.host,
         port: smtp3.port,
         secure: smtp3.port === 465,
+        family: 4,
         auth: {
           user: smtp3.username,
           pass: smtp3.password
