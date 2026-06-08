@@ -493,7 +493,7 @@ export default function QuizRunner({
           positiveMarks: exam.positiveMarks,
           negativeMarks: exam.negativeMarks,
           answers,
-          questionStates,
+          questionStates: savedStates,
           questionsList: questions,
           timeTakenSeconds: overallTimeTaken,
           violations

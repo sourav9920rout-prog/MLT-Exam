@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
+import { StudentProfile } from './types.ts';
 
 // Dynamic Sub-Components
 import StudentManager from './components/StudentManager.tsx';
