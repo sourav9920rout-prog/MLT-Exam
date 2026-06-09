@@ -56,6 +56,7 @@ export default function QuizRunner({
   const [submitting, setSubmitting] = useState(false);
   const [isFrozen, setIsFrozen] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showSectionConfirmModal, setShowSectionConfirmModal] = useState(false);
   const [submitModalMessage, setSubmitModalMessage] = useState('');
   
   const timerInterval = useRef<any>(null);
@@ -413,27 +414,29 @@ export default function QuizRunner({
   };
 
   const handleManualSectionAdvance = () => {
-      const confirmed = window.confirm("Caution: You can't go back to the previous section or edit answers once you proceed. Do you want to end this section and start the next section?");
-      if (confirmed) {
-          triggerAutosave();
-          const nextSec = currentSectionIdx + 1;
-          const nextTime = sections[nextSec].durationMinutes * 60;
-          setCurrentSectionIdx(nextSec);
-          setCurrentIdx(0);
-          setSectionTimeLeft(nextTime);
-          setIsFrozen(false);
-          
-          const forceSave = async () => {
-             try {
-                 await setDoc(doc(db, 'examAttempts', attemptId), {
-                     currentSectionIndex: nextSec,
-                     timeRemainingSeconds: nextTime,
-                     updatedAt: new Date().toISOString()
-                 }, { merge: true });
-             } catch(e) {}
-          };
-          forceSave();
-      }
+      setShowSectionConfirmModal(true);
+  };
+
+  const confirmSectionAdvance = () => {
+      setShowSectionConfirmModal(false);
+      triggerAutosave();
+      const nextSec = currentSectionIdx + 1;
+      const nextTime = sections[nextSec].durationMinutes * 60;
+      setCurrentSectionIdx(nextSec);
+      setCurrentIdx(0);
+      setSectionTimeLeft(nextTime);
+      setIsFrozen(false);
+      
+      const forceSave = async () => {
+         try {
+             await setDoc(doc(db, 'examAttempts', attemptId), {
+                 currentSectionIndex: nextSec,
+                 timeRemainingSeconds: nextTime,
+                 updatedAt: new Date().toISOString()
+             }, { merge: true });
+         } catch(e) {}
+      };
+      forceSave();
   };
 
   const handleSaveAndNext = () => {
@@ -781,6 +784,34 @@ export default function QuizRunner({
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold shadow-sm transition"
               >
                 Yes, Submit Exam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Section Advance Confirm Modal */}
+      {showSectionConfirmModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-6">
+            <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+              <AlertTriangle className="text-amber-500" /> Caution
+            </h3>
+            <p className="text-slate-600 font-medium">
+              You can't go back to the previous section or edit answers once you proceed. Do you want to end this section and start the next section?
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button 
+                onClick={() => setShowSectionConfirmModal(false)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-semibold transition"
+              >
+                No, cancel
+              </button>
+              <button 
+                onClick={confirmSectionAdvance}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold shadow-sm transition"
+              >
+                Yes, advance
               </button>
             </div>
           </div>
