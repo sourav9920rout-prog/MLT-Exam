@@ -72,7 +72,19 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
     }
   };
 
-  const uniqueSubjects = Array.from(new Set(bankQuestions.map(q => q.subject || 'General'))).sort();
+  const subjectCounts = bankQuestions.reduce((acc, q) => {
+    const subj = q.subject || 'General';
+    acc[subj] = (acc[subj] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const uniqueSubjects = Object.keys(subjectCounts).sort();
+
+  const [manualSubjectFilter, setManualSubjectFilter] = useState('all');
+
+  const filteredManualQuestions = manualSubjectFilter === 'all' 
+    ? bankQuestions 
+    : bankQuestions.filter(q => (q.subject || 'General') === manualSubjectFilter);
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,7 +300,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
                         <label className="block text-[11px] font-bold text-slate-700 mb-1">Subject</label>
                         <select value={draftSubject} onChange={e=>setDraftSubject(e.target.value)} className="w-full border rounded px-2 py-1.5 text-xs min-w-0">
                           {uniqueSubjects.map(subj => (
-                            <option key={subj} value={subj}>{subj}</option>
+                            <option key={subj} value={subj}>{subj} ({subjectCounts[subj]} Available)</option>
                           ))}
                         </select>
                       </div>
@@ -340,9 +352,17 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
               </div>
             ) : (
               <div className="space-y-2 text-sm">
-                 <p className="text-xs text-slate-500 mb-2">Manually tick exactly the {totalQuestions} questions you want in this paper ({selectedQuestionIds.length} Selected).</p>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
+                     <p className="text-xs text-slate-500 flex-1">Manually tick exactly the {totalQuestions} questions you want in this paper ({selectedQuestionIds.length} Selected).</p>
+                     <select value={manualSubjectFilter} onChange={e=>setManualSubjectFilter(e.target.value)} className="border border-slate-300 rounded px-2 py-1 text-xs outline-none bg-white">
+                      <option value="all">All Subjects</option>
+                      {uniqueSubjects.map(subj => (
+                        <option key={subj} value={subj}>{subj} ({subjectCounts[subj]} Available)</option>
+                      ))}
+                    </select>
+                  </div>
                  <div className="max-h-64 overflow-y-auto border border-slate-200 rounded p-2 space-y-1 bg-slate-50">
-                    {bankQuestions.map(q => {
+                    {filteredManualQuestions.map(q => {
                       const sel = selectedQuestionIds.includes(q.id);
                       return (
                         <label key={q.id} className={`flex items-start gap-2 p-2 rounded cursor-pointer transition border ${sel ? 'bg-amber-50 border-amber-200' : 'bg-white border-transparent hover:border-slate-300'}`}>
