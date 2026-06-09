@@ -844,10 +844,20 @@ export default function QuizRunner({
              </div>
 
              {/* Action Control Bar - Bottom Absolute */}
-             <div className="absolute px-2 md:pl-4 md:pr-1 py-2 md:py-3 bg-white border-t border-slate-300 w-[100%] flex flex-wrap md:flex-nowrap items-center justify-end bottom-0 gap-2">
-                 <div className="flex gap-2 bg-slate-200 md:border-l md:border-t-0 md:border-b-0 border-white shrink-0">
-                      <button onClick={handleSaveAndNext} className="bg-sky-600 text-white px-8 md:px-12 py-2 md:py-2.5 text-sm md:text-base font-bold rounded shadow hover:bg-sky-700 transition">
-                        Save & Next
+             <div className="absolute px-2 md:pl-4 md:pr-1 py-2 md:py-3 bg-white border-t border-slate-300 w-[100%] flex flex-wrap items-center justify-between bottom-0 gap-2">
+                 <div className="flex flex-wrap gap-2">
+                     <button onClick={handleMarkReviewAndNext} className="bg-slate-100 border border-slate-300 text-slate-700 px-4 py-2 text-xs md:text-sm font-bold rounded shadow-sm hover:bg-slate-200 transition flex items-center gap-1.5">
+                        <Flag size={14} className="text-amber-500" />
+                        Mark for Review & Next
+                     </button>
+                     <button onClick={handleClearResponse} className="bg-white border border-slate-300 text-slate-700 px-4 py-2 text-xs md:text-sm font-bold rounded shadow-sm hover:bg-slate-100 transition flex items-center gap-1.5">
+                        <XCircle size={14} className="text-slate-400" />
+                        Clear Response
+                     </button>
+                 </div>
+                 <div className="flex gap-2 shrink-0 ml-auto md:ml-0">
+                      <button onClick={handleSaveAndNext} className="bg-sky-600 text-white px-8 md:px-12 py-2 md:py-2 text-sm md:text-base font-bold rounded shadow hover:bg-sky-700 transition flex items-center gap-1.5">
+                        <Save size={16} /> Save & Next
                      </button>
                  </div>
              </div>

@@ -21,6 +21,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
   const [isRawTextModalOpen, setIsRawTextModalOpen] = useState(false);
   const [rawText, setRawText] = useState('');
   const [languageMode, setLanguageMode] = useState<'bilingual'|'english'>('bilingual');
+  const [uploadSubject, setUploadSubject] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<BankQuestion>>({
     englishQuestion: '',
@@ -40,13 +41,19 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
-  const fetchQuestions = async () => {
+  const fetchQuestions = async (skipAutoSeed = false) => {
     setLoading(true);
     try {
       const snap = await getDocs(collection(db, 'questionBank'));
       const list: BankQuestion[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() } as BankQuestion));
       setQuestions(list);
+      
+      if (!skipAutoSeed && !list.some(q => q.subject === 'Reasoning')) {
+          setTimeout(() => {
+              handleSeedPDFQuestions();
+          }, 500);
+      }
     } catch (e) {
       console.error(e);
       onNotify('Failed to retrieve question bank.', true);
@@ -109,7 +116,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           correctOptionIndex: Number(q.correctOptionIndex) || 0,
           englishExplanation: q.englishExplanation || "No explanation provided.",
           hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
-          subject: q.subject || "Miscellaneous",
+          subject: uploadSubject.trim() || q.subject || "Miscellaneous",
           difficulty: q.difficulty || "medium",
           createdAt: Date.now()
         });
@@ -163,7 +170,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
           correctOptionIndex: Number(q.correctOptionIndex) || 0,
           englishExplanation: q.englishExplanation || "No explanation provided.",
           hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
-          subject: q.subject || "Miscellaneous",
+          subject: uploadSubject.trim() || q.subject || "Miscellaneous",
           difficulty: q.difficulty || "medium",
           createdAt: Date.now()
         });
@@ -177,6 +184,142 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
       onNotify('Failed to process pasted text extraction.', true);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleSeedPDFQuestions = async () => {
+    const pdfQuestions: Partial<BankQuestion>[] = [
+      {
+        englishQuestion: 'A is 24 years old. In 12 years, A will complete 5 tasks per year. How many tasks will A have completed altogether after 12 years?',
+        hindiQuestion: 'A 24 वर्ष का है। 12 वर्षों में, A प्रति वर्ष 5 कार्य पूरे करेगा। 12 वर्षों के बाद A ने कुल कितने कार्य पूरे किए होंगे?',
+        englishOptions: ['60', '59', '65', '55'],
+        hindiOptions: ['60', '59', '65', '55'],
+        correctOptionIndex: 0,
+        englishExplanation: 'Each year, task: 5. For 12 years: 12 × 5 = 60.',
+        hindiExplanation: 'प्रत्येक वर्ष कार्य: 5. 12 वर्षों के लिए: 12 × 5 = 60.',
+        subject: 'Reasoning',
+        difficulty: 'beginner'
+      },
+      {
+        englishQuestion: 'A is 21 years old. In 13 years, A will complete 2 tasks per year. How many tasks will A have completed altogether after 13 years?',
+        hindiQuestion: 'A 21 वर्ष का है। 13 वर्षों में, A प्रति वर्ष 2 कार्य पूरे करेगा। 13 वर्षों के बाद A ने कुल कितने कार्य पूरे किए होंगे?',
+        englishOptions: ['28', '24', '26', '27'],
+        hindiOptions: ['28', '24', '26', '27'],
+        correctOptionIndex: 2,
+        englishExplanation: 'Each year, task: 2. For 13 years: 13 × 2 = 26.',
+        hindiExplanation: 'प्रत्येक वर्ष कार्य: 2. 13 वर्षों के लिए: 13 × 2 = 26.',
+        subject: 'Reasoning',
+        difficulty: 'beginner'
+      },
+      {
+        englishQuestion: 'Ages of 3 people Kalpana, Sanjana, Divya are in AP. Their current sum is 54. After 5 years, sum will be 69. Find the youngest person\'s age.',
+        hindiQuestion: '3 लोगों - कल्पना, संजना, दिव्या की आयु AP (समांतर श्रेणी) में है। उनका वर्तमान योग 54 है। 5 वर्ष बाद, योग 69 होगा। सबसे कम उम्र के व्यक्ति की आयु ज्ञात कीजिए।',
+        englishOptions: ['16', '18', '17', '20'],
+        hindiOptions: ['16', '18', '17', '20'],
+        correctOptionIndex: 0,
+        englishExplanation: 'In AP, sum increases by 3×5=15. Current ages form AP starting with 16.',
+        hindiExplanation: 'AP में, योग 3×5=15 से बढ़ता है। वर्तमान आयु 16 से शुरू होने वाली AP बनाती है।',
+        subject: 'Reasoning',
+        difficulty: 'beginner'
+      },
+      {
+        englishQuestion: 'A car travels 180 km at 60 km/h. The driver\'s age is 2 times the travel time in hours. How old is the driver?',
+        hindiQuestion: 'एक कार 60 किमी/घंटा की गति से 180 किमी की यात्रा करती है। चालक की आयु यात्रा के समय (घंटों में) की दोगुनी है। चालक की आयु कितनी है?',
+        englishOptions: ['12', '11', '1', '6'],
+        hindiOptions: ['12', '11', '1', '6'],
+        correctOptionIndex: 3,
+        englishExplanation: 'Time = Distance/Speed = 180/60 = 3 hours. Driver\'s age = 3 × 2 = 6.',
+        hindiExplanation: 'समय = दूरी/गति = 180/60 = 3 घंटे। चालक की आयु = 3 × 2 = 6.',
+        subject: 'Reasoning',
+        difficulty: 'beginner'
+      },
+      {
+        englishQuestion: 'Simple interest on ₹2850 at 8% for 4 years is ₹912. A\'s age is principal/100, B\'s age is interest/10. Find A+B\'s age.',
+        hindiQuestion: '₹2850 पर 8% की दर से 4 वर्ष का साधारण ब्याज ₹912 है। A की आयु (मूलधन/100) है, B की आयु (ब्याज/10) है। A+B की आयु ज्ञात करें।',
+        englishOptions: ['124', '238', '114', '119'],
+        hindiOptions: ['124', '238', '114', '119'],
+        correctOptionIndex: 3,
+        englishExplanation: 'A = 2850/100 = 28.5 (approx 28), B = 912/10 = 91.2 (approx 91). Sum = 119.',
+        hindiExplanation: 'A = 2850/100 = 28.5 (लगभग 28), B = 912/10 = 91.2 (लगभग 91)। योग = 119.',
+        subject: 'Reasoning',
+        difficulty: 'beginner'
+      },
+      {
+        englishQuestion: 'In 5 years, Mahesh will be 2 times as old as Phalguni will be then. Phalguni\'s present age is 13. What is Mahesh\'s present age?',
+        hindiQuestion: '5 वर्षों में, महेश की आयु फाल्गुनी की उस समय की आयु की दोगुनी होगी। फाल्गुनी की वर्तमान आयु 13 वर्ष है। महेश की वर्तमान आयु क्या है?',
+        englishOptions: ['26', '36', '13', '31'],
+        hindiOptions: ['26', '36', '13', '31'],
+        correctOptionIndex: 3,
+        englishExplanation: 'Mahesh+5 = 2*(13+5) -> Mahesh = 2*(18)-5 = 31.',
+        hindiExplanation: 'महेश+5 = 2*(13+5) -> महेश = 2*(18)-5 = 31.',
+        subject: 'Reasoning',
+        difficulty: 'beginner'
+      },
+      {
+        englishQuestion: 'The sum of A and B\'s ages is 35. Twice A\'s age minus B\'s age is 7. Find A\'s age.',
+        hindiQuestion: 'A और B की आयु का योग 35 है। A की आयु के दोगुने में से B की आयु घटाने पर 7 प्राप्त होता है। A की आयु ज्ञात कीजिए।',
+        englishOptions: ['16', '14', '12', '21'],
+        hindiOptions: ['16', '14', '12', '21'],
+        correctOptionIndex: 1,
+        englishExplanation: 'A + B = 35; 2A - B = 7. Adding equations: 3A = 42, A = 14.',
+        hindiExplanation: 'A + B = 35; 2A - B = 7. समीकरणों को जोड़ने पर: 3A = 42, A = 14.',
+        subject: 'Reasoning',
+        difficulty: 'beginner'
+      },
+      {
+        englishQuestion: 'In 2024, the Amara family consists of: Amara (48), Gunjan (43), Sarvesh (21), Delilah (16). What is Gunjan\'s current age?',
+        hindiQuestion: 'वर्ष 2024 में, अमारा परिवार में शामिल हैं: अमारा (48), गुंजन (43), सर्वेश (21), डेलाइला (16)। गुंजन की वर्तमान आयु क्या है?',
+        englishOptions: ['45', '41', '48', '43'],
+        hindiOptions: ['45', '41', '48', '43'],
+        correctOptionIndex: 3,
+        englishExplanation: 'From the given relationships, Gunjan\'s age is explicitly given as 43.',
+        hindiExplanation: 'दिए गए संबंधों से स्पष्ट है कि गुंजन की आयु 43 वर्ष है।',
+        subject: 'Reasoning',
+        difficulty: 'advanced'
+      },
+      {
+        englishQuestion: 'If A=1, ..., Z=26, what is the sum of the positions for the word DOG?',
+        hindiQuestion: 'यदि A=1, ..., Z=26, तो शब्द DOG के क्रमांकों का योग क्या है?',
+        englishOptions: ['390', '293', '26', '28'],
+        hindiOptions: ['390', '293', '26', '28'],
+        correctOptionIndex: 2,
+        englishExplanation: 'D=4, O=15, G=7. Sum = 4 + 15 + 7 = 26.',
+        hindiExplanation: 'D=4, O=15, G=7. योग = 4 + 15 + 7 = 26.',
+        subject: 'Reasoning',
+        difficulty: 'advanced'
+      },
+      {
+        englishQuestion: 'Ian is 18, Savita is 19. After 3 years, what is the ratio of their ages?',
+        hindiQuestion: 'इयान 18 वर्ष का है, सविता 19 वर्ष की है। 3 वर्ष बाद, उनकी आयु का अनुपात क्या होगा?',
+        englishOptions: ['18:19', '19:18', '22:21', '21:22'],
+        hindiOptions: ['18:19', '19:18', '22:21', '21:22'],
+        correctOptionIndex: 3,
+        englishExplanation: 'After 3 years: Ian = 21, Savita = 22. Ratio = 21:22.',
+        hindiExplanation: '3 वर्ष बाद: इयान = 21, सविता = 22. अनुपात = 21:22.',
+        subject: 'Reasoning',
+        difficulty: 'advanced'
+      }
+    ];
+
+    setLoading(true);
+    try {
+      for (const q of pdfQuestions) {
+        const qId = 'qb_' + Date.now() + Math.random().toString(36).substring(2, 6);
+        await setDoc(doc(db, 'questionBank', qId), {
+          id: qId,
+          ...q,
+          imageUrl: '',
+          optionImageUrls: ['', '', '', ''],
+          createdAt: Date.now()
+        });
+      }
+      onNotify('Successfully seeded 10 Reasoning questions from PDF!');
+      fetchQuestions(true);
+    } catch(err) {
+      console.error(err);
+      onNotify('Error seeding PDF questions', true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -354,15 +497,24 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
           <p className="text-sm text-slate-500">Manage bilingual questions for examinations. Total: {questions.length}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 border border-slate-200 rounded px-2 py-1.5 bg-slate-50 mr-2">
+             <input 
+               type="text" 
+               placeholder="Target Subject (Optional)..." 
+               value={uploadSubject}
+               onChange={e => setUploadSubject(e.target.value)}
+               className="text-xs bg-transparent outline-none w-40 text-slate-700 placeholder:text-slate-400"
+             />
+          </div>
           <div className="flex items-center gap-2 border border-slate-200 rounded px-3 py-1.5 bg-slate-50 mr-2">
-             <span className="text-xs font-bold text-slate-500">AI Extractor Mode:</span>
+             <span className="text-xs font-bold text-slate-500">AI Mode:</span>
              <select 
                 value={languageMode} 
                 onChange={(e) => setLanguageMode(e.target.value as 'bilingual'|'english')}
                 className="text-xs bg-transparent font-medium text-blue-700 outline-none cursor-pointer"
              >
-                <option value="bilingual">Bilingual (Translates English &rarr; Hindi)</option>
-                <option value="english">English Only (Faster, Skips Translation)</option>
+                <option value="bilingual">Bilingual</option>
+                <option value="english">English Only</option>
              </select>
           </div>
           <input 
@@ -407,6 +559,13 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs transition shadow-sm"
           >
             <Plus size={16} /> Manual Entry
+          </button>
+          <button
+            onClick={handleSeedPDFQuestions}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs transition shadow-sm"
+          >
+            <Plus size={16} /> Seed PDF Questions
           </button>
           {selectedQuestionIds.length > 0 && (
             <button
