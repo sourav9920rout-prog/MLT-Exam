@@ -110,14 +110,27 @@ export default function QuizRunner({
 
              await setDoc(doc(db, 'examAttempts', attemptId), { refreshCount: currentRefreshes + 1 }, { merge: true });
 
+             let localRec: any = null;
+             try {
+                 const storedRaw = localStorage.getItem(`examSession_${attemptId}`);
+                 if (storedRaw) {
+                     localRec = JSON.parse(storedRaw);
+                 }
+             } catch(e) {}
+
+             const ansToUse = localRec?.answers || attemptData.answers || {};
+             const statesToUse = localRec?.savedStates || attemptData.savedStates || {};
+             const secToUse = localRec?.currentSectionIdx ?? attemptData.currentSectionIndex ?? 0;
+             const timeRemToUse = localRec?.sectionTimeLeft ?? attemptData.timeRemainingSeconds ?? 0;
+
              // We have a recovery, so bypass declaration and OTP
              setRecoveredSession({
-                 ans: attemptData.answers || {},
-                 states: attemptData.savedStates || {},
-                 section: attemptData.currentSectionIndex ?? 0,
-                 timeRem: attemptData.timeRemainingSeconds ?? 0
+                 ans: ansToUse,
+                 states: statesToUse,
+                 section: secToUse,
+                 timeRem: timeRemToUse
              });
-             triggerFetchAndStart(attemptData.answers || {}, attemptData.savedStates || {}, attemptData.currentSectionIndex ?? 0, attemptData.timeRemainingSeconds ?? 0);
+             triggerFetchAndStart(ansToUse, statesToUse, secToUse, timeRemToUse);
              return;
           }
         }
@@ -246,6 +259,21 @@ export default function QuizRunner({
         clearInterval(generalTimer.current);
     }
   }, [loading, submitting, currentSectionIdx, examStarted]);
+
+  // Continuously save to local storage
+  useEffect(() => {
+     if (examStarted && !submitting && attemptId) {
+         try {
+             localStorage.setItem(`examSession_${attemptId}`, JSON.stringify({
+                 answers,
+                 savedStates,
+                 currentSectionIdx,
+                 sectionTimeLeft,
+                 lastUpdated: Date.now()
+             }));
+         } catch(e) {}
+     }
+  }, [answers, savedStates, currentSectionIdx, sectionTimeLeft, examStarted, submitting, attemptId]);
 
   // Track visited state
   useEffect(() => {
@@ -503,6 +531,11 @@ export default function QuizRunner({
         
         const attemptDocRef = doc(db, 'examAttempts', attemptId);
         await setDoc(attemptDocRef, { ...resultObject, status: 'submitted' }, { merge: true });
+        
+        // Clear local storage for this session
+        try {
+            localStorage.removeItem(`examSession_${attemptId}`);
+        } catch(e) {}
       } catch (dbErr) {
         console.warn('Attempt update skipped:', dbErr);
         // Ensure they still see their score even if they lose connection at the last second
@@ -746,22 +779,24 @@ export default function QuizRunner({
       </div>
 
       {/* SECOND HEADER: Section Tabs + Timer */}
-      <div className="bg-slate-200 border-b border-slate-300 flex justify-between items-center px-1 shrink-0 h-[42px]">
-          <div className="flex h-full items-end gap-1 px-2">
+      <div className="bg-slate-200 border-b border-slate-300 flex justify-between items-center px-1 shrink-0 h-[36px] md:h-[42px] overflow-x-auto">
+          <div className="flex h-full items-end gap-1 px-1 md:px-2 min-w-max">
               {sections.map((sec, idx) => (
-                  <button key={sec.id} onClick={() => {}} disabled className={`h-[34px] px-5 text-sm font-semibold rounded-t-md border-t border-l border-r border-slate-300 flex items-center justify-center gap-2
+                  <button key={sec.id} onClick={() => {}} disabled className={`h-[28px] md:h-[34px] px-3 md:px-5 text-xs md:text-sm font-semibold rounded-t-md border-t border-l border-r border-slate-300 flex items-center justify-center gap-1.5 md:gap-2 whitespace-nowrap
                       ${idx === currentSectionIdx ? 'bg-sky-500 text-white border-transparent' : 
                        idx < currentSectionIdx ? 'bg-slate-400 text-white cursor-not-allowed opacity-80' : 
                        'bg-white text-slate-600 hover:bg-slate-100 cursor-not-allowed opacity-60'}`}
                   >
-                     {sec.title}
-                     {idx === currentSectionIdx && <span className="bg-white text-sky-500 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">i</span>}
+                     <span className="hidden md:inline">{sec.title}</span>
+                     <span className="md:hidden">S-{idx + 1}</span>
+                     {idx === currentSectionIdx && <span className="hidden md:flex bg-white text-sky-500 rounded-full w-4 h-4 items-center justify-center text-[10px] font-bold">i</span>}
                   </button>
               ))}
           </div>
-          <div className="flex items-center gap-2 pr-4 h-full text-slate-800">
-             <span className="text-xs uppercase tracking-wide font-bold text-slate-500">Section Time Left:</span>
-             <span className={`font-mono font-bold text-base bg-transparent px-1 rounded ${sectionTimeLeft < 60 ? "text-red-600 animate-pulse" : "text-black"}`}>{formatTimer(sectionTimeLeft)}</span>
+          <div className="flex items-center gap-1.5 md:gap-2 pr-2 md:pr-4 h-full text-slate-800 shrink-0 sticky right-0 bg-slate-200 pl-2">
+             <span className="text-[10px] md:text-xs uppercase tracking-wide font-bold text-slate-500 hidden sm:inline">Section Time Left:</span>
+             <span className="text-[10px] uppercase tracking-wide font-bold text-slate-500 sm:hidden">Time:</span>
+             <span className={`font-mono font-bold text-sm md:text-base bg-transparent px-1 rounded ${sectionTimeLeft < 60 ? "text-red-600 animate-pulse" : "text-black"}`}>{formatTimer(sectionTimeLeft)}</span>
           </div>
       </div>
 
@@ -785,7 +820,7 @@ export default function QuizRunner({
              </div>
              
              {/* Question Area */}
-             <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 pb-20">
+             <div className="flex-1 overflow-y-auto px-2.5 md:px-6 py-2.5 md:py-6 pb-[90px] md:pb-20">
                  
                  {currentQuestion.imageUrl && (
                      <div className="mb-5 flex justify-center">
@@ -795,14 +830,14 @@ export default function QuizRunner({
 
                  {examLanguage === 'english' && (
                      <div className="mb-6">
-                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-4 md:mb-5 whitespace-pre-wrap">
+                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-2.5 md:mb-5 whitespace-pre-wrap">
                            {currentQuestion.englishQuestion}
                          </p>
-                         <div className="space-y-3 md:space-y-4">
+                         <div className="space-y-1.5 md:space-y-4">
                            {(currentQuestion.englishOptions || ["", "", "", ""]).map((opt, oIdx) => {
                               const isSel = answers[currentQuestion.id] === oIdx;
                               return (
-                                <label key={oIdx} className="flex items-start gap-3 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-4 py-1.5 md:py-1 rounded">
+                                <label key={oIdx} className="flex items-start gap-2 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-2 md:pr-4 py-1.5 md:py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0 shrink-0" />
                                    <div className="flex flex-col gap-2 flex-1">
                                      {opt && <span className="text-[14px] md:text-[15px] text-slate-800 leading-tight md:leading-normal">{opt}</span>}
@@ -819,14 +854,14 @@ export default function QuizRunner({
 
                  {examLanguage === 'hindi' && (
                      <div className="mb-6">
-                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-4 md:mb-5 block whitespace-pre-wrap">
+                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-2.5 md:mb-5 block whitespace-pre-wrap">
                            {currentQuestion.hindiQuestion || currentQuestion.englishQuestion}
                          </p>
-                         <div className="space-y-3 md:space-y-4">
+                         <div className="space-y-1.5 md:space-y-4">
                            {((currentQuestion.hindiOptions && currentQuestion.hindiOptions[0] ? currentQuestion.hindiOptions : currentQuestion.englishOptions) || ["", "", "", ""]).map((opt, oIdx) => {
                               const isSel = answers[currentQuestion.id] === oIdx;
                               return (
-                                <label key={oIdx} className="flex items-start gap-3 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-4 py-1.5 md:py-1 rounded">
+                                <label key={oIdx} className="flex items-start gap-2 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-2 md:pr-4 py-1.5 md:py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0 shrink-0" />
                                    <div className="flex flex-col gap-2 flex-1">
                                      {opt && <span className="text-[14px] md:text-[15px] text-slate-800 leading-tight md:leading-normal">{opt}</span>}
@@ -866,16 +901,16 @@ export default function QuizRunner({
           <div className="w-full md:w-[300px] landscape:w-[260px] bg-slate-100/80 flex flex-col shrink-0 border-t-[3px] md:border-t-0 md:border-l-[3px] landscape:border-t-0 landscape:border-l-[3px] border-slate-300">
               
               {/* Profile Block */}
-              <div className="bg-white border-b border-slate-300 flex items-center gap-3 py-2 px-3 shrink-0 drop-shadow-sm z-10">
-                 <div className="w-12 h-12 bg-slate-200 rounded-full flex justify-center items-center overflow-hidden shrink-0 border border-slate-300">
+              <div className="bg-white border-b border-slate-300 flex items-center gap-2 md:gap-3 py-1.5 md:py-2 px-2 md:px-3 shrink-0 drop-shadow-sm z-10">
+                 <div className="w-8 h-8 md:w-12 md:h-12 bg-slate-200 rounded-full flex justify-center items-center overflow-hidden shrink-0 border border-slate-300">
                     {studentPhotoURL ? (
                       <img src={studentPhotoURL} alt={studentName} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
                     ) : (
-                      <svg className="w-8 h-8 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                      <svg className="w-5 h-5 md:w-8 md:h-8 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                     )}
                  </div>
                  <div className="min-w-0">
-                    <p className="font-bold text-sm text-slate-900 truncate leading-tight uppercase font-sans tracking-wide">{studentName}</p>
+                    <p className="font-bold text-[11px] md:text-sm text-slate-900 truncate leading-tight uppercase font-sans tracking-wide">{studentName}</p>
                  </div>
               </div>
 
