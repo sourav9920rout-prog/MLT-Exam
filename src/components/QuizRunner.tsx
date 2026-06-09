@@ -374,7 +374,7 @@ export default function QuizRunner({
           console.log(`[QuizRunner] Auto-submitting exam.`);
           setSubmitting(true);
           onNotify(`Final section completed successfully. Finalizing exam...`);
-          setTimeout(() => executeQuizSubmission(), 1500);
+          executeQuizSubmission();
       }
   };
 
@@ -520,8 +520,9 @@ export default function QuizRunner({
          }).catch(e => console.warn('Non-critical background analytics sync failed', e));
       } catch(e) {}
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('[QuizRunner] Submission error:', err);
+      alert('A critical error occurred while submitting: ' + err?.message);
       onNotify('Failed to finalize result computation locally.', true);
     } finally {
       setSubmitting(false);
