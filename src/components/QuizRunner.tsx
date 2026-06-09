@@ -497,8 +497,11 @@ export default function QuizRunner({
       let negativeMarks = exam.negativeMarks !== undefined ? exam.negativeMarks : 0;
       let passingPercentage = exam.passingPercentage !== undefined ? exam.passingPercentage : 50;
 
-      const score = (correctCount * positiveMarks) - (incorrectCount * negativeMarks);
-      const percentage = Math.round((correctCount / totalQuestions) * 100);
+      const maxScore = totalQuestions * positiveMarks;
+      const rawScore = (correctCount * positiveMarks) - (incorrectCount * negativeMarks);
+      const score = Math.max(0, rawScore); // Prevent negative total score if preferred, or keep it. Let's keep negative if they allow. Actually, mostly tests allow negative. I will just keep rawScore.
+      let percentage = Math.round((rawScore / maxScore) * 100);
+      percentage = Math.max(0, percentage);
       const passed = percentage >= passingPercentage;
 
       const resultId = `result_${studentId}_${exam.id}_${Date.now()}`;
@@ -509,7 +512,8 @@ export default function QuizRunner({
         studentEmail,
         examId: exam.id,
         examName: exam.title,
-        score,
+        score: parseFloat(rawScore.toFixed(2)),
+        maxScore,
         totalQuestions,
         percentage,
         passed,

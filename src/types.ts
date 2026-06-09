@@ -87,6 +87,7 @@ export interface Result {
   examId: string;
   examName: string;
   score: number;
+  maxScore?: number;
   totalQuestions: number;
   percentage: number;
   passed: boolean;

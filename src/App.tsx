@@ -661,7 +661,7 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
                     <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Final Score</span>
-                    <h4 className="text-2xl font-bold text-slate-900 mt-2">{reviewResult.score} / {reviewResult.totalQuestions}</h4>
+                    <h4 className="text-2xl font-bold text-slate-900 mt-2">{reviewResult.score} / {reviewResult.maxScore || reviewResult.totalQuestions}</h4>
                   </div>
                   <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
                     <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Percentage Pass Grade</span>
@@ -866,7 +866,7 @@ export default function App() {
                                   <td className="py-4 px-4 font-mono text-xs text-slate-600">
                                     {new Date(resItem.submittedAt).toLocaleDateString()}
                                   </td>
-                                  <td className="py-4 px-4 font-bold text-slate-800">{resItem.percentage}% ({resItem.score}/{resItem.totalQuestions})</td>
+                                  <td className="py-4 px-4 font-bold text-slate-800">{resItem.percentage}% ({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</td>
                                   <td className="py-4 px-4">
                                     <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
                                       resItem.passed ? 'bg-emerald-50 text-emerald-700 font-mono border border-emerald-250' : 'bg-rose-50 text-rose-700 font-mono border border-rose-250'

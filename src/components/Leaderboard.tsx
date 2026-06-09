@@ -99,7 +99,7 @@ export default function Leaderboard({ examId, examName, onClose, studentId }: Le
                       </div>
                       <div className="text-right shrink-0 pr-2">
                          <div className="font-bold text-slate-800 text-base md:text-xl tabular-nums leading-none tracking-tight">
-                           {r.score?.toFixed(1) || 0}
+                           {r.score?.toFixed(1) || 0} <span className="text-sm md:text-base text-slate-400 font-normal">/ {r.maxScore || r.totalQuestions}</span>
                          </div>
                          <div className="text-[10px] md:text-xs text-slate-400 font-mono mt-1">
                            {r.percentage?.toFixed(1)}% | {r.timeTakenSeconds ? `${Math.floor(r.timeTakenSeconds / 60)}m ${r.timeTakenSeconds % 60}s` : 'N/A'}

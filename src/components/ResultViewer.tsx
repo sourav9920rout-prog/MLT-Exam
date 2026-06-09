@@ -42,7 +42,7 @@ export default function ResultViewer({ reviewResult, onBack }: ResultViewerProps
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white border border-slate-200 p-5 rounded-xl text-center">
                 <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Final Score</span>
-                <h4 className="text-2xl font-bold text-slate-900 mt-2">{reviewResult.score} / {reviewResult.totalQuestions}</h4>
+                <h4 className="text-2xl font-bold text-slate-900 mt-2">{reviewResult.score} / {reviewResult.maxScore || reviewResult.totalQuestions}</h4>
               </div>
               <div className="bg-white border border-slate-200 p-5 rounded-xl text-center">
                 <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Percentage Pass Grade</span>

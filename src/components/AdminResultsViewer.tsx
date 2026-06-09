@@ -50,7 +50,7 @@ export default function AdminResultsViewer() {
         </div>
         <button onClick={fetchResults} className="p-2 border border-slate-200 text-slate-600 rounded hover:bg-slate-50 relative group">
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          <div className="absolute opacity-0 group-hover:opacity-100 transition bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-[10px] px-2 py-1 rounded">Refresh</div>
+          <div className="absolute opacity-0 group-hover:opacity-100 transition bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-[10px] px-2 py-1 rounded w-max">Refresh</div>
         </button>
       </div>
 
@@ -79,7 +79,7 @@ export default function AdminResultsViewer() {
                   <td className="py-4 px-4 font-medium text-slate-800">{r.studentName || 'Unknown'}</td>
                   <td className="py-4 px-4 text-slate-500">{r.studentEmail || 'Unknown'}</td>
                   <td className="py-4 px-4 font-semibold text-slate-900">{r.examName || r.examId}</td>
-                  <td className="py-4 px-4 text-right tabular-nums font-medium text-slate-700">{r.score?.toFixed(1) || 0} / {r.totalQuestions}</td>
+                  <td className="py-4 px-4 text-right tabular-nums font-medium text-slate-700">{r.score?.toFixed(1) || 0} / {r.maxScore || r.totalQuestions}</td>
                   <td className="py-4 px-4 text-right tabular-nums">
                      <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${r.percentage >= 60 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                        {r.percentage?.toFixed(1) || 0}%
