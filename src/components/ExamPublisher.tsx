@@ -30,6 +30,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
   const [endDate, setEndDate] = useState('');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Generation method
   const [genMethod, setGenMethod] = useState<'manual' | 'auto'>('auto');
@@ -154,6 +155,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
         passingPercentage: Number(passingPercentage),
         questionIds: finalQIds,
         sections,
+        showLeaderboard,
         createdAt: new Date().toISOString()
       };
 
@@ -248,7 +250,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
                <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)} required className="w-full border rounded px-2 py-1.5 text-xs font-mono focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-2 mt-4">
             <div>
                <label className="block text-xs font-bold text-emerald-700 mb-1">Positive Marks (+)</label>
                <input type="number" step="0.5" value={positiveMarks} onChange={e=>setPositiveMarks(Number(e.target.value))} className="w-full border rounded px-3 py-2 text-sm bg-emerald-50 focus:outline-none" />
@@ -256,6 +258,12 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
             <div>
                <label className="block text-xs font-bold text-rose-700 mb-1">Negative Marks (-)</label>
                <input type="number" step="0.25" value={negativeMarks} onChange={e=>setNegativeMarks(Number(e.target.value))} className="w-full border rounded px-3 py-2 text-sm bg-rose-50 focus:outline-none" />
+            </div>
+            <div className="flex flex-col justify-end">
+               <label className="flex items-center gap-2 cursor-pointer h-full pt-4">
+                 <input type="checkbox" checked={showLeaderboard} onChange={e=>setShowLeaderboard(e.target.checked)} className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500" />
+                 <span className="text-sm font-bold text-slate-700">Show Leaderboard to Students</span>
+               </label>
             </div>
           </div>
         </section>

@@ -38,7 +38,8 @@ import {
   Eye,
   BriefcaseMedical,
   Vote,
-  Printer
+  Printer,
+  Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -50,6 +51,7 @@ import QuestCreator from './components/QuestCreator.tsx';
 import QuizRunner from './components/QuizRunner.tsx';
 import AdminManager from './components/AdminManager.tsx';
 import AdminResultsViewer from './components/AdminResultsViewer.tsx';
+import Leaderboard from './components/Leaderboard.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -70,6 +72,7 @@ export default function App() {
   // Active quiz container
   const [activeExam, setActiveExam] = useState<any | null>(null);
   const [reviewResult, setReviewResult] = useState<any | null>(null);
+  const [leaderboardExam, setLeaderboardExam] = useState<{ id: string, name: string } | null>(null);
 
   // Roster lists for Students
   const [activeExams, setActiveExams] = useState<any[]>([]);
@@ -871,10 +874,18 @@ export default function App() {
                                       {resItem.passed ? 'Passed 🎉' : 'Failed 📋'}
                                     </span>
                                   </td>
-                                  <td className="py-4 px-4 text-right">
+                                  <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
+                                    {activeExams.find(e => e.id === resItem.examId)?.showLeaderboard && (
+                                      <button
+                                        onClick={() => setLeaderboardExam({ id: resItem.examId, name: resItem.examName })}
+                                        className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-600 cursor-pointer flex items-center justify-center gap-1"
+                                      >
+                                        <Trophy size={13} /> Leaderboard
+                                      </button>
+                                    )}
                                     <button
                                       onClick={() => setReviewResult(resItem)}
-                                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1 ml-auto"
+                                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1"
                                     >
                                       <Eye size={13} /> View Correction
                                     </button>
@@ -939,11 +950,29 @@ export default function App() {
           </div>
         )}
 
+        {leaderboardExam && (
+          <Leaderboard 
+            examId={leaderboardExam.id} 
+            examName={leaderboardExam.name} 
+            studentId={currentUser?.uid}
+            onClose={() => setLeaderboardExam(null)} 
+          />
+        )}
+
       </main>
 
       {/* FOOTER */}
-      <footer className="py-6 border-t border-slate-200 text-center text-[10px] md:text-xs text-slate-400 font-mono">
-        &copy; {new Date().getFullYear()} MLT Examination Board Portal Services. All security protocols enforced locally.
+      <footer className="py-6 border-t border-slate-200 text-center text-[10px] md:text-xs font-mono text-blue-600 print:hidden flex flex-col items-center gap-1 px-4">
+        <p>This app is under development. If you find any bugs or have any Admin related issues, please contact:</p>
+        <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-1 leading-loose md:leading-normal">
+          <a href="https://wa.me/917488217783" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Sourav (Developer) 7488217783</a>
+          <span className="text-slate-300 hidden md:inline">|</span>
+          <a href="https://wa.me/919716084965" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Tinu 9716084965</a>
+          <span className="text-slate-300 hidden md:inline">|</span>
+          <a href="https://wa.me/919899420095" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Karishma 9899420095</a>
+          <span className="text-slate-300 hidden md:inline">|</span>
+          <a href="https://wa.me/917000741039" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Moti 7000741039</a>
+        </div>
       </footer>
     </div>
   );

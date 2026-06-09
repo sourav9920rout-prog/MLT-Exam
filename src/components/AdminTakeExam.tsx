@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { Exam } from '../types.ts';
-import { Play, Trash2 } from 'lucide-react';
+import { Play, Trash2, Trophy } from 'lucide-react';
 import QuizRunner from './QuizRunner.tsx';
 import ResultViewer from './ResultViewer.tsx';
+import Leaderboard from './Leaderboard.tsx';
 
 export default function AdminTakeExam() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
   const [result, setResult] = useState<any | null>(null);
+  const [leaderboardExam, setLeaderboardExam] = useState<Exam | null>(null);
 
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
 
@@ -105,6 +107,12 @@ export default function AdminTakeExam() {
                       <Play size={16} /> Take Exam
                    </button>
                    <button
+                      onClick={() => setLeaderboardExam(ex)}
+                      className="w-full py-2 border border-amber-200 text-amber-600 hover:bg-amber-50 font-bold text-sm rounded transition flex items-center justify-center gap-2"
+                   >
+                      <Trophy size={16} /> Leaderboard
+                   </button>
+                   <button
                       onClick={() => setExamToDelete(ex.id)}
                       className="w-full py-2 border border-red-200 text-red-600 hover:bg-red-50 font-bold text-sm rounded transition flex items-center justify-center gap-2"
                    >
@@ -114,6 +122,14 @@ export default function AdminTakeExam() {
               </div>
             ))}
           </div>
+      )}
+
+      {leaderboardExam && (
+        <Leaderboard 
+          examId={leaderboardExam.id} 
+          examName={leaderboardExam.title} 
+          onClose={() => setLeaderboardExam(null)} 
+        />
       )}
 
       {examToDelete && (
