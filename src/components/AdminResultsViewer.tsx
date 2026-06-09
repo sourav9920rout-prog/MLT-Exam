@@ -27,6 +27,14 @@ export default function AdminResultsViewer() {
   const confirmDelete = async () => {
     if (!resultToDelete) return;
     try {
+      const resData = results.find(r => r.id === resultToDelete);
+      if (resData && resData.studentId && resData.examId) {
+        const attemptId = `attempt_${resData.studentId}_${resData.examId}`;
+        try {
+           await deleteDoc(doc(db, 'examAttempts', attemptId));
+        } catch(e) {}
+      }
+
       await deleteDoc(doc(db, 'results', resultToDelete));
       fetchResults();
     } catch (err) {
@@ -105,15 +113,15 @@ export default function AdminResultsViewer() {
       {resultToDelete && (
         <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Delete Student Result?</h3>
-            <p className="text-sm text-slate-500 mb-6">Are you sure you want to permanently delete this exam result? This action cannot be undone.</p>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Delete Result & Allow Retry?</h3>
+            <p className="text-sm text-slate-500 mb-6">Are you sure you want to permanently delete this exam result? This will also clear their attempt and allow the student to retake the exam.</p>
             <div className="flex justify-center gap-3">
               <button onClick={() => setResultToDelete(null)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
               <button 
                 onClick={confirmDelete}
                 className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm"
               >
-                Delete
+                Delete & Allow Retry
               </button>
             </div>
           </div>

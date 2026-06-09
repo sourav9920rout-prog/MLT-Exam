@@ -412,6 +412,30 @@ export default function QuizRunner({
       }
   };
 
+  const handleManualSectionAdvance = () => {
+      const confirmed = window.confirm("Caution: You can't go back to the previous section or edit answers once you proceed. Do you want to end this section and start the next section?");
+      if (confirmed) {
+          triggerAutosave();
+          const nextSec = currentSectionIdx + 1;
+          const nextTime = sections[nextSec].durationMinutes * 60;
+          setCurrentSectionIdx(nextSec);
+          setCurrentIdx(0);
+          setSectionTimeLeft(nextTime);
+          setIsFrozen(false);
+          
+          const forceSave = async () => {
+             try {
+                 await setDoc(doc(db, 'examAttempts', attemptId), {
+                     currentSectionIndex: nextSec,
+                     timeRemainingSeconds: nextTime,
+                     updatedAt: new Date().toISOString()
+                 }, { merge: true });
+             } catch(e) {}
+          };
+          forceSave();
+      }
+  };
+
   const handleSaveAndNext = () => {
       const qGlobalIdx = getSectionSlice().globalStartIndex + currentIdx;
       const qId = questions[qGlobalIdx].id;
@@ -423,7 +447,12 @@ export default function QuizRunner({
       } else {
          setSavedStates(prev => ({...prev, [qId]: 'not_answered'}));
       }
-      goNextQuestion();
+      
+      if (currentIdx === getSectionSlice().total - 1 && currentSectionIdx < sections.length - 1) {
+          handleManualSectionAdvance();
+      } else {
+          goNextQuestion();
+      }
   };
 
   const handleMarkReviewAndNext = () => {
@@ -432,7 +461,12 @@ export default function QuizRunner({
       
       const hasAnswer = answers[qId] !== -1 && answers[qId] !== undefined;
       setSavedStates(prev => ({...prev, [qId]: hasAnswer ? 'review_answered' : 'review'}));
-      goNextQuestion();
+      
+      if (currentIdx === getSectionSlice().total - 1 && currentSectionIdx < sections.length - 1) {
+          handleManualSectionAdvance();
+      } else {
+          goNextQuestion();
+      }
   };
 
   const handleClearResponse = () => {
@@ -896,7 +930,7 @@ export default function QuizRunner({
                  </button>
                  <button onClick={handleSaveAndNext} className="flex-[1.2] md:flex-none md:ml-auto bg-sky-600 text-white px-2 sm:px-8 md:px-12 py-2 md:py-2.5 text-[12px] md:text-base font-bold rounded shadow hover:bg-sky-700 transition flex items-center justify-center gap-1.5 leading-tight whitespace-nowrap">
                     <Save size={14} className="shrink-0 md:w-5 md:h-5" /> 
-                    <span>Save & Next</span>
+                    <span>{currentIdx === getSectionSlice().total - 1 && currentSectionIdx < sections.length - 1 ? 'End Section & Next' : 'Save & Next'}</span>
                  </button>
              </div>
           </div>
