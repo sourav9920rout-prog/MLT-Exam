@@ -224,15 +224,15 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
             </div>
             <div>
                <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Sections</label>
-               <input type="number" min="1" max="20" value={totalSections} onChange={e=>setTotalSections(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
+               <input type="number" min="1" max="50" value={totalSections} onChange={e=>setTotalSections(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
             <div>
-               <label className="block text-[11px] font-bold text-slate-700 mb-1">Questions Per Sec</label>
-               <input type="number" min="1" max="200" value={questionsPerSection} onChange={e=>setQuestionsPerSection(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Questions Per Section</label>
+               <input type="number" min="1" max="500" value={questionsPerSection} onChange={e=>setQuestionsPerSection(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
             <div>
-               <label className="block text-[11px] font-bold text-slate-700 mb-1">Time Per Sec (Min)</label>
-               <input type="number" min="1" max="300" value={timePerSection} onChange={e=>setTimePerSection(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
+               <label className="block text-[11px] font-bold text-slate-700 mb-1">Time Per Section (Mins)</label>
+               <input type="number" min="1" max="600" value={timePerSection} onChange={e=>setTimePerSection(Number(e.target.value))} className="w-full border rounded px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none min-w-0" />
             </div>
           </div>
           <div className="bg-emerald-50 text-emerald-800 p-3 rounded text-xs border border-emerald-200 flex items-start gap-2 mx-2">

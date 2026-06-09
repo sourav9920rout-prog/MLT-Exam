@@ -962,16 +962,17 @@ export default function App() {
       </main>
 
       {/* FOOTER */}
-      <footer className="py-6 border-t border-slate-200 text-center text-[10px] md:text-xs font-mono text-blue-600 print:hidden flex flex-col items-center gap-1 px-4">
+      <footer className="py-6 border-t border-slate-200 text-center text-[10px] md:text-xs font-mono text-blue-600 print:hidden flex flex-col items-center gap-2 px-4">
         <p>This app is under development. If you find any bugs or have any Admin related issues, please contact:</p>
-        <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-1 leading-loose md:leading-normal">
-          <a href="https://wa.me/917488217783" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Sourav (Developer) 7488217783</a>
+        <div className="flex flex-wrap justify-center items-center gap-2 md:gap-3 mt-1 leading-loose md:leading-normal">
+          <a href="https://wa.me/919883733363" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Mr. Sourav (Developer) 9883733363</a>
+          <a href="https://wa.me/917488217783" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Miss Debjani (Developer) 7488217783</a>
           <span className="text-slate-300 hidden md:inline">|</span>
-          <a href="https://wa.me/919716084965" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Tinu 9716084965</a>
+          <a href="https://wa.me/919716084965" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Mr. Tinu (Admin) 9716084965</a>
           <span className="text-slate-300 hidden md:inline">|</span>
-          <a href="https://wa.me/919899420095" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Karishma 9899420095</a>
+          <a href="https://wa.me/919899420095" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Mrs. Karishma (Admin) 9899420095</a>
           <span className="text-slate-300 hidden md:inline">|</span>
-          <a href="https://wa.me/917000741039" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Moti 7000741039</a>
+          <a href="https://wa.me/917000741039" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">Mr. Moti (Admin) 7000741039</a>
         </div>
       </footer>
     </div>

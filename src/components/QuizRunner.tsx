@@ -799,7 +799,7 @@ export default function QuizRunner({
                            {currentQuestion.englishQuestion}
                          </p>
                          <div className="space-y-3 md:space-y-4">
-                           {currentQuestion.englishOptions.map((opt, oIdx) => {
+                           {(currentQuestion.englishOptions || ["", "", "", ""]).map((opt, oIdx) => {
                               const isSel = answers[currentQuestion.id] === oIdx;
                               return (
                                 <label key={oIdx} className="flex items-start gap-3 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-4 py-1.5 md:py-1 rounded">
@@ -823,7 +823,7 @@ export default function QuizRunner({
                            {currentQuestion.hindiQuestion || currentQuestion.englishQuestion}
                          </p>
                          <div className="space-y-3 md:space-y-4">
-                           {(currentQuestion.hindiOptions && currentQuestion.hindiOptions[0] ? currentQuestion.hindiOptions : currentQuestion.englishOptions).map((opt, oIdx) => {
+                           {((currentQuestion.hindiOptions && currentQuestion.hindiOptions[0] ? currentQuestion.hindiOptions : currentQuestion.englishOptions) || ["", "", "", ""]).map((opt, oIdx) => {
                               const isSel = answers[currentQuestion.id] === oIdx;
                               return (
                                 <label key={oIdx} className="flex items-start gap-3 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-4 py-1.5 md:py-1 rounded">

@@ -87,7 +87,7 @@ export default function ResultViewer({ reviewResult, onBack }: ResultViewerProps
                     return (
                       <div key={q.id} className="py-4 space-y-3 print:break-inside-avoid">
                         <span className="px-2 py-0.5 bg-slate-100 print:bg-white border border-slate-200 rounded text-[10px] font-mono text-slate-800">Question #{idx + 1}</span>
-                        <h5 className="font-medium text-slate-900 leading-relaxed text-sm md:text-base">{q.questionText}</h5>
+                        <h5 className="font-medium text-slate-900 leading-relaxed text-sm md:text-base whitespace-pre-wrap">{q.englishQuestion || q.hindiQuestion || q.questionText}</h5>
                         {q.imageUrl && (
                           <div className="flex justify-center mt-2 mb-3">
                               <img src={q.imageUrl} alt="Reference Detail" className="max-w-full h-auto max-h-48 object-contain rounded-lg border border-slate-200" referrerPolicy="no-referrer" />
@@ -95,7 +95,7 @@ export default function ResultViewer({ reviewResult, onBack }: ResultViewerProps
                         )}
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                          {q.options.map((optText: string, oIdx: number) => {
+                          {(q.englishOptions || q.hindiOptions || q.options || ["", "", "", ""]).map((optText: string, oIdx: number) => {
                             const isSelected = studentChoiceIdx === oIdx;
                             const isCorrectKey = q.correctOptionIndex === oIdx;
 
@@ -125,7 +125,7 @@ export default function ResultViewer({ reviewResult, onBack }: ResultViewerProps
                         </div>
 
                         <p className="text-xs text-slate-800 leading-relaxed font-mono bg-slate-100 print:bg-white p-3 rounded-lg mt-3 border border-slate-200 print:border-slate-400">
-                          <strong className="text-slate-900 font-bold">Rationale Guide:</strong> {q.explanation || 'No rationale linked yet.'}
+                          <strong className="text-slate-900 font-bold">Rationale Guide:</strong> {q.englishExplanation || q.hindiExplanation || q.explanation || 'No rationale linked yet.'}
                         </p>
                       </div>
                     );
