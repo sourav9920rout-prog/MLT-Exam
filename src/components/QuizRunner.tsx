@@ -58,6 +58,8 @@ export default function QuizRunner({
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showSectionConfirmModal, setShowSectionConfirmModal] = useState(false);
   const [submitModalMessage, setSubmitModalMessage] = useState('');
+  const [textSizeScale, setTextSizeScale] = useState(1);
+  const [showLegendMobile, setShowLegendMobile] = useState(false);
   
   const timerInterval = useRef<any>(null);
   const autosaveInterval = useRef<any>(null);
@@ -826,10 +828,10 @@ export default function QuizRunner({
       )}
 
       {/* TOP HEADER: Dark background */}
-      <div className="bg-zinc-800 text-white flex justify-between items-center px-4 py-2 shrink-0">
-          <div className="font-bold text-sm text-yellow-400">{exam.title}</div>
+      <div className="bg-zinc-800 text-white flex justify-between items-center px-2 md:px-4 py-1.5 md:py-2 shrink-0">
+          <div className="font-bold text-xs md:text-sm text-yellow-400 truncate pr-2 max-w-[50%]">{exam.title}</div>
           <div className="flex items-center gap-4 text-sm font-medium">
-             <div className="flex items-center gap-2 bg-zinc-900/80 px-4 py-1 rounded-md border border-zinc-700 shadow-inner">
+             <div className="flex items-center gap-2 bg-zinc-900/80 px-2 md:px-4 py-0.5 md:py-1 rounded-md border border-zinc-700 shadow-inner">
                <Clock size={14} className={overallTimeLeft < 300 ? "text-red-500 animate-pulse" : "text-emerald-400"} />
                <span className="text-zinc-400 text-[10px] uppercase tracking-wider font-bold">Exam Time Remaining:</span>
                <span className={`font-mono font-bold text-base tracking-tight ${overallTimeLeft < 300 ? "text-red-500 animate-pulse" : "text-white"}`}>
@@ -848,10 +850,10 @@ export default function QuizRunner({
       </div>
 
       {/* SECOND HEADER: Section Tabs + Timer */}
-      <div className="bg-slate-200 border-b border-slate-300 flex justify-between items-center px-1 shrink-0 h-[36px] md:h-[42px] overflow-x-auto">
+      <div className="bg-slate-200 border-b border-slate-300 flex justify-between items-center px-1 shrink-0 h-[32px] md:h-[42px] overflow-x-auto">
           <div className="flex h-full items-end gap-1 px-1 md:px-2 min-w-max">
               {sections.map((sec, idx) => (
-                  <button key={sec.id} onClick={() => {}} disabled className={`h-[28px] md:h-[34px] px-3 md:px-5 text-xs md:text-sm font-semibold rounded-t-md border-t border-l border-r border-slate-300 flex items-center justify-center gap-1.5 md:gap-2 whitespace-nowrap
+                  <button key={sec.id} onClick={() => {}} disabled className={`h-[26px] md:h-[34px] px-3 md:px-5 text-xs md:text-sm font-semibold rounded-t-md border-t border-l border-r border-slate-300 flex items-center justify-center gap-1.5 md:gap-2 whitespace-nowrap
                       ${idx === currentSectionIdx ? 'bg-sky-500 text-white border-transparent' : 
                        idx < currentSectionIdx ? 'bg-slate-400 text-white cursor-not-allowed opacity-80' : 
                        'bg-white text-slate-600 hover:bg-slate-100 cursor-not-allowed opacity-60'}`}
@@ -876,30 +878,36 @@ export default function QuizRunner({
           <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
 
              {/* SUB HEADER 2: Q.No and Marks */}
-             <div className="flex justify-between items-center bg-white border-b border-slate-200 px-3 md:px-4 py-2 shrink-0">
+             <div className="flex justify-between items-center bg-white border-b border-slate-200 px-2 md:px-4 py-1.5 md:py-2 shrink-0">
                 <div className="flex items-center gap-6">
                     <span className="font-bold font-sans text-sm text-black">Q.No: <span className="text-lg">{currentIdx + 1}</span></span>
                 </div>
-                <div className="flex items-center gap-1.5 font-bold text-sm shadow-sm border border-slate-200 rounded px-2 text-black bg-white">
-                    <span className="hidden sm:inline">Marks</span>
-                    <span className="bg-green-600 text-white px-1.5 rounded-sm text-xs py-px">+{exam.positiveMarks}</span>
-                    <span className="text-slate-300">|</span>
-                    <span className="bg-red-600 text-white px-1.5 rounded-sm text-xs py-px">-{exam.negativeMarks}</span>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center border border-slate-300 rounded overflow-hidden">
+                        <button onClick={() => setTextSizeScale(s => Math.max(s - 0.25, 1))} className="px-2 py-0.5 bg-slate-50 hover:bg-slate-200 text-sm font-bold border-r border-slate-300 text-slate-700" title="Decrease Text Size">A-</button>
+                        <button onClick={() => setTextSizeScale(s => Math.min(s + 0.25, 2.5))} className="px-2 py-0.5 bg-slate-50 hover:bg-slate-200 text-sm font-bold text-slate-700" title="Increase Text Size">A+</button>
+                    </div>
+                    <div className="flex items-center gap-1.5 font-bold text-sm shadow-sm border border-slate-200 rounded px-2 text-black bg-white">
+                        <span className="hidden sm:inline">Marks</span>
+                        <span className="bg-green-600 text-white px-1.5 rounded-sm text-xs py-px">+{exam.positiveMarks}</span>
+                        <span className="text-slate-300">|</span>
+                        <span className="bg-red-600 text-white px-1.5 rounded-sm text-xs py-px">-{exam.negativeMarks}</span>
+                    </div>
                 </div>
              </div>
              
              {/* Question Area */}
-             <div className="flex-1 overflow-y-auto px-2.5 md:px-6 py-2.5 md:py-6 pb-[90px] md:pb-20">
+             <div className="flex-1 overflow-y-auto px-2 md:px-6 py-2 md:py-6 pb-[70px] md:pb-20" style={{ fontSize: `${15 * textSizeScale}px` }}>
                  
                  {currentQuestion.imageUrl && (
-                     <div className="mb-5 flex justify-center">
+                     <div className="mb-3 md:mb-5 flex justify-center">
                          <img src={currentQuestion.imageUrl} alt="Question Reference" className="max-w-full h-auto max-h-48 md:max-h-64 object-contain rounded-xl border border-slate-200" referrerPolicy="no-referrer" />
                      </div>
                  )}
 
                  {examLanguage === 'english' && (
                      <div className="mb-6">
-                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-2.5 md:mb-5 whitespace-pre-wrap">
+                         <p className="font-medium text-slate-900 leading-snug mb-2.5 md:mb-5 whitespace-pre-wrap" style={{ fontSize: `${15 * textSizeScale}px`, lineHeight: 1.5 }}>
                            {currentQuestion.englishQuestion}
                          </p>
                          <div className="space-y-1.5 md:space-y-4">
@@ -909,7 +917,7 @@ export default function QuizRunner({
                                 <label key={oIdx} className="flex items-start gap-2 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-2 md:pr-4 py-1.5 md:py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0 shrink-0" />
                                    <div className="flex flex-col gap-2 flex-1">
-                                     {opt && <span className="text-[14px] md:text-[15px] text-slate-800 leading-tight md:leading-normal">{opt}</span>}
+                                     {opt && <span className="text-slate-800 leading-tight md:leading-normal" style={{ fontSize: `${15 * textSizeScale}px` }}>{opt}</span>}
                                      {currentQuestion.optionImageUrls?.[oIdx] && (
                                        <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
                                      )}
@@ -923,7 +931,7 @@ export default function QuizRunner({
 
                  {examLanguage === 'hindi' && (
                      <div className="mb-6">
-                         <p className="text-[14px] md:text-[15px] font-medium text-slate-900 leading-snug mb-2.5 md:mb-5 block whitespace-pre-wrap">
+                         <p className="font-medium text-slate-900 leading-snug mb-2.5 md:mb-5 block whitespace-pre-wrap" style={{ fontSize: `${15 * textSizeScale}px`, lineHeight: 1.5 }}>
                            {currentQuestion.hindiQuestion || currentQuestion.englishQuestion}
                          </p>
                          <div className="space-y-1.5 md:space-y-4">
@@ -933,7 +941,7 @@ export default function QuizRunner({
                                 <label key={oIdx} className="flex items-start gap-2 md:gap-4 cursor-pointer hover:bg-slate-50 transition w-full md:w-fit pr-2 md:pr-4 py-1.5 md:py-1 rounded">
                                    <input type="radio" name={`q_${currentQuestion.id}`} checked={isSel} onChange={() => setAnswers(p => ({...p, [currentQuestion.id]: oIdx}))} className="mt-1 w-4 h-4 text-blue-600 border-slate-400 focus:ring-0 shrink-0" />
                                    <div className="flex flex-col gap-2 flex-1">
-                                     {opt && <span className="text-[14px] md:text-[15px] text-slate-800 leading-tight md:leading-normal">{opt}</span>}
+                                     {opt && <span className="text-slate-800 leading-tight md:leading-normal" style={{ fontSize: `${15 * textSizeScale}px` }}>{opt}</span>}
                                      {currentQuestion.optionImageUrls?.[oIdx] && (
                                        <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
                                      )}
@@ -948,19 +956,19 @@ export default function QuizRunner({
              </div>
 
              {/* Action Control Bar - Bottom Absolute */}
-             <div className="absolute px-2 md:px-4 py-2 bg-white border-t border-slate-300 w-[100%] flex items-center gap-2 bottom-0">
-                 <button onClick={handleMarkReviewAndNext} className="flex-1 bg-slate-100 border border-slate-300 text-slate-700 px-1 sm:px-4 py-2 md:py-2.5 text-[10px] md:text-sm font-bold rounded shadow-sm hover:bg-slate-200 transition flex items-center justify-center gap-1 md:gap-1.5 leading-tight">
-                    <Flag size={14} className="text-amber-500 shrink-0" />
+             <div className="absolute px-1.5 md:px-4 py-1.5 md:py-2 bg-white border-t border-slate-300 w-[100%] flex items-center gap-1.5 md:gap-2 bottom-0 z-20 landscape:py-1.5 md:landscape:py-2 h-[42px] landscape:h-[42px] md:landscape:h-auto">
+                 <button onClick={handleMarkReviewAndNext} className="flex-1 bg-slate-100 border border-slate-300 text-slate-700 px-1 md:px-4 py-1.5 md:py-2.5 text-[10px] md:text-sm font-bold rounded shadow-sm hover:bg-slate-200 transition flex items-center justify-center gap-1 md:gap-1.5 leading-tight h-[30px] md:h-auto">
+                    <Flag size={14} className="text-amber-500 shrink-0 hidden sm:block md:hidden lg:block" />
                     <span className="hidden md:inline">Mark for Review & Next</span>
                     <span className="md:hidden">Review</span>
                  </button>
-                 <button onClick={handleClearResponse} className="flex-1 bg-white border border-slate-300 text-slate-700 px-1 sm:px-4 py-2 md:py-2.5 text-[10px] md:text-sm font-bold rounded shadow-sm hover:bg-slate-100 transition flex items-center justify-center gap-1 md:gap-1.5 leading-tight">
-                    <XCircle size={14} className="text-slate-400 shrink-0" />
+                 <button onClick={handleClearResponse} className="flex-1 bg-white border border-slate-300 text-slate-700 px-1 md:px-4 py-1.5 md:py-2.5 text-[10px] md:text-sm font-bold rounded shadow-sm hover:bg-slate-100 transition flex items-center justify-center gap-1 md:gap-1.5 leading-tight h-[30px] md:h-auto">
+                    <XCircle size={14} className="text-slate-400 shrink-0 hidden sm:block md:hidden lg:block" />
                     <span className="hidden md:inline">Clear Response</span>
                     <span className="md:hidden">Clear</span>
                  </button>
-                 <button onClick={handleSaveAndNext} className="flex-[1.2] md:flex-none md:ml-auto bg-sky-600 text-white px-2 sm:px-8 md:px-12 py-2 md:py-2.5 text-[12px] md:text-base font-bold rounded shadow hover:bg-sky-700 transition flex items-center justify-center gap-1.5 leading-tight whitespace-nowrap">
-                    <Save size={14} className="shrink-0 md:w-5 md:h-5" /> 
+                 <button onClick={handleSaveAndNext} className="flex-[1.2] md:flex-none md:ml-auto bg-sky-600 text-white px-2 sm:px-8 md:px-12 py-1.5 md:py-2.5 text-[11px] sm:text-[12px] md:text-base font-bold rounded shadow hover:bg-sky-700 transition flex items-center justify-center gap-1 md:gap-1.5 leading-tight whitespace-nowrap h-[30px] md:h-auto">
+                    <Save size={14} className="shrink-0 md:w-5 md:h-5 hidden sm:block md:hidden lg:block" /> 
                     <span>{currentIdx === getSectionSlice().total - 1 && currentSectionIdx < sections.length - 1 ? 'End Section & Next' : 'Save & Next'}</span>
                  </button>
              </div>
@@ -970,21 +978,26 @@ export default function QuizRunner({
           <div className="w-full md:w-[300px] landscape:w-[260px] bg-slate-100/80 flex flex-col shrink-0 border-t-[3px] md:border-t-0 md:border-l-[3px] landscape:border-t-0 landscape:border-l-[3px] border-slate-300">
               
               {/* Profile Block */}
-              <div className="bg-white border-b border-slate-300 flex items-center gap-2 md:gap-3 py-1.5 md:py-2 px-2 md:px-3 shrink-0 drop-shadow-sm z-10">
-                 <div className="w-8 h-8 md:w-12 md:h-12 bg-slate-200 rounded-full flex justify-center items-center overflow-hidden shrink-0 border border-slate-300">
-                    {studentPhotoURL ? (
-                      <img src={studentPhotoURL} alt={studentName} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
-                    ) : (
-                      <svg className="w-5 h-5 md:w-8 md:h-8 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                    )}
+              <div className="bg-white border-b border-slate-300 flex items-center gap-2 md:gap-3 py-1 md:py-2 px-2 md:px-3 shrink-0 drop-shadow-sm z-10 justify-between">
+                 <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                     <div className="w-7 h-7 md:w-12 md:h-12 bg-slate-200 rounded-full flex justify-center items-center overflow-hidden shrink-0 border border-slate-300">
+                        {studentPhotoURL ? (
+                          <img src={studentPhotoURL} alt={studentName} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                        ) : (
+                          <svg className="w-5 h-5 md:w-8 md:h-8 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        )}
+                     </div>
+                     <div className="min-w-0">
+                        <p className="font-bold text-[11px] md:text-sm text-slate-900 truncate leading-tight uppercase font-sans tracking-wide">{studentName}</p>
+                     </div>
                  </div>
-                 <div className="min-w-0">
-                    <p className="font-bold text-[11px] md:text-sm text-slate-900 truncate leading-tight uppercase font-sans tracking-wide">{studentName}</p>
-                 </div>
+                 <button onClick={() => setShowLegendMobile(!showLegendMobile)} className="md:hidden text-sky-600 bg-sky-50 px-2 py-1 rounded text-[10px] font-bold border border-sky-200 shrink-0">
+                    {showLegendMobile ? 'Hide Info' : 'Show Legend'}
+                 </button>
               </div>
 
               {/* Status Legend */}
-              <div className="p-3 grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] font-sans text-black border-b border-slate-300 bg-sky-50 shadow-inner shrink-0">
+              <div className={`p-3 ${showLegendMobile ? 'grid' : 'hidden md:grid'} grid-cols-2 gap-y-2 gap-x-1 text-[11px] font-sans text-black border-b border-slate-300 bg-sky-50 shadow-inner shrink-0`}>
                   <div className="flex items-start gap-1">
                       <div className="w-7 h-7 bg-green-600 text-white flex items-center justify-center font-bold relative shrink-0" style={{clipPath: 'polygon(50% 0%, 100% 25%, 100% 100%, 0 100%, 0 25%)'}}>
                          <span className="absolute text-[10px] bottom-0.5">{paletteCountAns}</span>
@@ -1021,13 +1034,13 @@ export default function QuizRunner({
 
               {/* Scrollable Palette Matrix */}
               <div className="flex-1 overflow-y-auto px-2 py-4 bg-[#e4ebf5]">
-                 <div className="flex flex-wrap gap-[6px] justify-start pl-1">
+                 <div className="flex flex-wrap gap-[6px] landscape:gap-1 md:landscape:gap-[6px] justify-start pl-1">
                     {Array.from({length: secSlice.total}).map((_, i) => {
                        const gQId = questions[secSlice.globalStartIndex + i].id;
                        const st = savedStates[gQId];
                        
-                       let containerClass = "w-11 h-11 flex items-center justify-center font-bold text-[13px] font-sans cursor-pointer transition relative ";
-                       let innerClass = "absolute inset-0 flex items-center justify-center shrink-0 w-full h-full text-[13px] ";
+                       let containerClass = "w-11 h-11 landscape:w-8 landscape:h-8 md:landscape:w-11 md:landscape:h-11 flex items-center justify-center font-bold text-[13px] landscape:text-[10px] md:landscape:text-[13px] font-sans cursor-pointer transition relative ";
+                       let innerClass = "absolute inset-0 flex items-center justify-center shrink-0 w-full h-full text-[13px] landscape:text-[10px] md:landscape:text-[13px] ";
 
                        if (st === 'saved') {
                            containerClass += "text-white";
@@ -1062,21 +1075,21 @@ export default function QuizRunner({
                        return (
                            <div key={i} onClick={() => setCurrentIdx(i)} className={containerClass}>
                               <div className={innerClass} style={shapeStyles}>
-                                  <span className={st === 'saved' ? "mt-1.5" : st === 'not_answered' ? "mb-1" : ""}>{i + 1}</span>
+                                  <span className={st === 'saved' ? "mt-1.5 landscape:mt-1 md:landscape:mt-1.5" : st === 'not_answered' ? "mb-1 landscape:mb-0.5 md:landscape:mb-1" : ""}>{i + 1}</span>
                               </div>
                               {st === 'review_answered' && (
-                                  <div className="absolute right-0 bottom-0 bg-green-500 rounded-full w-3.5 h-3.5 border-2 border-[#e4ebf5] z-10 flex items-center justify-center">
+                                  <div className="absolute right-0 bottom-0 bg-green-500 rounded-full w-3.5 h-3.5 landscape:w-2.5 landscape:h-2.5 md:landscape:w-3.5 md:landscape:h-3.5 border border-[#e4ebf5] z-10 flex items-center justify-center">
                                   </div>
                               )}
                            </div>
-                       );
+                       )
                     })}
                  </div>
               </div>
 
               {/* Master Submit CTA */}
-              <div className="px-2 py-4 bg-sky-50 border-t border-slate-300 shadow-inner flex justify-center shrink-0 z-10">
-                  <button onClick={handleManualSubmit} disabled={submitting} className="w-[80%] bg-sky-500 hover:bg-sky-600 text-white shadow-md py-2.5 rounded text-[15px] font-bold tracking-wide active:scale-95 disabled:opacity-50 disabled:bg-slate-400 transition">
+              <div className="px-2 py-3 landscape:px-1.5 landscape:py-1.5 md:landscape:px-2 md:landscape:py-4 bg-sky-50 border-t border-slate-300 shadow-inner flex justify-center shrink-0 z-10">
+                  <button onClick={handleManualSubmit} disabled={submitting} className="w-[90%] landscape:w-full md:landscape:w-[80%] bg-sky-500 hover:bg-sky-600 text-white shadow-md py-2.5 landscape:py-1.5 md:landscape:py-2.5 rounded text-[15px] landscape:text-[11px] sm:landscape:text-[12px] md:landscape:text-[15px] font-bold tracking-wide active:scale-95 disabled:opacity-50 disabled:bg-slate-400 transition flex items-center justify-center leading-tight h-[40px] landscape:h-[30px] md:landscape:h-[40px] sm:h-[40px]">
                      {submitting ? 'Submitting...' : 'Submit Test'}
                   </button>
               </div>
