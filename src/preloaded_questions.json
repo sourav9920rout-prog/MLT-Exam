@@ -1,0 +1,1999 @@
+{
+  "questions": [
+    {
+      "englishQuestion": "PT assesses:",
+      "englishOptions": [
+        "Intrinsic pathway",
+        "Common pathway",
+        "Extrinsic pathway",
+        "Fibrinolytic pathway"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Pre-analytical error occurs during:",
+      "englishOptions": [
+        "Analysis",
+        "Reporting",
+        "Sample collection & handling",
+        "Interpretation"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "CBC anticoagulant:",
+      "englishOptions": [
+        "Heparin",
+        "Citrate",
+        "EDTA",
+        "Oxalate"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Genetic material of HIV:",
+      "englishOptions": [
+        "DNA",
+        "RNA",
+        "mRNA",
+        "rRNA"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 1,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Internal QC is performed:",
+      "englishOptions": [
+        "Weekly",
+        "Monthly",
+        "Daily",
+        "Yearly"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "EQC is provided by:",
+      "englishOptions": [
+        "Lab staff",
+        "Patients",
+        "Doctors",
+        "External agencies"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Soiled waste goes in:",
+      "englishOptions": [
+        "Red bag",
+        "Blue bag",
+        "Black bag",
+        "Yellow bag"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "ABO antibodies are:",
+      "englishOptions": [
+        "IgA",
+        "IgM",
+        "IgG",
+        "IgE"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 1,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Hyperbilirubinemia causes:",
+      "englishOptions": [
+        "Fever",
+        "Edema",
+        "Jaundice",
+        "Anemia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Viruses are cultured on:",
+      "englishOptions": [
+        "Agar",
+        "Broth",
+        "Dead tissue",
+        "Living cells"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Decalcification is done for:",
+      "englishOptions": [
+        "Skin",
+        "Blood",
+        "Bone/calcified tissue",
+        "Liver"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Routine histology stain:",
+      "englishOptions": [
+        "PAS",
+        "Gram",
+        "Giemsa",
+        "H&E"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Histology clearing agent:",
+      "englishOptions": [
+        "Alcohol",
+        "Acetone",
+        "Xylene",
+        "Formalin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Blood culture incubation temperature:",
+      "englishOptions": [
+        "25°C",
+        "30°C",
+        "37°C",
+        "45°C"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Anaerobic culture uses:",
+      "englishOptions": [
+        "CO₂ incubator",
+        "Aerobic jar",
+        "Anaerobic jar",
+        "Water bath"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Standard protein estimation method:",
+      "englishOptions": [
+        "Lowry",
+        "Bradford",
+        "Biuret",
+        "Folin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Bilirubin estimation:",
+      "englishOptions": [
+        "Jaffe",
+        "Benedict",
+        "Diazo method",
+        "Folin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "PAP smear screens:",
+      "englishOptions": [
+        "Breast cancer",
+        "Ovarian cancer",
+        "Cervical cancer",
+        "Colon cancer"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Widal test diagnoses:",
+      "englishOptions": [
+        "Malaria",
+        "Dengue",
+        "TB",
+        "Typhoid"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Autoclave principle:",
+      "englishOptions": [
+        "Dry heat",
+        "Radiation",
+        "Filtration",
+        "Moist heat under pressure"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Serum iron decreases in:",
+      "englishOptions": [
+        "Thalassemia",
+        "Polycythemia",
+        "IDA",
+        "Leukemia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Normal ESR in adult male:",
+      "englishOptions": [
+        "20–30",
+        "10–20",
+        "0–10 mm/hr",
+        "30–40"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Reference method for glucose:",
+      "englishOptions": [
+        "GOD-POD",
+        "O-Toluidine",
+        "Hexokinase",
+        "Folin-Wu"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Study of cells:",
+      "englishOptions": [
+        "Histology",
+        "Pathology",
+        "Hematology",
+        "Cytology"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Anticoagulant for ESR:",
+      "englishOptions": [
+        "EDTA",
+        "Heparin",
+        "Citrate",
+        "Oxalate"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Blood bank temperature:",
+      "englishOptions": [
+        "0–2°C",
+        "2–6°C",
+        "8–10°C",
+        "10–15°C"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 1,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "AST/ALT ratio increased in:",
+      "englishOptions": [
+        "Viral hepatitis",
+        "Fatty liver",
+        "Alcoholic liver disease",
+        "Jaundice"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Most specific cardiac marker:",
+      "englishOptions": [
+        "CK-MB",
+        "LDH",
+        "Myoglobin",
+        "Troponin-I"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Traditional cardiac marker:",
+      "englishOptions": [
+        "Troponin",
+        "BNP",
+        "CK-MB",
+        "ALT"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "HDL decreases in:",
+      "englishOptions": [
+        "Exercise",
+        "Weight loss",
+        "Obesity",
+        "Pregnancy"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Hemolyzed sample affects:",
+      "englishOptions": [
+        "Hormones",
+        "CBC",
+        "Electrolytes",
+        "Urine"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Decreased calcium occurs in:",
+      "englishOptions": [
+        "Hyperparathyroidism",
+        "Hypoparathyroidism",
+        "Hyperthyroidism",
+        "Vitamin D excess"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 1,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Increased K⁺ seen in:",
+      "englishOptions": [
+        "Anemia",
+        "Renal impairment",
+        "Hyperventilation",
+        "Hypothyroidism"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 1,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "LJ medium is used for:",
+      "englishOptions": [
+        "Fungi",
+        "Parasites",
+        "Viruses",
+        "Tuberculosis"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Centrifugation principle:",
+      "englishOptions": [
+        "Size",
+        "Charge",
+        "Density",
+        "Shape"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Auer rods are seen in:",
+      "englishOptions": [
+        "ALL",
+        "CLL",
+        "CML",
+        "AML"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Latex agglutination is based on:",
+      "englishOptions": [
+        "Hemolysis",
+        "Precipitation",
+        "Antigen-antibody reaction",
+        "Neutralization"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Buffy coat contains:",
+      "englishOptions": [
+        "RBCs",
+        "Plasma",
+        "Platelets & WBCs",
+        "Fibrinogen"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Low platelet count:",
+      "englishOptions": [
+        "Leukemia",
+        "Polycythemia",
+        "Thrombocytopenia",
+        "Neutropenia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Normal fasting blood sugar:",
+      "englishOptions": [
+        "40–80",
+        "60–90",
+        "70–110 mg/dL",
+        "120–140"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "DCT detects:",
+      "englishOptions": [
+        "Plasma antibodies",
+        "Complement only",
+        "Antibodies attached to RBCs in vivo",
+        "Antigens"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Most abundant plasma protein:",
+      "englishOptions": [
+        "Globulin",
+        "Fibrinogen",
+        "Transferrin",
+        "Albumin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "IgE is associated with:",
+      "englishOptions": [
+        "Bacterial infection",
+        "Autoimmunity",
+        "Allergic reaction",
+        "Blood grouping"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Universal donor:",
+      "englishOptions": [
+        "AB+",
+        "A−",
+        "B−",
+        "O−"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Cryostat is used for:",
+      "englishOptions": [
+        "Fixation",
+        "Staining",
+        "Frozen section",
+        "Embedding"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "PPE stands for:",
+      "englishOptions": [
+        "Personal Patient Equipment",
+        "Personal Processing Equipment",
+        "Personal Protective Equipment",
+        "Protective Patient Equipment"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Gram-positive bacteria retain crystal violet due to:",
+      "englishOptions": [
+        "Capsule",
+        "Lipid layer",
+        "Teichoic acid only",
+        "Thick peptidoglycan layer"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Increased bleeding time indicates:",
+      "englishOptions": [
+        "RBC disorder",
+        "Platelet disorder",
+        "Hemolysis",
+        "Polycythemia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 1,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Microcytic hypochromic anemia:",
+      "englishOptions": [
+        "B12 deficiency",
+        "Folate deficiency",
+        "Iron deficiency anemia",
+        "Hemophilia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Rh incompatibility affects:",
+      "englishOptions": [
+        "First pregnancy",
+        "Current pregnancy only",
+        "Subsequent pregnancies",
+        "Never affects fetus"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Needle-stick injury action:",
+      "englishOptions": [
+        "Ignore",
+        "Cover wound",
+        "Report tomorrow",
+        "Immediate action/reporting"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Hb estimation using HCl:",
+      "englishOptions": [
+        "Cyanmethemoglobin",
+        "Drabkin",
+        "Sahli method",
+        "HemoCue"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "RBC lifespan:",
+      "englishOptions": [
+        "90 days",
+        "100 days",
+        "120 days",
+        "180 days"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Pancytopenia means decrease in:",
+      "englishOptions": [
+        "RBC only",
+        "WBC only",
+        "Platelets only",
+        "RBC + WBC + Platelets"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Serum amylase rises in:",
+      "englishOptions": [
+        "Hepatitis",
+        "Diabetes",
+        "Acute pancreatitis",
+        "Anemia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Reticulocyte count indicates:",
+      "englishOptions": [
+        "Kidney function",
+        "Liver function",
+        "Bone marrow activity",
+        "Spleen function"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Acid alcohol in ZN stain acts as:",
+      "englishOptions": [
+        "Counterstain",
+        "Mordant",
+        "Primary stain",
+        "Decolorizer"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "HbA1c reflects glucose control over:",
+      "englishOptions": [
+        "1 month",
+        "2 months",
+        "3–4 months",
+        "1 year"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Routine tissue fixative:",
+      "englishOptions": [
+        "Alcohol",
+        "Acetone",
+        "Xylene",
+        "Formalin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Malaria detection:",
+      "englishOptions": [
+        "ELISA",
+        "PCR",
+        "Peripheral blood film",
+        "Culture"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Microtome is used for:",
+      "englishOptions": [
+        "Staining",
+        "Fixing",
+        "Cutting thin sections",
+        "Embedding"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Major ketone body in DKA:",
+      "englishOptions": [
+        "Acetone",
+        "Acetoacetate",
+        "β-Hydroxybutyrate",
+        "Ethanol"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Flame photometry principle:",
+      "englishOptions": [
+        "Absorption",
+        "Reflection",
+        "Fluorescence",
+        "Emission"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Culture & sensitivity identifies:",
+      "englishOptions": [
+        "Blood group",
+        "Glucose level",
+        "Organism and suitable antibiotic",
+        "Hemoglobin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Complement system belongs to:",
+      "englishOptions": [
+        "Adaptive immunity",
+        "Humoral immunity",
+        "Cell-mediated immunity",
+        "Innate immunity"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "HBsAg indicates:",
+      "englishOptions": [
+        "Vaccination",
+        "Past infection",
+        "Recovery",
+        "Active Hepatitis B infection"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "BSL-2 requires:",
+      "englishOptions": [
+        "Sample precautions",
+        "Environmental control",
+        "Personnel protection",
+        "All of the above"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Low albumin is seen in:",
+      "englishOptions": [
+        "Hypertension",
+        "Diabetes",
+        "Nephrotic syndrome",
+        "Polycythemia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Autoclave biological indicator:",
+      "englishOptions": [
+        "E. coli",
+        "Bacillus subtilis",
+        "Clostridium",
+        "Geobacillus stearothermophilus"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Normal gut flora:",
+      "englishOptions": [
+        "Cause disease",
+        "Produce toxins",
+        "Prevent pathogen colonization",
+        "Destroy RBCs"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Sickle cell anemia involves defect in:",
+      "englishOptions": [
+        "RBC membrane",
+        "Platelets",
+        "WBCs",
+        "Hemoglobin structure"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Abnormal hemoglobin in sickle cell disease:",
+      "englishOptions": [
+        "HbA",
+        "HbF",
+        "HbA₂",
+        "HbS"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Calibration means:",
+      "englishOptions": [
+        "Cleaning",
+        "Repairing",
+        "Validating instrument accuracy",
+        "Sterilizing"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Hospital waste disposal follows:",
+      "englishOptions": [
+        "WHO rules",
+        "NABL rules",
+        "CLIA rules",
+        "BMW Rules"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "ELISA detects:",
+      "englishOptions": [
+        "Glucose",
+        "Electrolytes",
+        "Antigens/Antibodies",
+        "Hemoglobin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Coagulation tube contains:",
+      "englishOptions": [
+        "EDTA",
+        "Heparin",
+        "Fluoride",
+        "Sodium citrate"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Preferred sample for blood glucose:",
+      "englishOptions": [
+        "Serum",
+        "Whole blood",
+        "EDTA plasma",
+        "Fluoride plasma"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Zero-order kinetics enzyme:",
+      "englishOptions": [
+        "AST",
+        "ALT",
+        "LDH",
+        "ALP"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Common liver function assessment:",
+      "englishOptions": [
+        "CBC",
+        "ESR",
+        "PT only",
+        "LFT"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Kidney function marker:",
+      "englishOptions": [
+        "Bilirubin",
+        "Albumin",
+        "Creatinine",
+        "Hemoglobin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Country with most lakes:",
+      "englishOptions": [
+        "USA",
+        "Russia",
+        "Brazil",
+        "Canada"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Mariana Trench is in:",
+      "englishOptions": [
+        "Atlantic Ocean",
+        "Indian Ocean",
+        "Arctic Ocean",
+        "Pacific Ocean"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Fastest-moving glacier:",
+      "englishOptions": [
+        "Antarctica",
+        "Alaska",
+        "Iceland",
+        "Greenland"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Currency of Russia:",
+      "englishOptions": [
+        "Euro",
+        "Yen",
+        "Dollar",
+        "Ruble"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Largest hot desert:",
+      "englishOptions": [
+        "Arabian",
+        "Gobi",
+        "Kalahari",
+        "Sahara"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Next number: 3, 5, 10, 12, 24, 26, ?",
+      "englishOptions": [
+        "48",
+        "50",
+        "52",
+        "54"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "6 m East + 8 m North = distance from starting point?",
+      "englishOptions": [
+        "8 m",
+        "12 m",
+        "14 m",
+        "10 m"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "A is 3 places left of B. B is 5 places right of C. A is:",
+      "englishOptions": [
+        "4 right of C",
+        "6 left of C",
+        "2 right of C",
+        "8 left of C"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Succinct means:",
+      "englishOptions": [
+        "Long",
+        "Confusing",
+        "Complex",
+        "Brief and clear"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Mother's sister's daughter is:",
+      "englishOptions": [
+        "Aunt",
+        "Sister",
+        "Mother",
+        "Cousin"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Volatile memory:",
+      "englishOptions": [
+        "ROM",
+        "HDD",
+        "SSD",
+        "RAM"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "USB stands for:",
+      "englishOptions": [
+        "Universal System Bus",
+        "Unified Serial Bus",
+        "Universal Storage Bus",
+        "Universal Serial Bus"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "African country never formally colonized:",
+      "englishOptions": [
+        "Kenya",
+        "Ghana",
+        "Nigeria",
+        "Ethiopia"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "All roses are gardens. Some gardens bloom in winter. Therefore:",
+      "englishOptions": [
+        "All roses bloom in winter",
+        "No roses bloom in winter",
+        "Some roses may bloom in winter",
+        "All gardens are roses"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 2,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Not an input device:",
+      "englishOptions": [
+        "Mouse",
+        "Keyboard",
+        "Scanner",
+        "Modem"
+      ],
+      "hindiQuestion": "",
+      "hindiOptions": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "hindiExplanation": "",
+      "correctOptionIndex": 3,
+      "englishExplanation": "",
+      "subject": "Miscellaneous",
+      "difficulty": "medium"
+    }
+  ]
+}

@@ -129,7 +129,7 @@ ${extraInstruction}
 Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`json.`;
 
     const response = await gClient.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.0-flash",
       contents: {
         parts: [
           { inlineData: { data: documentBase64, mimeType } },
@@ -195,7 +195,7 @@ ${extraInstruction}
 Return ONLY the raw JSON object.`;
 
     const response = await gClient.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.0-flash",
       contents: extractionPrompt,
       config: {
         responseMimeType: "application/json"
@@ -349,7 +349,7 @@ Return ONLY the exact string from the Available Subjects list. Do not explain.`;
 
       try {
         const response = await ai.models.generateContent({
-           model: 'gemini-2.5-flash',
+           model: 'gemini-2.0-flash',
            contents: prompt,
            config: { temperature: 0.1 }
         });

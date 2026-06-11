@@ -1,40 +1,66 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { collection, setDoc, doc, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../utils/firebase.ts';
-import { BankQuestion } from '../types.ts';
-import { Plus, Upload, Search, Trash2, Edit2, X, RefreshCw, Filter, Loader2, Wand2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  collection,
+  setDoc,
+  doc,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+  writeBatch,
+} from "firebase/firestore";
+import { db } from "../utils/firebase.ts";
+import { BankQuestion } from "../types.ts";
+import AssetManagerModal from "./AssetManagerModal.tsx";
+import {
+  Plus,
+  Upload,
+  Search,
+  Trash2,
+  Edit2,
+  X,
+  RefreshCw,
+  Filter,
+  Loader2,
+  Wand2,
+  Image as ImageIcon,
+} from "lucide-react";
 
 interface QuestionBankManagerProps {
   onNotify: (message: string, isError?: boolean) => void;
 }
 
-export default function QuestionBankManager({ onNotify }: QuestionBankManagerProps) {
+export default function QuestionBankManager({
+  onNotify,
+}: QuestionBankManagerProps) {
   const [questions, setQuestions] = useState<BankQuestion[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterSubject, setFilterSubject] = useState('');
-  const [filterDifficulty, setFilterDifficulty] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterSubject, setFilterSubject] = useState("");
+  const [filterDifficulty, setFilterDifficulty] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssetManagerOpen, setIsAssetManagerOpen] = useState(false);
   const [isRawTextModalOpen, setIsRawTextModalOpen] = useState(false);
-  const [rawText, setRawText] = useState('');
-  const [languageMode, setLanguageMode] = useState<'bilingual'|'english'>('bilingual');
-  const [uploadSubject, setUploadSubject] = useState('');
+  const [rawText, setRawText] = useState("");
+  const [languageMode, setLanguageMode] = useState<"bilingual" | "english">(
+    "bilingual",
+  );
+  const [uploadSubject, setUploadSubject] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<BankQuestion>>({
-    englishQuestion: '',
-    hindiQuestion: '',
-    englishOptions: ['', '', '', ''],
-    hindiOptions: ['', '', '', ''],
-    englishExplanation: '',
-    hindiExplanation: '',
-    imageUrl: '',
-    optionImageUrls: ['', '', '', ''],
+    englishQuestion: "",
+    hindiQuestion: "",
+    englishOptions: ["", "", "", ""],
+    hindiOptions: ["", "", "", ""],
+    englishExplanation: "",
+    hindiExplanation: "",
+    imageUrl: "",
+    optionImageUrls: ["", "", "", ""],
     correctOptionIndex: 0,
-    subject: 'Miscellaneous',
-    difficulty: 'medium'
+    subject: "Miscellaneous",
+    difficulty: "medium",
   });
   const [uploading, setUploading] = useState(false);
   const [classifying, setClassifying] = useState(false);
@@ -44,19 +70,19 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
   const fetchQuestions = async (skipAutoSeed = false) => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, 'questionBank'));
+      const snap = await getDocs(collection(db, "questionBank"));
       const list: BankQuestion[] = [];
-      snap.forEach(d => list.push({ id: d.id, ...d.data() } as BankQuestion));
+      snap.forEach((d) => list.push({ id: d.id, ...d.data() } as BankQuestion));
       setQuestions(list);
-      
-      if (!skipAutoSeed && !list.some(q => q.subject === 'Reasoning')) {
-          setTimeout(() => {
-              handleSeedPDFQuestions();
-          }, 500);
+
+      if (!skipAutoSeed && !list.some((q) => q.subject === "Reasoning")) {
+        setTimeout(() => {
+          handleSeedPDFQuestions();
+        }, 500);
       }
     } catch (e) {
       console.error(e);
-      onNotify('Failed to retrieve question bank.', true);
+      onNotify("Failed to retrieve question bank.", true);
     } finally {
       setLoading(false);
     }
@@ -76,7 +102,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
       const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const result = (reader.result as string).split(',')[1];
+          const result = (reader.result as string).split(",")[1];
           if (result) resolve(result);
           else reject(new Error("Could not parse file."));
         };
@@ -86,49 +112,59 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
 
       onNotify("Extracting questions via Gemini AI. This may take a minute...");
 
-      const response = await fetch('/api/admin/extract-questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentBase64: base64Data, mimeType: file.type || 'text/plain', languageMode })
+      const response = await fetch("/api/admin/extract-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentBase64: base64Data,
+          mimeType: file.type || "text/plain",
+          languageMode,
+        }),
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Server returned ${response.status} ${response.statusText}`,
+        );
       }
-      
+
       const data = await response.json();
       if (!data.success || !data.questions) {
         throw new Error(data.error || "Failed to extract");
       }
 
       const extracted = data.questions;
-      onNotify(`Extracted ${extracted.length} questions. Saving to database...`);
-      
+      onNotify(
+        `Extracted ${extracted.length} questions. Saving to database...`,
+      );
+
       // Save all to firestore
       for (const q of extracted) {
-        const qId = 'qb_' + Date.now() + Math.random().toString(36).substring(2, 6);
-        await setDoc(doc(db, 'questionBank', qId), {
+        const qId =
+          "qb_" + Date.now() + Math.random().toString(36).substring(2, 6);
+        await setDoc(doc(db, "questionBank", qId), {
           id: qId,
           englishQuestion: q.englishQuestion || "Missing English Context",
           hindiQuestion: q.hindiQuestion || "हिंदी अनुवाद उपलब्ध नहीं है",
           englishOptions: q.englishOptions || ["", "", "", ""],
           hindiOptions: q.hindiOptions || ["", "", "", ""],
           correctOptionIndex: Number(q.correctOptionIndex) || 0,
-          englishExplanation: q.englishExplanation || "No explanation provided.",
+          englishExplanation:
+            q.englishExplanation || "No explanation provided.",
           hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
           subject: uploadSubject.trim() || q.subject || "Miscellaneous",
           difficulty: q.difficulty || "medium",
-          createdAt: Date.now()
+          createdAt: Date.now(),
         });
       }
-      
+
       onNotify(`Successfully imported ${extracted.length} questions.`);
       fetchQuestions();
     } catch (err) {
       console.error(err);
-      onNotify('Failed to process document upload.', true);
+      onNotify("Failed to process document upload.", true);
     } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setUploading(false);
     }
   };
@@ -141,16 +177,18 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     try {
       onNotify("Processing pasted text via AI. This may take a minute...");
 
-      const response = await fetch('/api/admin/extract-questions-raw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawText, languageMode })
+      const response = await fetch("/api/admin/extract-questions-raw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawText, languageMode }),
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Server returned ${response.status} ${response.statusText}`,
+        );
       }
-      
+
       const data = await response.json();
       if (!data.success || !data.questions) {
         throw new Error(data.error || "Failed to extract");
@@ -158,30 +196,32 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
 
       const extracted = data.questions;
       onNotify(`Extracted ${extracted.length} questions. Saving context...`);
-      
+
       for (const q of extracted) {
-        const qId = 'qb_' + Date.now() + Math.random().toString(36).substring(2, 6);
-        await setDoc(doc(db, 'questionBank', qId), {
+        const qId =
+          "qb_" + Date.now() + Math.random().toString(36).substring(2, 6);
+        await setDoc(doc(db, "questionBank", qId), {
           id: qId,
           englishQuestion: q.englishQuestion || "Missing English Context",
           hindiQuestion: q.hindiQuestion || "हिंदी अनुवाद उपलब्ध नहीं है",
           englishOptions: q.englishOptions || ["", "", "", ""],
           hindiOptions: q.hindiOptions || ["", "", "", ""],
           correctOptionIndex: Number(q.correctOptionIndex) || 0,
-          englishExplanation: q.englishExplanation || "No explanation provided.",
+          englishExplanation:
+            q.englishExplanation || "No explanation provided.",
           hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
           subject: uploadSubject.trim() || q.subject || "Miscellaneous",
           difficulty: q.difficulty || "medium",
-          createdAt: Date.now()
+          createdAt: Date.now(),
         });
       }
-      
+
       onNotify(`Successfully imported ${extracted.length} pasted questions.`);
-      setRawText('');
+      setRawText("");
       fetchQuestions();
     } catch (err) {
       console.error(err);
-      onNotify('Failed to process pasted text extraction.', true);
+      onNotify("Failed to process pasted text extraction.", true);
     } finally {
       setUploading(false);
     }
@@ -190,134 +230,168 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
   const handleSeedPDFQuestions = async () => {
     const pdfQuestions: Partial<BankQuestion>[] = [
       {
-        englishQuestion: 'A is 24 years old. In 12 years, A will complete 5 tasks per year. How many tasks will A have completed altogether after 12 years?',
-        hindiQuestion: 'A 24 वर्ष का है। 12 वर्षों में, A प्रति वर्ष 5 कार्य पूरे करेगा। 12 वर्षों के बाद A ने कुल कितने कार्य पूरे किए होंगे?',
-        englishOptions: ['60', '59', '65', '55'],
-        hindiOptions: ['60', '59', '65', '55'],
+        englishQuestion:
+          "A is 24 years old. In 12 years, A will complete 5 tasks per year. How many tasks will A have completed altogether after 12 years?",
+        hindiQuestion:
+          "A 24 वर्ष का है। 12 वर्षों में, A प्रति वर्ष 5 कार्य पूरे करेगा। 12 वर्षों के बाद A ने कुल कितने कार्य पूरे किए होंगे?",
+        englishOptions: ["60", "59", "65", "55"],
+        hindiOptions: ["60", "59", "65", "55"],
         correctOptionIndex: 0,
-        englishExplanation: 'Each year, task: 5. For 12 years: 12 × 5 = 60.',
-        hindiExplanation: 'प्रत्येक वर्ष कार्य: 5. 12 वर्षों के लिए: 12 × 5 = 60.',
-        subject: 'Reasoning',
-        difficulty: 'beginner'
+        englishExplanation: "Each year, task: 5. For 12 years: 12 × 5 = 60.",
+        hindiExplanation:
+          "प्रत्येक वर्ष कार्य: 5. 12 वर्षों के लिए: 12 × 5 = 60.",
+        subject: "Reasoning",
+        difficulty: "easy",
       },
       {
-        englishQuestion: 'A is 21 years old. In 13 years, A will complete 2 tasks per year. How many tasks will A have completed altogether after 13 years?',
-        hindiQuestion: 'A 21 वर्ष का है। 13 वर्षों में, A प्रति वर्ष 2 कार्य पूरे करेगा। 13 वर्षों के बाद A ने कुल कितने कार्य पूरे किए होंगे?',
-        englishOptions: ['28', '24', '26', '27'],
-        hindiOptions: ['28', '24', '26', '27'],
+        englishQuestion:
+          "A is 21 years old. In 13 years, A will complete 2 tasks per year. How many tasks will A have completed altogether after 13 years?",
+        hindiQuestion:
+          "A 21 वर्ष का है। 13 वर्षों में, A प्रति वर्ष 2 कार्य पूरे करेगा। 13 वर्षों के बाद A ने कुल कितने कार्य पूरे किए होंगे?",
+        englishOptions: ["28", "24", "26", "27"],
+        hindiOptions: ["28", "24", "26", "27"],
         correctOptionIndex: 2,
-        englishExplanation: 'Each year, task: 2. For 13 years: 13 × 2 = 26.',
-        hindiExplanation: 'प्रत्येक वर्ष कार्य: 2. 13 वर्षों के लिए: 13 × 2 = 26.',
-        subject: 'Reasoning',
-        difficulty: 'beginner'
+        englishExplanation: "Each year, task: 2. For 13 years: 13 × 2 = 26.",
+        hindiExplanation:
+          "प्रत्येक वर्ष कार्य: 2. 13 वर्षों के लिए: 13 × 2 = 26.",
+        subject: "Reasoning",
+        difficulty: "easy",
       },
       {
-        englishQuestion: 'Ages of 3 people Kalpana, Sanjana, Divya are in AP. Their current sum is 54. After 5 years, sum will be 69. Find the youngest person\'s age.',
-        hindiQuestion: '3 लोगों - कल्पना, संजना, दिव्या की आयु AP (समांतर श्रेणी) में है। उनका वर्तमान योग 54 है। 5 वर्ष बाद, योग 69 होगा। सबसे कम उम्र के व्यक्ति की आयु ज्ञात कीजिए।',
-        englishOptions: ['16', '18', '17', '20'],
-        hindiOptions: ['16', '18', '17', '20'],
+        englishQuestion:
+          "Ages of 3 people Kalpana, Sanjana, Divya are in AP. Their current sum is 54. After 5 years, sum will be 69. Find the youngest person's age.",
+        hindiQuestion:
+          "3 लोगों - कल्पना, संजना, दिव्या की आयु AP (समांतर श्रेणी) में है। उनका वर्तमान योग 54 है। 5 वर्ष बाद, योग 69 होगा। सबसे कम उम्र के व्यक्ति की आयु ज्ञात कीजिए।",
+        englishOptions: ["16", "18", "17", "20"],
+        hindiOptions: ["16", "18", "17", "20"],
         correctOptionIndex: 0,
-        englishExplanation: 'In AP, sum increases by 3×5=15. Current ages form AP starting with 16.',
-        hindiExplanation: 'AP में, योग 3×5=15 से बढ़ता है। वर्तमान आयु 16 से शुरू होने वाली AP बनाती है।',
-        subject: 'Reasoning',
-        difficulty: 'beginner'
+        englishExplanation:
+          "In AP, sum increases by 3×5=15. Current ages form AP starting with 16.",
+        hindiExplanation:
+          "AP में, योग 3×5=15 से बढ़ता है। वर्तमान आयु 16 से शुरू होने वाली AP बनाती है।",
+        subject: "Reasoning",
+        difficulty: "easy",
       },
       {
-        englishQuestion: 'A car travels 180 km at 60 km/h. The driver\'s age is 2 times the travel time in hours. How old is the driver?',
-        hindiQuestion: 'एक कार 60 किमी/घंटा की गति से 180 किमी की यात्रा करती है। चालक की आयु यात्रा के समय (घंटों में) की दोगुनी है। चालक की आयु कितनी है?',
-        englishOptions: ['12', '11', '1', '6'],
-        hindiOptions: ['12', '11', '1', '6'],
+        englishQuestion:
+          "A car travels 180 km at 60 km/h. The driver's age is 2 times the travel time in hours. How old is the driver?",
+        hindiQuestion:
+          "एक कार 60 किमी/घंटा की गति से 180 किमी की यात्रा करती है। चालक की आयु यात्रा के समय (घंटों में) की दोगुनी है। चालक की आयु कितनी है?",
+        englishOptions: ["12", "11", "1", "6"],
+        hindiOptions: ["12", "11", "1", "6"],
         correctOptionIndex: 3,
-        englishExplanation: 'Time = Distance/Speed = 180/60 = 3 hours. Driver\'s age = 3 × 2 = 6.',
-        hindiExplanation: 'समय = दूरी/गति = 180/60 = 3 घंटे। चालक की आयु = 3 × 2 = 6.',
-        subject: 'Reasoning',
-        difficulty: 'beginner'
+        englishExplanation:
+          "Time = Distance/Speed = 180/60 = 3 hours. Driver's age = 3 × 2 = 6.",
+        hindiExplanation:
+          "समय = दूरी/गति = 180/60 = 3 घंटे। चालक की आयु = 3 × 2 = 6.",
+        subject: "Reasoning",
+        difficulty: "easy",
       },
       {
-        englishQuestion: 'Simple interest on ₹2850 at 8% for 4 years is ₹912. A\'s age is principal/100, B\'s age is interest/10. Find A+B\'s age.',
-        hindiQuestion: '₹2850 पर 8% की दर से 4 वर्ष का साधारण ब्याज ₹912 है। A की आयु (मूलधन/100) है, B की आयु (ब्याज/10) है। A+B की आयु ज्ञात करें।',
-        englishOptions: ['124', '238', '114', '119'],
-        hindiOptions: ['124', '238', '114', '119'],
+        englishQuestion:
+          "Simple interest on ₹2850 at 8% for 4 years is ₹912. A's age is principal/100, B's age is interest/10. Find A+B's age.",
+        hindiQuestion:
+          "₹2850 पर 8% की दर से 4 वर्ष का साधारण ब्याज ₹912 है। A की आयु (मूलधन/100) है, B की आयु (ब्याज/10) है। A+B की आयु ज्ञात करें।",
+        englishOptions: ["124", "238", "114", "119"],
+        hindiOptions: ["124", "238", "114", "119"],
         correctOptionIndex: 3,
-        englishExplanation: 'A = 2850/100 = 28.5 (approx 28), B = 912/10 = 91.2 (approx 91). Sum = 119.',
-        hindiExplanation: 'A = 2850/100 = 28.5 (लगभग 28), B = 912/10 = 91.2 (लगभग 91)। योग = 119.',
-        subject: 'Reasoning',
-        difficulty: 'beginner'
+        englishExplanation:
+          "A = 2850/100 = 28.5 (approx 28), B = 912/10 = 91.2 (approx 91). Sum = 119.",
+        hindiExplanation:
+          "A = 2850/100 = 28.5 (लगभग 28), B = 912/10 = 91.2 (लगभग 91)। योग = 119.",
+        subject: "Reasoning",
+        difficulty: "easy",
       },
       {
-        englishQuestion: 'In 5 years, Mahesh will be 2 times as old as Phalguni will be then. Phalguni\'s present age is 13. What is Mahesh\'s present age?',
-        hindiQuestion: '5 वर्षों में, महेश की आयु फाल्गुनी की उस समय की आयु की दोगुनी होगी। फाल्गुनी की वर्तमान आयु 13 वर्ष है। महेश की वर्तमान आयु क्या है?',
-        englishOptions: ['26', '36', '13', '31'],
-        hindiOptions: ['26', '36', '13', '31'],
+        englishQuestion:
+          "In 5 years, Mahesh will be 2 times as old as Phalguni will be then. Phalguni's present age is 13. What is Mahesh's present age?",
+        hindiQuestion:
+          "5 वर्षों में, महेश की आयु फाल्गुनी की उस समय की आयु की दोगुनी होगी। फाल्गुनी की वर्तमान आयु 13 वर्ष है। महेश की वर्तमान आयु क्या है?",
+        englishOptions: ["26", "36", "13", "31"],
+        hindiOptions: ["26", "36", "13", "31"],
         correctOptionIndex: 3,
-        englishExplanation: 'Mahesh+5 = 2*(13+5) -> Mahesh = 2*(18)-5 = 31.',
-        hindiExplanation: 'महेश+5 = 2*(13+5) -> महेश = 2*(18)-5 = 31.',
-        subject: 'Reasoning',
-        difficulty: 'beginner'
+        englishExplanation: "Mahesh+5 = 2*(13+5) -> Mahesh = 2*(18)-5 = 31.",
+        hindiExplanation: "महेश+5 = 2*(13+5) -> महेश = 2*(18)-5 = 31.",
+        subject: "Reasoning",
+        difficulty: "easy",
       },
       {
-        englishQuestion: 'The sum of A and B\'s ages is 35. Twice A\'s age minus B\'s age is 7. Find A\'s age.',
-        hindiQuestion: 'A और B की आयु का योग 35 है। A की आयु के दोगुने में से B की आयु घटाने पर 7 प्राप्त होता है। A की आयु ज्ञात कीजिए।',
-        englishOptions: ['16', '14', '12', '21'],
-        hindiOptions: ['16', '14', '12', '21'],
+        englishQuestion:
+          "The sum of A and B's ages is 35. Twice A's age minus B's age is 7. Find A's age.",
+        hindiQuestion:
+          "A और B की आयु का योग 35 है। A की आयु के दोगुने में से B की आयु घटाने पर 7 प्राप्त होता है। A की आयु ज्ञात कीजिए।",
+        englishOptions: ["16", "14", "12", "21"],
+        hindiOptions: ["16", "14", "12", "21"],
         correctOptionIndex: 1,
-        englishExplanation: 'A + B = 35; 2A - B = 7. Adding equations: 3A = 42, A = 14.',
-        hindiExplanation: 'A + B = 35; 2A - B = 7. समीकरणों को जोड़ने पर: 3A = 42, A = 14.',
-        subject: 'Reasoning',
-        difficulty: 'beginner'
+        englishExplanation:
+          "A + B = 35; 2A - B = 7. Adding equations: 3A = 42, A = 14.",
+        hindiExplanation:
+          "A + B = 35; 2A - B = 7. समीकरणों को जोड़ने पर: 3A = 42, A = 14.",
+        subject: "Reasoning",
+        difficulty: "easy",
       },
       {
-        englishQuestion: 'In 2024, the Amara family consists of: Amara (48), Gunjan (43), Sarvesh (21), Delilah (16). What is Gunjan\'s current age?',
-        hindiQuestion: 'वर्ष 2024 में, अमारा परिवार में शामिल हैं: अमारा (48), गुंजन (43), सर्वेश (21), डेलाइला (16)। गुंजन की वर्तमान आयु क्या है?',
-        englishOptions: ['45', '41', '48', '43'],
-        hindiOptions: ['45', '41', '48', '43'],
+        englishQuestion:
+          "In 2024, the Amara family consists of: Amara (48), Gunjan (43), Sarvesh (21), Delilah (16). What is Gunjan's current age?",
+        hindiQuestion:
+          "वर्ष 2024 में, अमारा परिवार में शामिल हैं: अमारा (48), गुंजन (43), सर्वेश (21), डेलाइला (16)। गुंजन की वर्तमान आयु क्या है?",
+        englishOptions: ["45", "41", "48", "43"],
+        hindiOptions: ["45", "41", "48", "43"],
         correctOptionIndex: 3,
-        englishExplanation: 'From the given relationships, Gunjan\'s age is explicitly given as 43.',
-        hindiExplanation: 'दिए गए संबंधों से स्पष्ट है कि गुंजन की आयु 43 वर्ष है।',
-        subject: 'Reasoning',
-        difficulty: 'advanced'
+        englishExplanation:
+          "From the given relationships, Gunjan's age is explicitly given as 43.",
+        hindiExplanation:
+          "दिए गए संबंधों से स्पष्ट है कि गुंजन की आयु 43 वर्ष है।",
+        subject: "Reasoning",
+        difficulty: "hard",
       },
       {
-        englishQuestion: 'If A=1, ..., Z=26, what is the sum of the positions for the word DOG?',
-        hindiQuestion: 'यदि A=1, ..., Z=26, तो शब्द DOG के क्रमांकों का योग क्या है?',
-        englishOptions: ['390', '293', '26', '28'],
-        hindiOptions: ['390', '293', '26', '28'],
+        englishQuestion:
+          "If A=1, ..., Z=26, what is the sum of the positions for the word DOG?",
+        hindiQuestion:
+          "यदि A=1, ..., Z=26, तो शब्द DOG के क्रमांकों का योग क्या है?",
+        englishOptions: ["390", "293", "26", "28"],
+        hindiOptions: ["390", "293", "26", "28"],
         correctOptionIndex: 2,
-        englishExplanation: 'D=4, O=15, G=7. Sum = 4 + 15 + 7 = 26.',
-        hindiExplanation: 'D=4, O=15, G=7. योग = 4 + 15 + 7 = 26.',
-        subject: 'Reasoning',
-        difficulty: 'advanced'
+        englishExplanation: "D=4, O=15, G=7. Sum = 4 + 15 + 7 = 26.",
+        hindiExplanation: "D=4, O=15, G=7. योग = 4 + 15 + 7 = 26.",
+        subject: "Reasoning",
+        difficulty: "hard",
       },
       {
-        englishQuestion: 'Ian is 18, Savita is 19. After 3 years, what is the ratio of their ages?',
-        hindiQuestion: 'इयान 18 वर्ष का है, सविता 19 वर्ष की है। 3 वर्ष बाद, उनकी आयु का अनुपात क्या होगा?',
-        englishOptions: ['18:19', '19:18', '22:21', '21:22'],
-        hindiOptions: ['18:19', '19:18', '22:21', '21:22'],
+        englishQuestion:
+          "Ian is 18, Savita is 19. After 3 years, what is the ratio of their ages?",
+        hindiQuestion:
+          "इयान 18 वर्ष का है, सविता 19 वर्ष की है। 3 वर्ष बाद, उनकी आयु का अनुपात क्या होगा?",
+        englishOptions: ["18:19", "19:18", "22:21", "21:22"],
+        hindiOptions: ["18:19", "19:18", "22:21", "21:22"],
         correctOptionIndex: 3,
-        englishExplanation: 'After 3 years: Ian = 21, Savita = 22. Ratio = 21:22.',
-        hindiExplanation: '3 वर्ष बाद: इयान = 21, सविता = 22. अनुपात = 21:22.',
-        subject: 'Reasoning',
-        difficulty: 'advanced'
-      }
+        englishExplanation:
+          "After 3 years: Ian = 21, Savita = 22. Ratio = 21:22.",
+        hindiExplanation: "3 वर्ष बाद: इयान = 21, सविता = 22. अनुपात = 21:22.",
+        subject: "Reasoning",
+        difficulty: "hard",
+      },
     ];
 
     setLoading(true);
     try {
       for (const q of pdfQuestions) {
-        const qId = 'qb_' + Date.now() + Math.random().toString(36).substring(2, 6);
-        await setDoc(doc(db, 'questionBank', qId), {
+        const qId =
+          "qb_" + Date.now() + Math.random().toString(36).substring(2, 6);
+        await setDoc(doc(db, "questionBank", qId), {
           id: qId,
           ...q,
-          imageUrl: '',
-          optionImageUrls: ['', '', '', ''],
-          createdAt: Date.now()
+          imageUrl: "",
+          optionImageUrls: ["", "", "", ""],
+          createdAt: Date.now(),
         });
       }
-      onNotify('Successfully seeded 10 Reasoning questions from PDF!');
+      onNotify("Successfully seeded 10 Reasoning questions from PDF!");
       fetchQuestions(true);
-    } catch(err) {
+    } catch (err) {
       console.error(err);
-      onNotify('Error seeding PDF questions', true);
+      onNotify("Error seeding PDF questions", true);
     } finally {
       setLoading(false);
     }
@@ -331,7 +405,9 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     }
 
     try {
-      const qId = editingId || ('qb_' + Date.now() + Math.random().toString(36).substring(2, 6));
+      const qId =
+        editingId ||
+        "qb_" + Date.now() + Math.random().toString(36).substring(2, 6);
       const payload = {
         id: qId,
         englishQuestion: formData.englishQuestion || "",
@@ -345,16 +421,16 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
         hindiExplanation: formData.hindiExplanation || "",
         subject: formData.subject || "Miscellaneous",
         difficulty: formData.difficulty || "medium",
-        createdAt: formData.createdAt || Date.now()
+        createdAt: formData.createdAt || Date.now(),
       };
 
-      await setDoc(doc(db, 'questionBank', qId), payload);
-      onNotify(`Question ${editingId ? 'Updated' : 'Added'} successfully.`);
+      await setDoc(doc(db, "questionBank", qId), payload);
+      onNotify(`Question ${editingId ? "Updated" : "Added"} successfully.`);
       setIsModalOpen(false);
       fetchQuestions();
     } catch (err) {
       console.error(err);
-      onNotify('Error saving question', true);
+      onNotify("Error saving question", true);
     }
   };
 
@@ -362,7 +438,7 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
 
   const deleteQuestion = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'questionBank', id));
+      await deleteDoc(doc(db, "questionBank", id));
       onNotify("Question deleted.");
       fetchQuestions();
     } catch (err) {
@@ -374,8 +450,6 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
 
   const handleAutoClassify = async () => {
     if (!questions.length) return;
-    const confirmClassify = window.confirm('Are you sure you want to AI-classify all questions? This may take some time depending on the number of questions.');
-    if (!confirmClassify) return;
 
     setClassifying(true);
     let changedCount = 0;
@@ -384,60 +458,74 @@ export default function QuestionBankManager({ onNotify }: QuestionBankManagerPro
     let apiErrorCount = 0;
     let lastApiError = "";
 
-    const subjects = Array.from(new Set([
-      "Pathology", "Biochemistry", "Microbiology", "Blood Bank", 
-      "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous",
-      ...questions.map(q => q.subject || 'Miscellaneous')
-    ]));
+    const subjects = Array.from(
+      new Set([
+        "Pathology",
+        "Biochemistry",
+        "Microbiology",
+        "Blood Bank",
+        "Anatomy",
+        "Math",
+        "English",
+        "General Knowledge",
+        "Reasoning",
+        "Miscellaneous",
+        ...questions.map((q) => q.subject || "Miscellaneous"),
+      ]),
+    );
 
     try {
       // Chunk processing to avoid overwhelming the server
       const chunkSize = 20;
       for (let i = 0; i < questions.length; i += chunkSize) {
         const chunk = questions.slice(i, i + chunkSize);
-        
-        onNotify(`Classifying chunk ${i / chunkSize + 1} of ${Math.ceil(questions.length / chunkSize)}...`);
-        const res = await fetch('/api/admin/auto-classify-batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questions: chunk, subjects })
+
+        onNotify(
+          `Classifying chunk ${i / chunkSize + 1} of ${Math.ceil(questions.length / chunkSize)}...`,
+        );
+        const res = await fetch("/api/admin/auto-classify-batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questions: chunk, subjects }),
         });
-        
-        if (!res.ok) throw new Error('API Error');
+
+        if (!res.ok) throw new Error("API Error");
         const { results } = await res.json();
-        
+
         for (const item of results) {
-           const existingQuestion = chunk.find(q => q.id === item.id);
-           if (!existingQuestion) continue;
-           
-           if (item.error) {
-             unassignedCount++;
-             apiErrorCount++;
-             lastApiError = item.error;
-             console.error("Classification error:", item.error);
-           } else if (!item.suggestedSubject) {
-             unassignedCount++;
-           } else if (item.suggestedSubject === existingQuestion.subject) {
-             correctlyClassifiedCount++;
-           } else {
-             await updateDoc(doc(db, 'questionBank', item.id), { subject: item.suggestedSubject });
-             changedCount++;
-           }
+          const existingQuestion = chunk.find((q) => q.id === item.id);
+          if (!existingQuestion) continue;
+
+          if (item.error) {
+            unassignedCount++;
+            apiErrorCount++;
+            lastApiError = item.error;
+            console.error("Classification error:", item.error);
+          } else if (!item.suggestedSubject) {
+            unassignedCount++;
+          } else if (item.suggestedSubject === existingQuestion.subject) {
+            correctlyClassifiedCount++;
+          } else {
+            await updateDoc(doc(db, "questionBank", item.id), {
+              subject: item.suggestedSubject,
+            });
+            changedCount++;
+          }
         }
       }
-      
+
       const summaryMsg = `Classification Complete!
 Total Processed: ${questions.length}
 Subjects Changed: ${changedCount}
 Already Correct: ${correctlyClassifiedCount}
-Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encountered API errors (${apiErrorCount}). Example: ${lastApiError}` : ''}`;
-      window.alert(summaryMsg);
-      onNotify('Classification completed.');
-      
+Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encountered API errors (${apiErrorCount}). Example: ${lastApiError}` : ""}`;
+      console.log(summaryMsg);
+      onNotify("Classification completed.");
+
       fetchQuestions();
     } catch (e) {
       console.error(e);
-      onNotify('Classification encountered an error.', true);
+      onNotify("Classification encountered an error.", true);
     } finally {
       setClassifying(false);
     }
@@ -448,7 +536,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
     try {
       setLoading(true);
       for (const id of selectedQuestionIds) {
-        await deleteDoc(doc(db, 'questionBank', id));
+        await deleteDoc(doc(db, "questionBank", id));
       }
       onNotify(`Successfully deleted ${selectedQuestionIds.length} questions.`);
       setSelectedQuestionIds([]);
@@ -462,11 +550,15 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
     }
   };
 
-  const filteredQuestions = questions.filter(q => {
+  const filteredQuestions = questions.filter((q) => {
     const term = searchTerm.toLowerCase();
-    const matchTerm = q.englishQuestion?.toLowerCase().includes(term) || q.subject?.toLowerCase().includes(term);
+    const matchTerm =
+      q.englishQuestion?.toLowerCase().includes(term) ||
+      q.subject?.toLowerCase().includes(term);
     const matchSub = filterSubject ? q.subject === filterSubject : true;
-    const matchDiff = filterDifficulty ? q.difficulty === filterDifficulty : true;
+    const matchDiff = filterDifficulty
+      ? q.difficulty === filterDifficulty
+      : true;
     return matchTerm && matchSub && matchDiff;
   });
 
@@ -476,8 +568,13 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
             <Loader2 size={40} className="text-indigo-600 animate-spin" />
-            <h3 className="text-lg font-bold text-slate-800">Auto-Classifying</h3>
-            <p className="text-sm text-slate-500 text-center">Please wait while the AI analyzes and categorizes your questions. This may take a moment...</p>
+            <h3 className="text-lg font-bold text-slate-800">
+              Auto-Classifying
+            </h3>
+            <p className="text-sm text-slate-500 text-center">
+              Please wait while the AI analyzes and categorizes your questions.
+              This may take a moment...
+            </p>
           </div>
         </div>
       )}
@@ -485,51 +582,64 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
             <Loader2 size={40} className="text-blue-600 animate-spin" />
-            <h3 className="text-lg font-bold text-slate-800">Generating Questions</h3>
-            <p className="text-sm text-slate-500 text-center">Please wait while the AI processes your document and extracts questions. This may take a few moments...</p>
+            <h3 className="text-lg font-bold text-slate-800">
+              Generating Questions
+            </h3>
+            <p className="text-sm text-slate-500 text-center">
+              Please wait while the AI processes your document and extracts
+              questions. This may take a few moments...
+            </p>
           </div>
         </div>
       )}
-      
+
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-slate-800">Global Question Bank</h2>
-          <p className="text-sm text-slate-500">Manage bilingual questions for examinations. Total: {questions.length}</p>
+          <h2 className="text-lg font-bold text-slate-800">
+            Global Question Bank
+          </h2>
+          <p className="text-sm text-slate-500">
+            Manage bilingual questions for examinations. Total:{" "}
+            {questions.length}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 border border-slate-200 rounded px-2 py-1.5 bg-slate-50 mr-2">
-             <input 
-               type="text" 
-               placeholder="Target Subject (Optional)..." 
-               value={uploadSubject}
-               onChange={e => setUploadSubject(e.target.value)}
-               className="text-xs bg-transparent outline-none w-40 text-slate-700 placeholder:text-slate-400"
-             />
+            <input
+              type="text"
+              placeholder="Target Subject (Optional)..."
+              value={uploadSubject}
+              onChange={(e) => setUploadSubject(e.target.value)}
+              className="text-xs bg-transparent outline-none w-40 text-slate-700 placeholder:text-slate-400"
+            />
           </div>
           <div className="flex items-center gap-2 border border-slate-200 rounded px-3 py-1.5 bg-slate-50 mr-2">
-             <span className="text-xs font-bold text-slate-500">AI Mode:</span>
-             <select 
-                value={languageMode} 
-                onChange={(e) => setLanguageMode(e.target.value as 'bilingual'|'english')}
-                className="text-xs bg-transparent font-medium text-blue-700 outline-none cursor-pointer"
-             >
-                <option value="bilingual">Bilingual</option>
-                <option value="english">English Only</option>
-             </select>
+            <span className="text-xs font-bold text-slate-500">AI Mode:</span>
+            <select
+              value={languageMode}
+              onChange={(e) =>
+                setLanguageMode(e.target.value as "bilingual" | "english")
+              }
+              className="text-xs bg-transparent font-medium text-blue-700 outline-none cursor-pointer"
+            >
+              <option value="bilingual">Bilingual</option>
+              <option value="english">English Only</option>
+            </select>
           </div>
-          <input 
-            type="file" 
-            accept=".pdf,.doc,.docx,.txt" 
-            ref={fileInputRef} 
-            onChange={handleFileUpload} 
-            className="hidden" 
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.txt"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            className="hidden"
           />
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-xs transition"
           >
-            <Upload size={16} /> {uploading ? 'Processing AI...' : 'Import URL/PDF'}
+            <Upload size={16} />{" "}
+            {uploading ? "Processing AI..." : "Import URL/PDF"}
           </button>
           <button
             onClick={() => setIsRawTextModalOpen(true)}
@@ -542,17 +652,17 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             onClick={() => {
               setEditingId(null);
               setFormData({
-                englishQuestion: '',
-                hindiQuestion: '',
-                englishOptions: ['', '', '', ''],
-                hindiOptions: ['', '', '', ''],
-                imageUrl: '',
-                optionImageUrls: ['', '', '', ''],
+                englishQuestion: "",
+                hindiQuestion: "",
+                englishOptions: ["", "", "", ""],
+                hindiOptions: ["", "", "", ""],
+                imageUrl: "",
+                optionImageUrls: ["", "", "", ""],
                 correctOptionIndex: 0,
-                englishExplanation: '',
-                hindiExplanation: '',
-                subject: 'Miscellaneous',
-                difficulty: 'medium'
+                englishExplanation: "",
+                hindiExplanation: "",
+                subject: "Miscellaneous",
+                difficulty: "medium",
               });
               setIsModalOpen(true);
             }}
@@ -572,7 +682,8 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
               onClick={() => setShowBulkDeleteConfirm(true)}
               className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded text-xs transition shadow-sm"
             >
-              <Trash2 size={16} /> Delete Selected ({selectedQuestionIds.length})
+              <Trash2 size={16} /> Delete Selected ({selectedQuestionIds.length}
+              )
             </button>
           )}
         </div>
@@ -581,35 +692,50 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-2 relative">
-          <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
-          <input 
+          <Search
+            className="absolute left-3 top-2.5 text-slate-400"
+            size={16}
+          />
+          <input
             type="text"
             placeholder="Search questions or subjects..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded focus:outline-blue-500"
           />
         </div>
         <div>
-          <select 
-            value={filterSubject} 
-            onChange={e => setFilterSubject(e.target.value)}
+          <select
+            value={filterSubject}
+            onChange={(e) => setFilterSubject(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded bg-white text-slate-700"
           >
             <option value="">All Subjects</option>
-            {Array.from(new Set([
-              "Pathology", "Biochemistry", "Microbiology", "Blood Bank", 
-              "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous",
-              ...questions.map(q => q.subject || 'Miscellaneous')
-            ])).map(subj => (
-               <option key={subj} value={subj}>{subj}</option>
+            {Array.from(
+              new Set([
+                "Pathology",
+                "Biochemistry",
+                "Microbiology",
+                "Blood Bank",
+                "Anatomy",
+                "Math",
+                "English",
+                "General Knowledge",
+                "Reasoning",
+                "Miscellaneous",
+                ...questions.map((q) => q.subject || "Miscellaneous"),
+              ]),
+            ).map((subj) => (
+              <option key={subj} value={subj}>
+                {subj}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <select 
-            value={filterDifficulty} 
-            onChange={e => setFilterDifficulty(e.target.value)}
+          <select
+            value={filterDifficulty}
+            onChange={(e) => setFilterDifficulty(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded bg-white text-slate-700"
           >
             <option value="">Any Difficulty</option>
@@ -624,7 +750,8 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       <div className="bg-white border !!border-slate-200 rounded-xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-8 text-center text-slate-500 text-sm font-medium flex items-center justify-center gap-2">
-            <RefreshCw className="animate-spin text-blue-500" size={18} /> Loading bank...
+            <RefreshCw className="animate-spin text-blue-500" size={18} />{" "}
+            Loading bank...
           </div>
         ) : filteredQuestions.length === 0 ? (
           <div className="p-12 text-center text-slate-500 text-sm font-medium">
@@ -636,13 +763,19 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
               <thead className="bg-[#f8fafc] text-slate-500 font-bold text-xs uppercase">
                 <tr>
                   <th className="px-6 py-4 w-12">
-                    <input 
+                    <input
                       type="checkbox"
                       className="cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                      checked={selectedQuestionIds.length === filteredQuestions.length && filteredQuestions.length > 0}
+                      checked={
+                        selectedQuestionIds.length ===
+                          filteredQuestions.length &&
+                        filteredQuestions.length > 0
+                      }
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedQuestionIds(filteredQuestions.map(q => q.id));
+                          setSelectedQuestionIds(
+                            filteredQuestions.map((q) => q.id),
+                          );
                         } else {
                           setSelectedQuestionIds([]);
                         }
@@ -656,7 +789,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredQuestions.map(q => (
+                {filteredQuestions.map((q) => (
                   <tr key={q.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4">
                       <input
@@ -665,16 +798,22 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                         checked={selectedQuestionIds.includes(q.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedQuestionIds(prev => [...prev, q.id]);
+                            setSelectedQuestionIds((prev) => [...prev, q.id]);
                           } else {
-                            setSelectedQuestionIds(prev => prev.filter(id => id !== q.id));
+                            setSelectedQuestionIds((prev) =>
+                              prev.filter((id) => id !== q.id),
+                            );
                           }
                         }}
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-800 line-clamp-1">{q.englishQuestion}</div>
-                      <div className="text-xs text-slate-500 mt-1 line-clamp-1">{q.hindiQuestion}</div>
+                      <div className="font-semibold text-slate-800 line-clamp-1">
+                        {q.englishQuestion}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1 line-clamp-1">
+                        {q.hindiQuestion}
+                      </div>
                       <div className="mt-2 text-[11px] font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded w-fit border border-green-200">
                         {`Ans: Option ${Number(q.correctOptionIndex) + 1} - ${q.englishOptions?.[q.correctOptionIndex] || "N/A"}`}
                       </div>
@@ -685,31 +824,54 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded font-bold text-[10px] uppercase ${
-                        q.difficulty === 'hard' ? 'bg-rose-100 text-rose-700' : 
-                        q.difficulty === 'easy' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                      }`}>
+                      <span
+                        className={`px-2.5 py-1 rounded font-bold text-[10px] uppercase ${
+                          q.difficulty === "hard"
+                            ? "bg-rose-100 text-rose-700"
+                            : q.difficulty === "easy"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
                         {q.difficulty}
                       </span>
                     </td>
                     <td className="px-6 py-4 flex items-center gap-3">
-                      <button onClick={() => { setEditingId(q.id); 
-                setFormData({
-                  ...q,
-                  englishOptions: q.englishOptions || ['', '', '', ''],
-                  hindiOptions: q.hindiOptions || ['', '', '', ''],
-                  optionImageUrls: q.optionImageUrls || ['', '', '', ''],
-                  englishExplanation: q.englishExplanation || '',
-                  hindiExplanation: q.hindiExplanation || '',
-                  imageUrl: q.imageUrl || '',
-                  subject: q.subject || 'Miscellaneous',
-                  difficulty: q.difficulty || 'medium',
-                  correctOptionIndex: q.correctOptionIndex ?? 0
-                }); 
-                setIsModalOpen(true); }} className="text-blue-600 hover:text-blue-800 transition">
+                      <button
+                        onClick={() => {
+                          setEditingId(q.id);
+                          setFormData({
+                            ...q,
+                            englishOptions: q.englishOptions || [
+                              "",
+                              "",
+                              "",
+                              "",
+                            ],
+                            hindiOptions: q.hindiOptions || ["", "", "", ""],
+                            optionImageUrls: q.optionImageUrls || [
+                              "",
+                              "",
+                              "",
+                              "",
+                            ],
+                            englishExplanation: q.englishExplanation || "",
+                            hindiExplanation: q.hindiExplanation || "",
+                            imageUrl: q.imageUrl || "",
+                            subject: q.subject || "Miscellaneous",
+                            difficulty: q.difficulty || "medium",
+                            correctOptionIndex: q.correctOptionIndex ?? 0,
+                          });
+                          setIsModalOpen(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 transition"
+                      >
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => setQuestionToDelete(q.id)} className="text-rose-500 hover:text-rose-700 transition">
+                      <button
+                        onClick={() => setQuestionToDelete(q.id)}
+                        className="text-rose-500 hover:text-rose-700 transition"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -725,13 +887,19 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg text-slate-800">Paste Bulk Questions</h3>
-              <button onClick={() => setIsRawTextModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <h3 className="font-bold text-lg text-slate-800">
+                Paste Bulk Questions
+              </h3>
+              <button
+                onClick={() => setIsRawTextModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
                 <X size={20} />
               </button>
             </div>
             <p className="text-sm text-slate-500 mb-4">
-              Paste your raw question text (e.g., 1 to 100 questions with options and explanations) and our AI will extract and format them.
+              Paste your raw question text (e.g., 1 to 100 questions with
+              options and explanations) and our AI will extract and format them.
             </p>
             <textarea
               rows={10}
@@ -742,25 +910,37 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             />
             <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 pt-4 border-t border-slate-100">
               <div className="flex items-center gap-2">
-                 <span className="text-xs font-bold text-slate-500">Mode:</span>
-                 <select 
-                    value={languageMode} 
-                    onChange={(e) => setLanguageMode(e.target.value as 'bilingual'|'english')}
-                    className="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1.5 font-medium text-blue-700 outline-none cursor-pointer"
-                 >
-                    <option value="bilingual">Bilingual (Add Hindi Translation)</option>
-                    <option value="english">English Only (Faster AI processing)</option>
-                 </select>
+                <span className="text-xs font-bold text-slate-500">Mode:</span>
+                <select
+                  value={languageMode}
+                  onChange={(e) =>
+                    setLanguageMode(e.target.value as "bilingual" | "english")
+                  }
+                  className="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1.5 font-medium text-blue-700 outline-none cursor-pointer"
+                >
+                  <option value="bilingual">
+                    Bilingual (Add Hindi Translation)
+                  </option>
+                  <option value="english">
+                    English Only (Faster AI processing)
+                  </option>
+                </select>
               </div>
               <div className="flex gap-2 w-full sm:w-auto">
-                <button type="button" onClick={() => setIsRawTextModalOpen(false)} className="flex-1 sm:flex-none px-5 py-2.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
-                <button 
-                  type="button" 
-                  onClick={handleRawTextSubmit} 
+                <button
+                  type="button"
+                  onClick={() => setIsRawTextModalOpen(false)}
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRawTextSubmit}
                   className="flex-1 sm:flex-none px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
                   disabled={uploading || !rawText.trim()}
                 >
-                  {uploading ? 'Processing...' : 'Extract Questions with AI'}
+                  {uploading ? "Processing..." : "Extract Questions with AI"}
                 </button>
               </div>
             </div>
@@ -772,78 +952,200 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl flex flex-col">
             <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex justify-between items-center z-10">
-              <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Bank Question' : 'Create Bank Question'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <h3 className="font-bold text-lg text-slate-800">
+                {editingId ? "Edit Bank Question" : "Create Bank Question"}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleSaveQuestion} className="p-6 space-y-6">
-              
               <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-700 mb-1">Image URL (Optional)</label>
-                <input type="url" placeholder="https://example.com/image.jpg" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
-                <p className="text-[10px] text-slate-400 mt-1">Provide a direct image URL (ends in .png, .jpg). <b>Note: Google Drive share links will not work.</b></p>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Image URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={formData.imageUrl || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, imageUrl: e.target.value })
+                  }
+                  className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Provide a direct image URL (ends in .png, .jpg).{" "}
+                  <b>Note: Google Drive share links will not work.</b>
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">English Question *</label>
-                  <textarea rows={3} required value={formData.englishQuestion || ''} onChange={e => setFormData({...formData, englishQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    English Question *
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={formData.englishQuestion || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        englishQuestion: e.target.value,
+                      })
+                    }
+                    className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Hindi Question</label>
-                  <textarea rows={3} value={formData.hindiQuestion || ''} onChange={e => setFormData({...formData, hindiQuestion: e.target.value})} className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Hindi Question
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.hindiQuestion || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        hindiQuestion: e.target.value,
+                      })
+                    }
+                    className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500"
+                  />
                 </div>
               </div>
 
               {/* Options Grid */}
               <div className="space-y-4">
-                <label className="block text-xs font-bold text-slate-700">Options (En & Hi)</label>
-                {[0, 1, 2, 3].map(idx => {
+                <label className="block text-xs font-bold text-slate-700">
+                  Options (En & Hi)
+                </label>
+                {[0, 1, 2, 3].map((idx) => {
                   const isCorrect = Number(formData.correctOptionIndex) === idx;
                   return (
-                  <div key={idx} className={`p-3 rounded-lg border ${isCorrect ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : 'border-slate-200'}`}>
-                    <div className="flex flex-col md:flex-row gap-4 mb-2">
-                      <input type="text" placeholder={`English Opt ${idx+1}`} value={formData.englishOptions?.[idx] || ''} onChange={e => {
-                        const nu = [...(formData.englishOptions || [])]; nu[idx] = e.target.value;
-                        setFormData({...formData, englishOptions: nu});
-                      }} className="flex-1 text-sm border rounded px-3 py-2 bg-white" required />
-                      <input type="text" placeholder={`Hindi Opt ${idx+1}`} value={formData.hindiOptions?.[idx] || ''} onChange={e => {
-                        const nu = [...(formData.hindiOptions || [])]; nu[idx] = e.target.value;
-                        setFormData({...formData, hindiOptions: nu});
-                      }} className="flex-1 text-sm border rounded px-3 py-2 bg-white" />
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-lg border ${isCorrect ? "border-green-500 bg-green-50 ring-2 ring-green-200" : "border-slate-200"}`}
+                    >
+                      <div className="flex flex-col md:flex-row gap-4 mb-2">
+                        <input
+                          type="text"
+                          placeholder={`English Opt ${idx + 1}`}
+                          value={formData.englishOptions?.[idx] || ""}
+                          onChange={(e) => {
+                            const nu = [...(formData.englishOptions || [])];
+                            nu[idx] = e.target.value;
+                            setFormData({ ...formData, englishOptions: nu });
+                          }}
+                          className="flex-1 text-sm border rounded px-3 py-2 bg-white"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder={`Hindi Opt ${idx + 1}`}
+                          value={formData.hindiOptions?.[idx] || ""}
+                          onChange={(e) => {
+                            const nu = [...(formData.hindiOptions || [])];
+                            nu[idx] = e.target.value;
+                            setFormData({ ...formData, hindiOptions: nu });
+                          }}
+                          className="flex-1 text-sm border rounded px-3 py-2 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="url"
+                          placeholder={`Option ${idx + 1} Image URL (Optional)`}
+                          value={formData.optionImageUrls?.[idx] || ""}
+                          onChange={(e) => {
+                            const nu = [
+                              ...(formData.optionImageUrls || ["", "", "", ""]),
+                            ];
+                            nu[idx] = e.target.value;
+                            setFormData({ ...formData, optionImageUrls: nu });
+                          }}
+                          className="w-full text-xs border rounded px-3 py-2 bg-white text-slate-600 focus:outline-blue-500"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <input type="url" placeholder={`Option ${idx+1} Image URL (Optional)`} value={formData.optionImageUrls?.[idx] || ''} onChange={e => {
-                        const nu = [...(formData.optionImageUrls || ['', '', '', ''])]; nu[idx] = e.target.value;
-                        setFormData({...formData, optionImageUrls: nu});
-                      }} className="w-full text-xs border rounded px-3 py-2 bg-white text-slate-600 focus:outline-blue-500" />
-                    </div>
-                  </div>
-                )})}
+                  );
+                })}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Correct Opt Index (0-3)</label>
-                  <input type="number" min="0" max="3" required value={formData.correctOptionIndex ?? 0} onChange={e => setFormData({...formData, correctOptionIndex: Number(e.target.value)})} className="w-full border rounded px-3 py-2 text-sm" />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Correct Opt Index (0-3)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="3"
+                    required
+                    value={formData.correctOptionIndex ?? 0}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        correctOptionIndex: Number(e.target.value),
+                      })
+                    }
+                    className="w-full border rounded px-3 py-2 text-sm"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Subject</label>
-                  <select value={formData.subject || 'Miscellaneous'} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full border rounded px-3 py-2 text-sm">
-                    {Array.from(new Set([
-                      "Pathology", "Biochemistry", "Microbiology", "Blood Bank", 
-                      "Anatomy", "Math", "English", "General Knowledge", "Reasoning", "Miscellaneous", 
-                      ...questions.map(q => q.subject || 'Miscellaneous'),
-                      formData.subject || 'Miscellaneous'
-                    ])).map(subj => (
-                      <option key={subj} value={subj}>{subj}</option>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    list="subjectOptions"
+                    placeholder="Type or select a subject..."
+                    value={formData.subject || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, subject: e.target.value })
+                    }
+                    className="w-full border rounded px-3 py-2 text-sm"
+                  />
+                  <datalist id="subjectOptions">
+                    {Array.from(
+                      new Set([
+                        "Pathology",
+                        "Biochemistry",
+                        "Microbiology",
+                        "Blood Bank",
+                        "Anatomy",
+                        "Math",
+                        "English",
+                        "General Knowledge",
+                        "Reasoning",
+                        "Miscellaneous",
+                        ...questions.map((q) => q.subject || "Miscellaneous"),
+                        formData.subject || "Miscellaneous",
+                      ]),
+                    ).map((subj) => (
+                      <option key={subj} value={subj}>
+                        {subj}
+                      </option>
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Difficulty</label>
-                  <select value={formData.difficulty || 'medium'} onChange={e => setFormData({...formData, difficulty: e.target.value as any})} className="w-full border rounded px-3 py-2 text-sm">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Difficulty
+                  </label>
+                  <select
+                    value={formData.difficulty || "medium"}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        difficulty: e.target.value as any,
+                      })
+                    }
+                    className="w-full border rounded px-3 py-2 text-sm"
+                  >
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
@@ -853,18 +1155,53 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">English Explanation</label>
-                  <textarea rows={2} value={formData.englishExplanation || ''} onChange={e => setFormData({...formData, englishExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    English Explanation
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.englishExplanation || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        englishExplanation: e.target.value,
+                      })
+                    }
+                    className="w-full text-sm px-3 py-2 border rounded"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Hindi Explanation</label>
-                  <textarea rows={2} value={formData.hindiExplanation || ''} onChange={e => setFormData({...formData, hindiExplanation: e.target.value})} className="w-full text-sm px-3 py-2 border rounded" />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Hindi Explanation
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.hindiExplanation || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        hindiExplanation: e.target.value,
+                      })
+                    }
+                    className="w-full text-sm px-3 py-2 border rounded"
+                  />
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
-                <button type="submit" className="px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm">Save Question</button>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
+                >
+                  Save Question
+                </button>
               </div>
             </form>
           </div>
@@ -874,17 +1211,30 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       {showBulkDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl p-6 text-center">
-            <Trash2 size={48} className="mx-auto text-rose-500 mb-4 opacity-80" />
-            <h3 className="font-bold text-lg text-slate-800 mb-2">Delete Selected?</h3>
-            <p className="text-sm text-slate-500 mb-6">Are you sure you want to permanently delete {selectedQuestionIds.length} questions?</p>
+            <Trash2
+              size={48}
+              className="mx-auto text-rose-500 mb-4 opacity-80"
+            />
+            <h3 className="font-bold text-lg text-slate-800 mb-2">
+              Delete Selected?
+            </h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Are you sure you want to permanently delete{" "}
+              {selectedQuestionIds.length} questions?
+            </p>
             <div className="flex justify-center gap-3">
-              <button onClick={() => setShowBulkDeleteConfirm(false)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
-              <button 
+              <button
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm"
+              >
+                Cancel
+              </button>
+              <button
                 onClick={handleBulkDelete}
                 disabled={loading}
                 className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm"
               >
-                {loading ? 'Deleting...' : 'Confirm'}
+                {loading ? "Deleting..." : "Confirm"}
               </button>
             </div>
           </div>
@@ -894,12 +1244,24 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       {questionToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl p-6 text-center">
-            <Trash2 size={48} className="mx-auto text-rose-500 mb-4 opacity-80" />
-            <h3 className="font-bold text-lg text-slate-800 mb-2">Delete Question?</h3>
-            <p className="text-sm text-slate-500 mb-6">This action cannot be undone.</p>
+            <Trash2
+              size={48}
+              className="mx-auto text-rose-500 mb-4 opacity-80"
+            />
+            <h3 className="font-bold text-lg text-slate-800 mb-2">
+              Delete Question?
+            </h3>
+            <p className="text-sm text-slate-500 mb-6">
+              This action cannot be undone.
+            </p>
             <div className="flex justify-center gap-3">
-              <button onClick={() => setQuestionToDelete(null)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
-              <button 
+              <button
+                onClick={() => setQuestionToDelete(null)}
+                className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm"
+              >
+                Cancel
+              </button>
+              <button
                 onClick={() => deleteQuestion(questionToDelete)}
                 className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm"
               >
@@ -910,6 +1272,12 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
         </div>
       )}
 
+      {isAssetManagerOpen && (
+        <AssetManagerModal
+          onClose={() => setIsAssetManagerOpen(false)}
+          onNotify={onNotify}
+        />
+      )}
     </div>
   );
 }

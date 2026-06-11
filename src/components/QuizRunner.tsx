@@ -3,6 +3,7 @@ import { collection, doc, setDoc, getDocs, getDoc, query, where, documentId } fr
 import { db } from '../utils/firebase.ts';
 import { Clock, Send, AlertTriangle, RefreshCw, AlertCircle, Save, Flag, XCircle } from 'lucide-react';
 import { Exam, BankQuestion, ExamAttempt, ExamSection } from '../types.ts';
+import SmartImage from './SmartImage';
 
 interface QuizRunnerProps {
   exam: Exam;
@@ -901,7 +902,7 @@ export default function QuizRunner({
                  
                  {currentQuestion.imageUrl && (
                      <div className="mb-3 md:mb-5 flex justify-center">
-                         <img src={currentQuestion.imageUrl} alt="Question Reference" className="max-w-full h-auto max-h-48 md:max-h-64 object-contain rounded-xl border border-slate-200" referrerPolicy="no-referrer" />
+                         <SmartImage src={currentQuestion.imageUrl} alt="Question Reference" className="max-w-full h-auto max-h-48 md:max-h-64 object-contain rounded-xl border border-slate-200" referrerPolicy="no-referrer" />
                      </div>
                  )}
 
@@ -919,7 +920,7 @@ export default function QuizRunner({
                                    <div className="flex flex-col gap-2 flex-1">
                                      {opt && <span className="text-slate-800 leading-tight md:leading-normal" style={{ fontSize: `${15 * textSizeScale}px` }}>{opt}</span>}
                                      {currentQuestion.optionImageUrls?.[oIdx] && (
-                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
+                                       <SmartImage src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
                                      )}
                                    </div>
                                 </label>
@@ -943,7 +944,7 @@ export default function QuizRunner({
                                    <div className="flex flex-col gap-2 flex-1">
                                      {opt && <span className="text-slate-800 leading-tight md:leading-normal" style={{ fontSize: `${15 * textSizeScale}px` }}>{opt}</span>}
                                      {currentQuestion.optionImageUrls?.[oIdx] && (
-                                       <img src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
+                                       <SmartImage src={currentQuestion.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 md:max-h-40 object-contain rounded border border-slate-200 mt-1" referrerPolicy="no-referrer" />
                                      )}
                                    </div>
                                 </label>

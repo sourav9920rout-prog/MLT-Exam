@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle, Printer } from 'lucide-react';
+import SmartImage from './SmartImage';
 
 interface ResultViewerProps {
   reviewResult: any;
@@ -90,7 +91,7 @@ export default function ResultViewer({ reviewResult, onBack }: ResultViewerProps
                         <h5 className="font-medium text-slate-900 leading-relaxed text-sm md:text-base whitespace-pre-wrap">{q.englishQuestion || q.hindiQuestion || q.questionText}</h5>
                         {q.imageUrl && (
                           <div className="flex justify-center mt-2 mb-3">
-                              <img src={q.imageUrl} alt="Reference Detail" className="max-w-full h-auto max-h-48 object-contain rounded-lg border border-slate-200" referrerPolicy="no-referrer" />
+                              <SmartImage src={q.imageUrl} alt="Reference Detail" className="max-w-full h-auto max-h-48 object-contain rounded-lg border border-slate-200" referrerPolicy="no-referrer" />
                           </div>
                         )}
                         
@@ -116,7 +117,7 @@ export default function ResultViewer({ reviewResult, onBack }: ResultViewerProps
                                 <div className="flex flex-col gap-2">
                                   {optText && <span>{optText}</span>}
                                   {q.optionImageUrls?.[oIdx] && (
-                                    <img src={q.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 object-contain rounded border border-slate-200" referrerPolicy="no-referrer" />
+                                    <SmartImage src={q.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 object-contain rounded border border-slate-200" referrerPolicy="no-referrer" />
                                   )}
                                 </div>
                               </div>

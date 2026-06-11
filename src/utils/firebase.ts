@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 // Helper to get string and prevent empty strings
 const getEnv = (key: string, fallback: string) => {
@@ -27,6 +28,7 @@ const firestoreDbId = typeof import.meta !== 'undefined' ? getEnv('VITE_FIREBASE
 
 export const db = getFirestore(app, firestoreDbId);
 export const auth = getAuth(app);
+export const storage = getStorage(app);
 
 // Connectivity validation check required by core guideline
 async function testConnection() {

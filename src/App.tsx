@@ -52,6 +52,7 @@ import QuizRunner from './components/QuizRunner.tsx';
 import AdminManager from './components/AdminManager.tsx';
 import AdminResultsViewer from './components/AdminResultsViewer.tsx';
 import Leaderboard from './components/Leaderboard.tsx';
+import SmartImage from './components/SmartImage.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -699,7 +700,7 @@ export default function App() {
                             {q.hindiQuestion && <h5 className="font-medium text-slate-800 leading-relaxed text-sm md:text-base mt-2 whitespace-pre-wrap">{q.hindiQuestion}</h5>}
                             {q.imageUrl && (
                                <div className="flex justify-center mt-2 mb-3">
-                                  <img src={q.imageUrl} alt="Reference Detail" className="max-w-full h-auto max-h-48 object-contain rounded-lg border border-slate-200" referrerPolicy="no-referrer" />
+                                  <SmartImage src={q.imageUrl} alt="Reference Detail" className="max-w-full h-auto max-h-48 object-contain rounded-lg border border-slate-200" />
                                </div>
                             )}
                             
@@ -726,7 +727,7 @@ export default function App() {
                                       {optText && <span>{optText}</span>}
                                       {q.hindiOptions?.[oIdx] && <span className="text-slate-600">{q.hindiOptions[oIdx]}</span>}
                                       {q.optionImageUrls?.[oIdx] && (
-                                        <img src={q.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 object-contain rounded border border-slate-200" referrerPolicy="no-referrer" />
+                                        <SmartImage src={q.optionImageUrls[oIdx]} alt={`Option ${oIdx + 1}`} className="max-w-full h-auto max-h-32 object-contain rounded border border-slate-200" />
                                       )}
                                     </div>
                                   </div>
