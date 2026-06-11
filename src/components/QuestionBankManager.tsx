@@ -23,6 +23,8 @@ import {
   Loader2,
   Wand2,
   Image as ImageIcon,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 interface QuestionBankManagerProps {
@@ -41,6 +43,7 @@ export default function QuestionBankManager({
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showImageInputs, setShowImageInputs] = useState(false);
   const [isAssetManagerOpen, setIsAssetManagerOpen] = useState(false);
   const [isRawTextModalOpen, setIsRawTextModalOpen] = useState(false);
   const [rawText, setRawText] = useState("");
@@ -626,21 +629,6 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
               <option value="english">English Only</option>
             </select>
           </div>
-          <input
-            type="file"
-            accept=".pdf,.doc,.docx,.txt"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-xs transition"
-          >
-            <Upload size={16} />{" "}
-            {uploading ? "Processing AI..." : "Import URL/PDF"}
-          </button>
           <button
             onClick={() => setIsRawTextModalOpen(true)}
             disabled={uploading}
@@ -669,13 +657,6 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs transition shadow-sm"
           >
             <Plus size={16} /> Manual Entry
-          </button>
-          <button
-            onClick={handleSeedPDFQuestions}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs transition shadow-sm"
-          >
-            <Plus size={16} /> Seed PDF Questions
           </button>
           {selectedQuestionIds.length > 0 && (
             <button
@@ -962,25 +943,38 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleSaveQuestion} className="p-6 space-y-6">
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Image URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  value={formData.imageUrl || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, imageUrl: e.target.value })
-                  }
-                  className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500"
-                />
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Provide a direct image URL (ends in .png, .jpg).{" "}
-                  <b>Note: Google Drive share links will not work.</b>
-                </p>
+            <form onSubmit={handleSaveQuestion} className="p-6 space-y-4">
+              <div className="flex justify-end mb-2">
+                <button
+                  type="button"
+                  onClick={() => setShowImageInputs(!showImageInputs)}
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {showImageInputs ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  {showImageInputs ? "Hide Image Links" : "Add Image Links"}
+                </button>
               </div>
+
+              {showImageInputs && (
+                <div className="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-lg">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Main Question Image URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.imageUrl || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, imageUrl: e.target.value })
+                    }
+                    className="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Provide a direct image URL (ends in .png, .jpg).{" "}
+                    <b>Note: Google Drive share links will not work.</b>
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -1055,21 +1049,23 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                           className="flex-1 text-sm border rounded px-3 py-2 bg-white"
                         />
                       </div>
-                      <div>
-                        <input
-                          type="url"
-                          placeholder={`Option ${idx + 1} Image URL (Optional)`}
-                          value={formData.optionImageUrls?.[idx] || ""}
-                          onChange={(e) => {
-                            const nu = [
-                              ...(formData.optionImageUrls || ["", "", "", ""]),
-                            ];
-                            nu[idx] = e.target.value;
-                            setFormData({ ...formData, optionImageUrls: nu });
-                          }}
-                          className="w-full text-xs border rounded px-3 py-2 bg-white text-slate-600 focus:outline-blue-500"
-                        />
-                      </div>
+                      {showImageInputs && (
+                        <div>
+                          <input
+                            type="url"
+                            placeholder={`Option ${idx + 1} Image URL (Optional)`}
+                            value={formData.optionImageUrls?.[idx] || ""}
+                            onChange={(e) => {
+                              const nu = [
+                                ...(formData.optionImageUrls || ["", "", "", ""]),
+                              ];
+                              nu[idx] = e.target.value;
+                              setFormData({ ...formData, optionImageUrls: nu });
+                            }}
+                            className="w-full text-xs border rounded px-3 py-2 bg-white text-slate-600 focus:outline-blue-500"
+                          />
+                        </div>
+                      )}
                     </div>
                   );
                 })}
