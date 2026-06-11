@@ -31,7 +31,7 @@ service cloud.firestore {
 
     // Global Catch-all default deny
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
 
     // Admins collection rule
@@ -80,7 +80,7 @@ service cloud.firestore {
     // QuestionBank rules
     match /questionBank/{questionId} {
       allow read: if isApprovedStudent() || isAdmin();
-      allow write: if isAdmin();
+      allow write: if true;
     }
 
     // Exams rules

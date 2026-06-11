@@ -129,7 +129,7 @@ ${extraInstruction}
 Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`json.`;
 
     const response = await gClient.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3.5-flash",
       contents: {
         parts: [
           { inlineData: { data: documentBase64, mimeType } },
@@ -195,7 +195,7 @@ ${extraInstruction}
 Return ONLY the raw JSON object.`;
 
     const response = await gClient.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3.5-flash",
       contents: extractionPrompt,
       config: {
         responseMimeType: "application/json"
@@ -209,6 +209,66 @@ Return ONLY the raw JSON object.`;
   } catch (error) {
     console.error('Question raw extraction error:', error);
     return res.status(500).json({ error: 'Failed to extract questions from raw text.' });
+  }
+});
+
+app.post('/api/admin/translate-explain-question', async (req, res) => {
+  try {
+    const { question } = req.body;
+    
+    if (!question || (!question.englishQuestion && !question.hindiQuestion)) {
+      return res.status(400).json({ error: 'Source question text is required.' });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'AI capabilities not configured.' });
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const extractionPrompt = `
+You are a bilingual (English and Hindi) educational content assistant and subject matter expert.
+I am providing you with a partially filled multiple-choice question.
+
+Your task:
+1. Translate questions and options into the missing language (English -> Hindi, or Hindi -> English).
+2. Improve formatting and correctness if needed.
+3. Keep the correctOptionIndex the same (it should be an integer 0, 1, 2, or 3).
+4. If 'englishExplanation' or 'hindiExplanation' is missing, generate a clear, concise, accurate explanation in the respective language.
+5. Do not modify the image URLs.
+6. Ensure the options align perfectly in both languages.
+
+Current Input Data:
+${JSON.stringify(question, null, 2)}
+
+Return ONLY a raw JSON object matching this schema exactly, do not wrap in markdown quotes:
+{
+  "englishQuestion": "string",
+  "hindiQuestion": "string",
+  "englishOptions": ["string", "string", "string", "string"],
+  "hindiOptions": ["string", "string", "string", "string"],
+  "correctOptionIndex": number,
+  "englishExplanation": "string",
+  "hindiExplanation": "string",
+  "subject": "string",
+  "difficulty": "string"
+}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: extractionPrompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.1
+      }
+    });
+
+    const outputText = response.text || "{}";
+    const parsedData = JSON.parse(outputText);
+    return res.json({ success: true, question: parsedData });
+
+  } catch (error) {
+    console.error('Question translation error:', error);
+    return res.status(500).json({ error: 'Failed to translate and explain question.' });
   }
 });
 
@@ -349,7 +409,7 @@ Return ONLY the exact string from the Available Subjects list. Do not explain.`;
 
       try {
         const response = await ai.models.generateContent({
-           model: 'gemini-2.0-flash',
+           model: 'gemini-3.5-flash',
            contents: prompt,
            config: { temperature: 0.1 }
         });

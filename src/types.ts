@@ -86,6 +86,9 @@ export interface Result {
   studentEmail: string;
   examId: string;
   examName: string;
+  positiveMarks?: number;
+  negativeMarks?: number;
+  passingPercentage?: number;
   score: number;
   maxScore?: number;
   totalQuestions: number;
