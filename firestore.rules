@@ -70,10 +70,25 @@ service cloud.firestore {
     match /students/{studentId} {
       // Admin and owner can read
       allow read: if isAdmin() || isStudentOwner(studentId);
-      // Student can register with pending status.
-      allow create: if isSignedIn() && isStudentOwner(studentId) && request.resource.data.status == 'pending';
+      // Student can register with pending status, or approved if requireAdminApproval is false
+      allow create: if isSignedIn() && isStudentOwner(studentId) && 
+        (
+          request.resource.data.status == 'pending' || 
+          (request.resource.data.status == 'approved' && get(/databases/$(database)/documents/settings/general).data.requireAdminApproval == false)
+        );
       // Student can update their details (except their confirmation/status field)
-      allow update: if isAdmin() || (isStudentOwner(studentId) && request.resource.data.status == resource.data.status);
+      allow update: if isAdmin() || (isStudentOwner(studentId) && 
+        (
+          request.resource.data.status == resource.data.status ||
+          (
+            (resource.data.status == 'deleted' || resource.data.status == 'rejected') && 
+            (
+              request.resource.data.status == 'pending' || 
+              (request.resource.data.status == 'approved' && get(/databases/$(database)/documents/settings/general).data.requireAdminApproval == false)
+            )
+          )
+        )
+      );
       allow delete: if isAdmin();
     }
 

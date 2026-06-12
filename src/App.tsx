@@ -135,6 +135,10 @@ export default function App() {
               setStudentProfile(updatedData);
               setStudentStatus(newStatus);
               setUserRole('student');
+            } else if (data.status === 'pending') {
+              setStudentProfile(data);
+              setStudentStatus(data.status);
+              setUserRole('student');
             } else {
               setStudentProfile(data);
               setStudentStatus(data.status);
@@ -318,6 +322,12 @@ export default function App() {
             } else {
               showNotification('Authenticated as Student successfully.');
             }
+        } else if (data.status === 'pending') {
+          setStudentProfile(data);
+          setStudentStatus(data.status);
+          setUserRole('student');
+          setCurrentUser(credentialUser);
+          showNotification('Access is still pending admin approval.');
         } else {
           setStudentProfile(data);
           setStudentStatus(data.status);
