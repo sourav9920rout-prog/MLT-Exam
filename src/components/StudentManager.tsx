@@ -11,6 +11,7 @@ interface StudentManagerProps {
 export default function StudentManager({ onNotify }: StudentManagerProps) {
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [activeSubTab, setActiveSubTab] = useState<'approved' | 'pending' | 'revoked' | 'deleted'>('approved');
+  const [sortType, setSortType] = useState<'' | 'name_asc' | 'name_desc' | 'date_asc' | 'date_desc'>('');
   const [loading, setLoading] = useState(false);
 
   // Fetch student roster
@@ -97,31 +98,62 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
     if (activeSubTab === 'revoked') return s.status === 'revoked';
     if (activeSubTab === 'deleted') return s.status === 'deleted';
     return false;
+  }).sort((a, b) => {
+    if (sortType === 'name_asc') {
+      return (a.fullName || '').localeCompare(b.fullName || '');
+    } else if (sortType === 'name_desc') {
+      return (b.fullName || '').localeCompare(a.fullName || '');
+    } else if (sortType === 'date_asc') {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateA - dateB;
+    } else if (sortType === 'date_desc') {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    }
+    return 0;
   });
 
   return (
     <div id="student-manager-container" className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
       {/* Sub Tabs Header */}
-      <div className="flex border-b border-slate-100 bg-white px-6 py-3 gap-6 text-sm overflow-x-auto">
-        {(['approved', 'pending', 'revoked', 'deleted'] as const).map((tab) => {
-          const count = students.filter(s => s.status === tab).length;
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveSubTab(tab)}
-              className={`flex items-center gap-3 py-1 font-medium transition-colors whitespace-nowrap cursor-pointer ${
-                activeSubTab === tab
-                  ? 'text-blue-600 border-b-2 border-blue-600 -mb-[13px]'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              {tab === 'approved' ? 'Accepted' : tab === 'pending' ? 'Pending Requests' : tab === 'revoked' ? 'Revoked Access' : tab} 
-              <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full ${activeSubTab === tab ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
+      <div className="flex border-b border-slate-100 bg-white px-6 py-3 gap-6 text-sm overflow-x-auto justify-between items-center">
+        <div className="flex gap-6">
+          {(['approved', 'pending', 'revoked', 'deleted'] as const).map((tab) => {
+            const count = students.filter(s => s.status === tab).length;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveSubTab(tab)}
+                className={`flex items-center gap-3 py-1 font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                  activeSubTab === tab
+                    ? 'text-blue-600 border-b-2 border-blue-600 -mb-[13px]'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                {tab === 'approved' ? 'Accepted' : tab === 'pending' ? 'Pending Requests' : tab === 'revoked' ? 'Revoked Access' : tab} 
+                <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full ${activeSubTab === tab ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="shrink-0 flex items-center gap-2">
+          <span className="text-xs text-slate-500">Sort by:</span>
+          <select 
+            className="text-xs border border-slate-200 rounded px-2 py-1 bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-100 cursor-pointer"
+            value={sortType}
+            onChange={(e) => setSortType(e.target.value as any)}
+          >
+            <option value="">Default</option>
+            <option value="name_asc">Name (A-Z)</option>
+            <option value="name_desc">Name (Z-A)</option>
+            <option value="date_desc">Registered (New to Old)</option>
+            <option value="date_asc">Registered (Old to New)</option>
+          </select>
+        </div>
       </div>
 
       <div className="p-6">
