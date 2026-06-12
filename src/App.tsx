@@ -17,7 +17,8 @@ import {
   collection, 
   getDocs, 
   query, 
-  where 
+  where,
+  onSnapshot
 } from 'firebase/firestore';
 import { auth, db } from './utils/firebase.ts';
 import { 
@@ -82,6 +83,22 @@ export default function App() {
   // Simple clean toast alert system
   const [toast, setToast] = useState<{ message: string; isError?: boolean } | null>(null);
 
+  const [requireAdminApproval, setRequireAdminApproval] = useState<boolean>(true);
+
+  useEffect(() => {
+    const unsubSettings = onSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.requireAdminApproval !== undefined) {
+          setRequireAdminApproval(data.requireAdminApproval);
+        }
+      } else {
+        setDoc(doc(db, 'settings', 'general'), { requireAdminApproval: true });
+      }
+    });
+    return () => unsubSettings();
+  }, []);
+
   const showNotification = (message: string, isError = false) => {
     setToast({ message, isError });
     setTimeout(() => setToast(null), 5000);
@@ -105,14 +122,18 @@ export default function App() {
           if (studentSnap.exists()) {
             const data = studentSnap.data() as StudentProfile;
             if (data.status === 'deleted') {
-              // Create it back as pending
-              const updatedData = { ...data, status: 'pending' as const };
-              await updateDoc(doc(db, 'students', user.uid), { status: 'pending' });
+              // Create it back based on requirements
+              const settingsSnap = await getDoc(doc(db, 'settings', 'general'));
+              const requireApproval = settingsSnap.exists() ? (settingsSnap.data().requireAdminApproval ?? true) : true;
+              const newStatus = requireApproval ? 'pending' : 'approved';
+              
+              const updatedData = { ...data, status: newStatus as const };
+              await updateDoc(doc(db, 'students', user.uid), { status: newStatus });
               
               // Email dispatch ignored during auto-login context to prevent spam, 
               // but we restore their state
               setStudentProfile(updatedData);
-              setStudentStatus('pending');
+              setStudentStatus(newStatus);
               setUserRole('student');
             } else {
               setStudentProfile(data);
@@ -122,19 +143,22 @@ export default function App() {
           } else {
             // Document was completely deleted from Firestore (Permanently Expelled)
             // But user is still logged into Firebase Auth. We must re-create their registration.
+            const settingsSnap = await getDoc(doc(db, 'settings', 'general'));
+            const requireApproval = settingsSnap.exists() ? (settingsSnap.data().requireAdminApproval ?? true) : true;
+            const initialState = requireApproval ? 'pending' : 'approved';
             const studentData: StudentProfile = {
               uid: user.uid,
               fullName: user.displayName || 'No Name Provided',
               mobileNumber: 'Not provided',
               email: user.email?.toLowerCase() || '',
-              status: 'pending',
+              status: initialState,
               createdAt: new Date().toISOString()
             };
             
             await setDoc(doc(db, 'students', user.uid), studentData);
             
             setUserRole('student');
-            setStudentStatus('pending');
+            setStudentStatus(initialState);
             setStudentProfile(studentData);
             
             try {
@@ -259,8 +283,12 @@ export default function App() {
         const data = studentSnap.data() as StudentProfile;
         
         if (data.status === 'deleted' || data.status === 'rejected') {
-          const updatedData = { ...data, status: 'pending' };
-          await updateDoc(doc(db, 'students', credentialUser.uid), { status: 'pending' });
+          const reqSnap = await getDoc(doc(db, 'settings', 'general'));
+          const requireApp = reqSnap.exists() ? (reqSnap.data().requireAdminApproval ?? true) : true;
+          const newStatus = requireApp ? 'pending' : 'approved';
+
+          const updatedData = { ...data, status: newStatus };
+          await updateDoc(doc(db, 'students', credentialUser.uid), { status: newStatus });
           
           try {
             await fetch('/api/auth/notify-registration', {
@@ -277,7 +305,7 @@ export default function App() {
           }
 
           setStudentProfile(updatedData as StudentProfile);
-          setStudentStatus('pending');
+          setStudentStatus(newStatus as any);
           setUserRole('student');
           setCurrentUser(credentialUser);
           showNotification('New access request submitted successfully.');
@@ -295,17 +323,21 @@ export default function App() {
           setUserRole('admin');
           setStudentStatus('approved');
         } else {
+          const reqSnap = await getDoc(doc(db, 'settings', 'general'));
+          const requireApp = reqSnap.exists() ? (reqSnap.data().requireAdminApproval ?? true) : true;
+          const initialState = requireApp ? 'pending' : 'approved';
+
           // Construct Student Profile
           const studentData: StudentProfile = {
             uid: credentialUser.uid,
             fullName: credentialUser.displayName || 'No Name Provided',
             mobileNumber: 'Not provided',
             email: credentialUser.email?.toLowerCase() || '',
-            status: 'pending',
+            status: initialState,
             createdAt: new Date().toISOString()
           };
 
-          // Store Student Profile document (status = pending)
+          // Store Student Profile document
           await setDoc(doc(db, 'students', credentialUser.uid), studentData);
 
           // Save metadata audit profile
@@ -333,7 +365,7 @@ export default function App() {
 
           setStudentProfile(studentData);
           setUserRole('student');
-          setStudentStatus('pending');
+          setStudentStatus(initialState);
         }
         setCurrentUser(credentialUser);
       }

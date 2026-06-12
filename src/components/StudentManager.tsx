@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, updateDoc, doc, getDocs, deleteDoc, query } from 'firebase/firestore';
+import { collection, updateDoc, doc, getDocs, deleteDoc, query, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { Trash2, UserX, UserCheck, ShieldAlert, RotateCcw, AlertTriangle } from 'lucide-react';
 import { StudentProfile } from '../types.ts';
@@ -13,6 +13,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   const [activeSubTab, setActiveSubTab] = useState<'approved' | 'pending' | 'revoked' | 'deleted'>('approved');
   const [sortType, setSortType] = useState<'' | 'name_asc' | 'name_desc' | 'date_asc' | 'date_desc'>('');
   const [loading, setLoading] = useState(false);
+  const [requireAdminApproval, setRequireAdminApproval] = useState<boolean>(true);
 
   // Fetch student roster
   const fetchStudents = async () => {
@@ -35,7 +36,26 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
 
   useEffect(() => {
     fetchStudents();
+    const unsubSettings = onSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.requireAdminApproval !== undefined) {
+          setRequireAdminApproval(data.requireAdminApproval);
+        }
+      }
+    });
+    return () => unsubSettings();
   }, []);
+
+  const toggleApprovalRequirement = async () => {
+    try {
+      const newValue = !requireAdminApproval;
+      await setDoc(doc(db, 'settings', 'general'), { requireAdminApproval: newValue }, { merge: true });
+      onNotify(`Admin approval requirement is now ${newValue ? 'ON' : 'OFF'}.`);
+    } catch (error) {
+       onNotify('Failed to update approval requirement setting.', true);
+    }
+  };
 
   const [studentToDelete, setStudentToDelete] = useState<StudentProfile | null>(null);
 
@@ -117,6 +137,18 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
 
   return (
     <div id="student-manager-container" className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4 bg-slate-50">
+        <div>
+           <h3 className="text-sm font-semibold text-slate-800">Global Settings</h3>
+           <p className="text-xs text-slate-500">Turn on to require manual Admin approval for new student registrations.</p>
+        </div>
+        <button 
+           onClick={toggleApprovalRequirement}
+           className={`px-4 py-1.5 text-xs font-semibold rounded-md border transition-colors ${requireAdminApproval ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700' : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'}`}
+        >
+           {requireAdminApproval ? 'Approval Needed : YES' : 'Approval Needed : NO'}
+        </button>
+      </div>
       {/* Sub Tabs Header */}
       <div className="flex border-b border-slate-100 bg-white px-6 py-3 gap-6 text-sm overflow-x-auto justify-between items-center">
         <div className="flex gap-6">
