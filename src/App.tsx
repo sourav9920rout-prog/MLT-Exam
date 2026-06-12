@@ -161,17 +161,19 @@ export default function App() {
             setStudentStatus(initialState);
             setStudentProfile(studentData);
             
-            try {
-              await fetch('/api/auth/notify-registration', {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({
-                   studentName: studentData.fullName,
-                   studentEmail: studentData.email,
-                   studentMobile: studentData.mobileNumber
-                 })
-              });
-            } catch(e) {}
+            if (initialState === 'pending') {
+              try {
+                await fetch('/api/auth/notify-registration', {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({
+                     studentName: studentData.fullName,
+                     studentEmail: studentData.email,
+                     studentMobile: studentData.mobileNumber
+                   })
+                });
+              } catch(e) {}
+            }
           }
         }
       } else {
@@ -290,25 +292,32 @@ export default function App() {
           const updatedData = { ...data, status: newStatus };
           await updateDoc(doc(db, 'students', credentialUser.uid), { status: newStatus });
           
-          try {
-            await fetch('/api/auth/notify-registration', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                studentName: updatedData.fullName,
-                studentEmail: updatedData.email,
-                studentMobile: updatedData.mobileNumber
-              })
-            });
-          } catch (emailErr) {
-            console.error('Failed to dispatch registration email:', emailErr);
-          }
+            if (newStatus === 'pending') {
+              try {
+                await fetch('/api/auth/notify-registration', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    studentName: updatedData.fullName,
+                    studentEmail: updatedData.email,
+                    studentMobile: updatedData.mobileNumber
+                  })
+                });
+              } catch (emailErr) {
+                console.error('Failed to dispatch registration email:', emailErr);
+              }
+            }
 
-          setStudentProfile(updatedData as StudentProfile);
-          setStudentStatus(newStatus as any);
-          setUserRole('student');
-          setCurrentUser(credentialUser);
-          showNotification('New access request submitted successfully.');
+            setStudentProfile(updatedData as StudentProfile);
+            setStudentStatus(newStatus as any);
+            setUserRole('student');
+            setCurrentUser(credentialUser);
+            
+            if (newStatus === 'pending') {
+              showNotification('New access request submitted successfully.');
+            } else {
+              showNotification('Authenticated as Student successfully.');
+            }
         } else {
           setStudentProfile(data);
           setStudentStatus(data.status);
@@ -348,19 +357,21 @@ export default function App() {
             createdAt: new Date().toISOString()
           });
 
-          // Dispatch email notification to student & admin
-          try {
-            await fetch('/api/auth/notify-registration', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                studentName: studentData.fullName,
-                studentEmail: studentData.email,
-                studentMobile: studentData.mobileNumber
-              })
-            });
-          } catch (emailErr) {
-            console.error('Failed to dispatch registration email:', emailErr);
+          if (initialState === 'pending') {
+            // Dispatch email notification to student & admin
+            try {
+              await fetch('/api/auth/notify-registration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  studentName: studentData.fullName,
+                  studentEmail: studentData.email,
+                  studentMobile: studentData.mobileNumber
+                })
+              });
+            } catch (emailErr) {
+              console.error('Failed to dispatch registration email:', emailErr);
+            }
           }
 
           setStudentProfile(studentData);
