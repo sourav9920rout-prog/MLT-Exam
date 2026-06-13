@@ -48,13 +48,17 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
       if (adminCheck.exists()) {
         onAuthSuccess(credentialUser, 'admin', 'approved', null);
       } else {
+        const reqSnap = await getDoc(doc(db, 'settings', 'general'));
+        const requireApp = reqSnap.exists() ? (reqSnap.data().requireAdminApproval ?? true) : true;
+        const initialState = requireApp ? 'pending' : 'approved';
+
         // Construct Student Profile
         const studentData: StudentProfile = {
           uid: credentialUser.uid,
           fullName: credentialUser.displayName || 'No Name Provided',
           mobileNumber: 'Not provided',
           email: credentialUser.email?.toLowerCase() || '',
-          status: 'pending',
+          status: initialState,
           createdAt: new Date().toISOString()
         };
 
@@ -66,8 +70,26 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
           createdAt: new Date().toISOString()
         });
 
-        onAuthSuccess(credentialUser, 'student', 'pending', studentData);
-        onShowNotification('Registration submitted! Pending admin approval.');
+        if (initialState === 'pending') {
+          try {
+            await fetch('/api/auth/notify-registration', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                studentName: studentData.fullName,
+                studentEmail: studentData.email,
+                studentMobile: studentData.mobileNumber
+              })
+            });
+          } catch (e) {}
+        }
+
+        onAuthSuccess(credentialUser, 'student', initialState, studentData);
+        if (initialState === 'pending') {
+          onShowNotification('Registration submitted! Pending admin approval.');
+        } else {
+          onShowNotification('Authenticated as Student successfully.');
+        }
       }
     }
   };
