@@ -31,6 +31,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [isMockSeries, setIsMockSeries] = useState(false);
 
   // Generation method
   const [genMethod, setGenMethod] = useState<'manual' | 'auto'>('auto');
@@ -167,6 +168,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
         passingPercentage: Number(passingPercentage),
         questionIds: finalQIds,
         sections,
+        isMockSeries,
         showLeaderboard,
         createdAt: new Date().toISOString()
       };
@@ -176,6 +178,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
 
       // Reset form core state
       setTitle(''); setDescription('');
+      setIsMockSeries(false);
       setSelectedQuestionIds([]);
     } catch (err) {
       console.error(err);
@@ -275,6 +278,12 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
                <label className="flex items-center gap-2 cursor-pointer h-full pt-4">
                  <input type="checkbox" checked={showLeaderboard} onChange={e=>setShowLeaderboard(e.target.checked)} className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500" />
                  <span className="text-sm font-bold text-slate-700">Show Leaderboard to Students</span>
+               </label>
+            </div>
+            <div className="flex flex-col justify-end lg:col-span-2">
+               <label className="flex items-center gap-2 cursor-pointer h-full pt-4">
+                 <input type="checkbox" checked={isMockSeries} onChange={e=>setIsMockSeries(e.target.checked)} className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500" />
+                 <span className="text-sm font-bold text-slate-700">Push to 30 Days 30 Mock Test Tab</span>
                </label>
             </div>
           </div>

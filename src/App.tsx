@@ -40,7 +40,8 @@ import {
   BriefcaseMedical,
   Vote,
   Printer,
-  Trophy
+  Trophy,
+  Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -65,8 +66,8 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins'>('students');
-  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile'>('exams');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series'>('students');
+  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
   const [mobileInput, setMobileInput] = useState('');
@@ -454,38 +455,56 @@ export default function App() {
               </div>
 
               {/* NAV TAB CONTROLS */}
-              <div className="flex space-x-2 border-b border-slate-200 mt-4 md:mt-0">
+              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-200/50 backdrop-blur-xl rounded-xl border border-white/60 shadow-[inset_0_1px_4px_rgba(0,0,0,0.03)] overflow-x-auto w-full max-w-full">
                 <button
                   onClick={() => setAdminTab('students')}
-                  className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
-                    adminTab === 'students' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'students' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
                   }`}
                 >
                   Student Management
                 </button>
                 <button
                   onClick={() => setAdminTab('exams')}
-                  className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
-                    adminTab === 'exams' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'exams' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
                   }`}
                 >
                   Exam Bank
                 </button>
                 <button
                   onClick={() => setAdminTab('results')}
-                  className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
-                    adminTab === 'results' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'results' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
                   }`}
                 >
                   Results
                 </button>
                 <button
                   onClick={() => setAdminTab('admins')}
-                  className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
-                    adminTab === 'admins' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'admins' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
                   }`}
                 >
                   Global Admins
+                </button>
+                <button
+                  onClick={() => setAdminTab('mock_series')}
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'mock_series' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                  }`}
+                >
+                  30 Day 30 Mock Test Series
                 </button>
               </div>
             </div>
@@ -496,6 +515,15 @@ export default function App() {
               {adminTab === 'exams' && <QuestCreator onNotify={showNotification} />}
               {adminTab === 'results' && <AdminResultsViewer />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
+              {adminTab === 'mock_series' && (
+                <div className="bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                    <Calendar size={32} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-800">30 Day 30 Mock Test Series</h3>
+                  <p className="text-slate-500">Publish mock tests from the Exam Bank tab, and check the 'Push to 30 Days 30 Mock Test Tab' toggle to route them to the special student portal.</p>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -654,30 +682,46 @@ export default function App() {
                   </div>
 
                   {/* Tabs header list */}
-                  <div className="flex space-x-2 border-b border-slate-200 mt-4 md:mt-0">
+                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-200/50 backdrop-blur-xl rounded-xl border border-white/60 shadow-[inset_0_1px_4px_rgba(0,0,0,0.03)] overflow-x-auto w-full max-w-full">
                     <button
                       onClick={() => setStudentTab('exams')}
-                      className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
-                        studentTab === 'exams' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'exams' 
+                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
                       }`}
                     >
                       Exam Bank
                     </button>
                     <button
                       onClick={() => setStudentTab('results')}
-                      className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
-                        studentTab === 'results' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'results' 
+                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
                       }`}
                     >
                       History Results
                     </button>
                     <button
                       onClick={() => setStudentTab('profile')}
-                      className={`px-4 py-2 text-sm font-medium transition cursor-pointer -mb-px ${
-                        studentTab === 'profile' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'
+                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'profile' 
+                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
                       }`}
                     >
                       Profile
+                    </button>
+                    <button
+                      onClick={() => setStudentTab('mock_series')}
+                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'mock_series' 
+                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      }`}
+                    >
+                      30 Day 30 Mock Test Series
                     </button>
                   </div>
                 </div>
@@ -700,7 +744,10 @@ export default function App() {
                           return (
                           <div key={exam.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4">
                             <div className="space-y-2">
-                              <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
+                              <div className="flex gap-2 items-center">
+                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
+                                {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide">Mock Series</span>}
+                              </div>
                               <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
                               <div className="flex gap-4 pt-2 font-mono text-[11px] text-slate-500">
                                 <span>⏲️ Speed: {exam.durationMinutes} Minutes</span>
@@ -831,6 +878,57 @@ export default function App() {
                           Save Mobile Number
                         </button>
                       </div>
+                    </div>
+                  )}
+
+                  {/* TABS: MOCK SERIES */}
+                  {studentTab === 'mock_series' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {activeExams.filter(e => e.isMockSeries).length === 0 ? (
+                        <div className="md:col-span-2 text-center py-16 bg-white/90 backdrop-blur-md border border-slate-200 rounded-2xl p-10 space-y-3 shadow-none">
+                          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Calendar size={32} />
+                          </div>
+                          <h3 className="text-xl font-bold text-slate-800">30 Day 30 Mock Test Series</h3>
+                          <p className="text-slate-500 font-mono text-sm leading-relaxed">Coming live on 20th June Stay Tuned</p>
+                        </div>
+                      ) : (
+                        activeExams.filter(e => e.isMockSeries).map((exam) => {
+                          const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
+                          
+                          return (
+                          <div key={exam.id} className="bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+                            <div className="space-y-2">
+                              <div className="flex gap-2 items-center">
+                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide">Mock Series</span>
+                              </div>
+                              <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
+                              <div className="flex gap-4 pt-2 font-mono text-[11px] text-slate-500">
+                                <span>⏲️ Speed: {exam.durationMinutes} Minutes</span>
+                                <span>🎯 Correct Rate: {exam.passingPercentage}% pass</span>
+                                <span>📋 Item Counts: {exam.questionIds?.length || 0} MCQs</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col space-y-2">
+                              <button
+                                disabled={hasAttempted}
+                                onClick={() => {
+                                  if (!hasAttempted) {
+                                    setActiveExam(exam);
+                                  }
+                                }}
+                                className={`py-2 rounded-lg text-white font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-sm ${hasAttempted ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'}`}
+                              >
+                                {hasAttempted ? 'Already Attempted' : <>Launch Examination <ChevronRight size={14} /></>}
+                              </button>
+                              {hasAttempted && (
+                                <p className="text-[10px] text-center text-slate-500 font-medium">You have already submitted this mock exam. Only one attempt is allowed.</p>
+                              )}
+                            </div>
+                          </div>
+                        )})
+                      )}
                     </div>
                   )}
 

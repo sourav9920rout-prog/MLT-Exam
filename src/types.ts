@@ -61,6 +61,7 @@ export interface Exam {
   passingPercentage: number;
   questionIds: string[]; // typically 100 question IDs
   sections: ExamSection[];
+  isMockSeries?: boolean;
   showLeaderboard?: boolean;
   createdAt: string;
 }
