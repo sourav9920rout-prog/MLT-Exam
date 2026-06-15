@@ -88,6 +88,7 @@ export default function QuestionBankManager({
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isSavingQuestion, setIsSavingQuestion] = useState(false);
   const [showImageInputs, setShowImageInputs] = useState(false);
   const [isAssetManagerOpen, setIsAssetManagerOpen] = useState(false);
   const [isRawTextModalOpen, setIsRawTextModalOpen] = useState(false);
@@ -112,6 +113,7 @@ export default function QuestionBankManager({
   });
   const [uploading, setUploading] = useState(false);
   const [classifying, setClassifying] = useState(false);
+  const [isDeletingDuplicates, setIsDeletingDuplicates] = useState(false);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
@@ -495,6 +497,8 @@ export default function QuestionBankManager({
       onNotify("English Question is required", true);
       return;
     }
+    
+    setIsSavingQuestion(true);
 
     try {
       const qId =
@@ -609,6 +613,8 @@ export default function QuestionBankManager({
     } catch (err) {
       console.error(err);
       onNotify("Error saving question", true);
+    } finally {
+      setIsSavingQuestion(false);
     }
   };
 
@@ -623,6 +629,42 @@ export default function QuestionBankManager({
       onNotify("Error deleting question.", true);
     } finally {
       setQuestionToDelete(null);
+    }
+  };
+
+  const handleDeleteDuplicates = async () => {
+    setIsDeletingDuplicates(true);
+    let deletedCount = 0;
+    try {
+      const seen = new Set<string>();
+      const toDelete: string[] = [];
+      const dbh = questions.slice().sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)); // Keep newest
+      for (const q of dbh) {
+        if (!q.englishQuestion) continue;
+        const key = q.englishQuestion.trim().toLowerCase();
+        if (seen.has(key)) {
+          toDelete.push(q.id);
+        } else {
+          seen.add(key);
+        }
+      }
+      
+      if (toDelete.length === 0) {
+        onNotify('No duplicate questions found.');
+        return;
+      }
+      
+      for (const id of toDelete) {
+        await deleteDoc(doc(db, "questionBank", id));
+        deletedCount++;
+      }
+      onNotify(`Successfully deleted ${deletedCount} duplicate questions.`);
+      fetchQuestions();
+    } catch(err) {
+      console.error(err);
+      onNotify('Error deleting duplicates.', true);
+    } finally {
+      setIsDeletingDuplicates(false);
     }
   };
 
@@ -646,6 +688,7 @@ export default function QuestionBankManager({
         "Math",
         "English",
         "General Knowledge",
+        "Special Test-1",
         "Reasoning",
         "Miscellaneous",
         ...questions.map((q) => q.subject || "Miscellaneous"),
@@ -770,6 +813,33 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
           </div>
         </div>
       )}
+      {isDeletingDuplicates && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
+            <Loader2 size={40} className="text-amber-500 animate-spin" />
+            <h3 className="text-lg font-bold text-slate-800">
+              Removing Duplicates
+            </h3>
+            <p className="text-sm text-slate-500 text-center">
+              Please wait while duplicate questions are being removed...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isSavingQuestion && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
+            <Loader2 size={40} className="text-green-600 animate-spin" />
+            <h3 className="text-lg font-bold text-slate-800">
+              Saving Question
+            </h3>
+            <p className="text-sm text-slate-500 text-center">
+              Please wait while the question details are being saved...
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
@@ -810,6 +880,13 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-xs transition"
           >
             <Plus size={16} /> Paste Bulk Text
+          </button>
+          <button
+            onClick={handleDeleteDuplicates}
+            disabled={isDeletingDuplicates}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded text-xs transition"
+          >
+            <Trash2 size={16} /> Remove Duplicates
           </button>
           <button
             onClick={() => {
@@ -877,6 +954,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                 "Math",
                 "English",
                 "General Knowledge",
+                "Special Test-1",
                 "Reasoning",
                 "Miscellaneous",
                 ...questions.map((q) => q.subject || "Miscellaneous"),
@@ -1304,6 +1382,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                         "Math",
                         "English",
                         "General Knowledge",
+                        "Special Test-1",
                         "Reasoning",
                         "Miscellaneous",
                         ...questions.map((q) => q.subject || "Miscellaneous"),

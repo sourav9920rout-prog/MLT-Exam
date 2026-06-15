@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { Exam } from '../types.ts';
-import { Play, Trash2, Trophy } from 'lucide-react';
+import { Play, Trash2, Trophy, Eye, EyeOff } from 'lucide-react';
 import QuizRunner from './QuizRunner.tsx';
 import ResultViewer from './ResultViewer.tsx';
 import Leaderboard from './Leaderboard.tsx';
 
-export default function AdminTakeExam() {
+export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeries?: boolean }) {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
@@ -45,6 +45,22 @@ export default function AdminTakeExam() {
       setExamToDelete(null);
     }
   };
+
+  const toggleVisibility = async (exam: Exam) => {
+    try {
+      await updateDoc(doc(db, 'exams', exam.id), {
+        isHidden: !exam.isHidden
+      });
+      fetchExams();
+    } catch (err) {
+      console.error("Failed to toggle visibility", err);
+      alert("Error toggling visibility: " + String(err));
+    }
+  };
+
+  const displayedExams = filterByMockSeries 
+    ? exams.filter(e => e.isMockSeries)
+    : exams.filter(e => !e.isMockSeries);
 
   if (result) {
       return (
@@ -86,17 +102,22 @@ export default function AdminTakeExam() {
         </div>
       </div>
 
-      {exams.length === 0 ? (
+      {displayedExams.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300">
             <Play className="text-slate-300 mx-auto mb-3" size={40} />
             <p className="text-slate-500 font-medium">No published exams available.</p>
           </div>
       ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {exams.map(ex => (
+            {displayedExams.map(ex => (
               <div key={ex.id} className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
                 <div>
-                   <h3 className="font-bold text-slate-800">{ex.title}</h3>
+                   <div className="flex justify-between items-start">
+                     <h3 className="font-bold text-slate-800">{ex.title}</h3>
+                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${ex.isHidden ? 'bg-slate-100 text-slate-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                       {ex.isHidden ? 'Hidden' : 'Live'}
+                     </span>
+                   </div>
                    <p className="text-xs text-slate-500 mt-1">{ex.questionIds.length} Questions • {ex.durationMinutes} Mins</p>
                 </div>
                 <div className="mt-4 flex flex-col gap-2">
@@ -105,6 +126,12 @@ export default function AdminTakeExam() {
                       className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded transition flex items-center justify-center gap-2"
                    >
                       <Play size={16} /> Take Exam
+                   </button>
+                   <button
+                      onClick={() => toggleVisibility(ex)}
+                      className="w-full py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-sm rounded transition flex items-center justify-center gap-2"
+                   >
+                      {ex.isHidden ? <><Eye size={16} /> Push to Live</> : <><EyeOff size={16} /> Hide to Students</>}
                    </button>
                    <button
                       onClick={() => setLeaderboardExam(ex)}

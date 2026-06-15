@@ -170,6 +170,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
         sections,
         isMockSeries,
         showLeaderboard,
+        isHidden: true,
         createdAt: new Date().toISOString()
       };
 

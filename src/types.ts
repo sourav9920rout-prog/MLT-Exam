@@ -62,6 +62,7 @@ export interface Exam {
   questionIds: string[]; // typically 100 question IDs
   sections: ExamSection[];
   isMockSeries?: boolean;
+  isHidden?: boolean;
   showLeaderboard?: boolean;
   createdAt: string;
 }

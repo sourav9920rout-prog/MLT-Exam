@@ -55,6 +55,7 @@ import AdminManager from './components/AdminManager.tsx';
 import AdminResultsViewer from './components/AdminResultsViewer.tsx';
 import Leaderboard from './components/Leaderboard.tsx';
 import SmartImage from './components/SmartImage.tsx';
+import AdminTakeExam from './components/AdminTakeExam.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -516,12 +517,9 @@ export default function App() {
               {adminTab === 'results' && <AdminResultsViewer />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
               {adminTab === 'mock_series' && (
-                <div className="bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col items-center justify-center text-center space-y-4">
-                  <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                    <Calendar size={32} />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800">30 Day 30 Mock Test Series</h3>
-                  <p className="text-slate-500">Publish mock tests from the Exam Bank tab, and check the 'Push to 30 Days 30 Mock Test Tab' toggle to route them to the special student portal.</p>
+                <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-sm p-4 border border-slate-200">
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
+                  <AdminTakeExam filterByMockSeries={true} />
                 </div>
               )}
             </div>
@@ -732,13 +730,13 @@ export default function App() {
                   {/* TABS: ELIGIBLE EXAMS LIST */}
                   {studentTab === 'exams' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {activeExams.length === 0 ? (
+                      {activeExams.filter(e => !e.isHidden && !e.isMockSeries).length === 0 ? (
                         <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-none">
                           <BookOpen className="mx-auto text-slate-300" size={36} />
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
                         </div>
                       ) : (
-                        activeExams.map((exam) => {
+                        activeExams.filter(e => !e.isHidden && !e.isMockSeries).map((exam) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
@@ -884,7 +882,7 @@ export default function App() {
                   {/* TABS: MOCK SERIES */}
                   {studentTab === 'mock_series' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {activeExams.filter(e => e.isMockSeries).length === 0 ? (
+                      {activeExams.filter(e => e.isMockSeries && !e.isHidden).length === 0 ? (
                         <div className="md:col-span-2 text-center py-16 bg-white/90 backdrop-blur-md border border-slate-200 rounded-2xl p-10 space-y-3 shadow-none">
                           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Calendar size={32} />
@@ -893,7 +891,7 @@ export default function App() {
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">Coming live on 20th June Stay Tuned</p>
                         </div>
                       ) : (
-                        activeExams.filter(e => e.isMockSeries).map((exam) => {
+                        activeExams.filter(e => e.isMockSeries && !e.isHidden).map((exam) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
