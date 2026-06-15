@@ -680,18 +680,8 @@ export default function QuestionBankManager({
 
     const subjects = Array.from(
       new Set([
-        "Pathology",
-        "Biochemistry",
-        "Microbiology",
-        "Blood Bank",
-        "Anatomy",
-        "Math",
-        "English",
-        "General Knowledge",
-        "Special Test-1",
-        "Reasoning",
-        "Miscellaneous",
         ...questions.map((q) => q.subject || "Miscellaneous"),
+        "Miscellaneous"
       ]),
     );
 
@@ -946,20 +936,11 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             <option value="">All Subjects</option>
             {Array.from(
               new Set([
-                "Pathology",
-                "Biochemistry",
-                "Microbiology",
-                "Blood Bank",
-                "Anatomy",
-                "Math",
-                "English",
-                "General Knowledge",
-                "Special Test-1",
-                "Reasoning",
-                "Miscellaneous",
                 ...questions.map((q) => q.subject || "Miscellaneous"),
               ]),
-            ).map((subj) => (
+            )
+              .filter(Boolean)
+              .map((subj) => (
               <option key={subj} value={subj}>
                 {subj}
               </option>
@@ -1374,21 +1355,12 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                   <datalist id="subjectOptions">
                     {Array.from(
                       new Set([
-                        "Pathology",
-                        "Biochemistry",
-                        "Microbiology",
-                        "Blood Bank",
-                        "Anatomy",
-                        "Math",
-                        "English",
-                        "General Knowledge",
-                        "Special Test-1",
-                        "Reasoning",
-                        "Miscellaneous",
                         ...questions.map((q) => q.subject || "Miscellaneous"),
                         formData.subject || "Miscellaneous",
                       ]),
-                    ).map((subj) => (
+                    )
+                      .filter(Boolean)
+                      .map((subj) => (
                       <option key={subj} value={subj}>
                         {subj}
                       </option>

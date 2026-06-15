@@ -88,6 +88,29 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
  * Endpoint to extract questions from a document using Gemini AI.
  * Receives base64 encoded document (PDF, DOCX, TXT) and parses.
  */
+const MAX_RETRIES = 3;
+async function generateContentWithRetry(client: any, config: any) {
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await client.models.generateContent(config);
+    } catch (error: any) {
+      lastError = error;
+      const status = error?.status;
+      // Retry on 503 (Unavailable), 429 (Too Many Requests), or 500 (Internal Server Error)
+      if (status === 503 || status === 429 || status === 500 || error?.message?.includes("503")) {
+        console.warn(`[AI] Attempt ${attempt} failed with ${status}. Retrying...`);
+        if (attempt < MAX_RETRIES) {
+          await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
+
 app.post('/api/admin/extract-questions', async (req, res) => {
   const { documentBase64, mimeType, languageMode } = req.body;
   if (!documentBase64 || !mimeType) {
@@ -128,8 +151,8 @@ Each question MUST follow this EXACT Schema:
 ${extraInstruction}
 Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`json.`;
 
-    const response = await gClient.models.generateContent({
-      model: "gemini-3.5-flash",
+    const response = await generateContentWithRetry(gClient, {
+      model: "gemini-3.1-flash-lite",
       contents: {
         parts: [
           { inlineData: { data: documentBase64, mimeType } },
@@ -158,24 +181,56 @@ app.post('/api/admin/extract-questions-raw', async (req, res) => {
   try {
     const gClient = getGeminiClient();
 
-    // Build prompt based on languageMode
-    const hindiInstructions = languageMode === 'english'
-      ? `"hindiQuestion": "",
-      "hindiOptions": ["", "", "", ""],
-      "hindiExplanation": "",`
-      : `"hindiQuestion": "string (leave empty string if source text is purely English)",
-      "hindiOptions": ["string", "string", "string", "string"],
-      "hindiExplanation": "string",`;
+    // Chunking logic to avoid AI output token limits
+    const chunks: string[] = [];
+    let currentChunk: string[] = [];
+    let currentLength = 0;
+    const lines = rawText.split('\n');
+    
+    for (const line of lines) {
+      currentChunk.push(line);
+      currentLength += line.length + 1;
       
-    const extraInstruction = languageMode === 'english' 
-      ? `CRITICAL: You are in English-Only mode. Do NOT translate anything to Hindi. Provide empty strings for all Hindi fields. This saves processing time.`
-      : `CRITICAL: You are in Bilingual mode. You MUST provide Hindi translations for the englishQuestion, englishOptions, and englishExplanation fields in the corresponding hindiQuestion, hindiOptions, and hindiExplanation fields.`;
+      // Split when chunk is roughly 15000 chars and we hit an empty line or a line starting with 'Q'
+      if (currentLength > 15000 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) {
+        chunks.push(currentChunk.join('\n'));
+        currentChunk = [];
+        currentLength = 0;
+      }
+    }
+    if (currentChunk.length > 0) {
+      chunks.push(currentChunk.join('\n'));
+    }
 
-    const extractionPrompt = `You are a Medical Data extraction Assistant. 
-Extract all educational quiz/exam questions from the following text and format as JSON.
+    const allQuestions: any[] = [];
+    
+    // Process sequentially to avoid rate limits
+    for (let i = 0; i < chunks.length; i++) {
+        // Simple delay to avoid rate limit spikes on Gemini 1.5 free tier (15 RPM)
+        if (i > 0) {
+            await new Promise(r => setTimeout(r, 4500));
+        }
+
+        const chunkText = chunks[i];
+        if (!chunkText.trim()) continue;
+
+        const hindiInstructions = languageMode === 'english'
+          ? `"hindiQuestion": "",
+          "hindiOptions": ["", "", "", ""],
+          "hindiExplanation": "",`
+          : `"hindiQuestion": "string (leave empty string if source text is purely English)",
+          "hindiOptions": ["string", "string", "string", "string"],
+          "hindiExplanation": "string",`;
+          
+        const extraInstruction = languageMode === 'english' 
+          ? `CRITICAL: You are in English-Only mode. Do NOT translate anything to Hindi. Provide empty strings for all Hindi fields. This saves processing time.`
+          : `CRITICAL: You are in Bilingual mode. You MUST provide Hindi translations for the englishQuestion, englishOptions, and englishExplanation fields in the corresponding hindiQuestion, hindiOptions, and hindiExplanation fields.`;
+
+        const extractionPrompt = `You are a Medical Data extraction Assistant. 
+Extract all educational quiz/exam questions from the following text (Part ${i+1}/${chunks.length}) and format as JSON.
 
 Text to Extract from:
-"${rawText}"
+"${chunkText}"
 
 STRICT JSON SCHEMA:
 {
@@ -194,17 +249,27 @@ STRICT JSON SCHEMA:
 ${extraInstruction}
 Return ONLY the raw JSON object.`;
 
-    const response = await gClient.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: extractionPrompt,
-      config: {
-        responseMimeType: "application/json"
-      }
-    });
+        try {
+            const response = await generateContentWithRetry(gClient, {
+              model: "gemini-3.1-flash-lite",
+              contents: extractionPrompt,
+              config: {
+                responseMimeType: "application/json"
+              }
+            });
 
-    const outputText = response.text || "{}";
-    const parsedData = JSON.parse(outputText);
-    return res.json({ success: true, questions: parsedData.questions || [] });
+            const outputText = response.text || "{}";
+            const parsedData = JSON.parse(outputText);
+            if (parsedData.questions && Array.isArray(parsedData.questions)) {
+                allQuestions.push(...parsedData.questions);
+            }
+        } catch (chunkErr) {
+            console.error(`Error processing chunk ${i}:`, chunkErr);
+            // continue with next chunk even if one fails
+        }
+    }
+
+    return res.json({ success: true, questions: allQuestions });
 
   } catch (error) {
     console.error('Question raw extraction error:', error);
@@ -253,8 +318,8 @@ Return ONLY a raw JSON object matching this schema exactly, do not wrap in markd
   "difficulty": "string"
 }`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+    const response = await generateContentWithRetry(ai, {
+      model: "gemini-3.1-flash-lite",
       contents: extractionPrompt,
       config: {
         responseMimeType: "application/json",
@@ -408,8 +473,8 @@ Rules:
 Return ONLY the exact string from the Available Subjects list. Do not explain.`;
 
       try {
-        const response = await ai.models.generateContent({
-           model: 'gemini-3.5-flash',
+        const response = await generateContentWithRetry(ai, {
+           model: 'gemini-3.1-flash-lite',
            contents: prompt,
            config: { temperature: 0.1 }
         });
