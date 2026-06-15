@@ -122,7 +122,13 @@ export default function QuestionBankManager({
     try {
       const snap = await getDocs(collection(db, "questionBank"));
       const list: BankQuestion[] = [];
-      snap.forEach((d) => list.push({ id: d.id, ...d.data() } as BankQuestion));
+      snap.forEach((d) => {
+        const data = d.data();
+        if (data.subject && data.subject.trim().toLowerCase() === 'mathematics') {
+          data.subject = 'Math';
+        }
+        list.push({ id: d.id, ...data } as BankQuestion);
+      });
       setQuestions(list);
 
       if (!skipAutoSeed && !list.some((q) => q.subject === "Reasoning")) {
@@ -202,7 +208,7 @@ export default function QuestionBankManager({
           englishExplanation:
             q.englishExplanation || "No explanation provided.",
           hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
-          subject: uploadSubject.trim() || q.subject || "Miscellaneous",
+          subject: ((uploadSubject.trim() || q.subject)?.trim().toLowerCase() === 'mathematics' ? 'Math' : (uploadSubject.trim() || q.subject)) || "Miscellaneous",
           difficulty: q.difficulty || "medium",
           createdAt: Date.now(),
         });
@@ -219,33 +225,56 @@ export default function QuestionBankManager({
     }
   };
 
+  const [showJsonSchema, setShowJsonSchema] = useState(false);
+
   const handleRawTextSubmit = async () => {
     if (!rawText.trim()) return;
     setUploading(true);
     setIsRawTextModalOpen(false);
 
     try {
-      onNotify("Processing pasted text via AI. This may take a minute...");
+      let extracted: any[] = [];
+      let isDirectJson = false;
 
-      const response = await fetch("/api/admin/extract-questions-raw", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawText, languageMode }),
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Server returned ${response.status} ${response.statusText}`,
-        );
+      try {
+        const parsed = JSON.parse(rawText.trim());
+        if (Array.isArray(parsed)) {
+          extracted = parsed;
+          isDirectJson = true;
+        } else if (parsed.questions && Array.isArray(parsed.questions)) {
+          extracted = parsed.questions;
+          isDirectJson = true;
+        }
+      } catch (err) {
+        // Not valid JSON, proceed with AI
       }
 
-      const data = await response.json();
-      if (!data.success || !data.questions) {
-        throw new Error(data.error || "Failed to extract");
+      if (isDirectJson) {
+        onNotify(`Detected valid JSON. Processing ${extracted.length} questions directly...`);
+      } else {
+        onNotify("Processing pasted text via AI. This may take a minute...");
+
+        const response = await fetch("/api/admin/extract-questions-raw", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rawText, languageMode }),
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Server returned ${response.status} ${response.statusText}`,
+          );
+        }
+
+        const data = await response.json();
+        if (!data.success || !data.questions) {
+          throw new Error(data.error || "Failed to extract");
+        }
+
+        extracted = data.questions;
       }
 
-      const extracted = data.questions;
-      onNotify(`Extracted ${extracted.length} questions. Saving context...`);
+      onNotify(`Saving ${extracted.length} questions to database...`);
 
       for (const q of extracted) {
         const qId =
@@ -260,7 +289,7 @@ export default function QuestionBankManager({
           englishExplanation:
             q.englishExplanation || "No explanation provided.",
           hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
-          subject: uploadSubject.trim() || q.subject || "Miscellaneous",
+          subject: ((uploadSubject.trim() || q.subject)?.trim().toLowerCase() === 'mathematics' ? 'Math' : (uploadSubject.trim() || q.subject)) || "Miscellaneous",
           difficulty: q.difficulty || "medium",
           createdAt: Date.now(),
         });
@@ -515,7 +544,7 @@ export default function QuestionBankManager({
         correctOptionIndex: Number(formData.correctOptionIndex) || 0,
         englishExplanation: formData.englishExplanation || "",
         hindiExplanation: formData.hindiExplanation || "",
-        subject: formData.subject || "Miscellaneous",
+        subject: (formData.subject?.trim().toLowerCase() === 'mathematics' ? 'Math' : formData.subject) || "Miscellaneous",
         difficulty: formData.difficulty || "medium",
         createdAt: formData.createdAt || Date.now(),
       };
@@ -1112,10 +1141,39 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                 <X size={20} />
               </button>
             </div>
-            <p className="text-sm text-slate-500 mb-4">
-              Paste your raw question text (e.g., 1 to 100 questions with
-              options and explanations) and our AI will extract and format them.
+            <p className="text-sm text-slate-500 mb-4 flex justify-between items-start">
+              <span>
+                Paste your raw question text or direct JSON format. Our AI will
+                extract raw text, or bypass AI if valid JSON is provided.
+              </span>
+              <button
+                onClick={() => setShowJsonSchema(!showJsonSchema)}
+                className="text-blue-600 font-bold hover:underline ml-2 flex-shrink-0"
+              >
+                {showJsonSchema ? "Hide JSON Schema" : "Show JSON Schema"}
+              </button>
             </p>
+
+            {showJsonSchema && (
+              <div className="mb-4 bg-slate-50 border border-slate-200 rounded p-4 overflow-x-auto text-xs font-mono text-slate-700">
+                <p className="mb-2 font-bold text-slate-800">
+                  Example JSON Array Format:
+                </p>
+                <pre>{`[
+  {
+    "englishQuestion": "Question here",
+    "hindiQuestion": "Hindi Question here (optional)",
+    "englishOptions": ["Option 1", "Option 2", "Option 3", "Option 4"],
+    "hindiOptions": ["Option 1", "Option 2", "Option 3", "Option 4"],
+    "correctOptionIndex": 1,
+    "englishExplanation": "Explanation ...",
+    "hindiExplanation": "Hindi explanation...",
+    "subject": "Topic"
+  }
+]`}</pre>
+              </div>
+            )}
+            
             <textarea
               rows={10}
               value={rawText}

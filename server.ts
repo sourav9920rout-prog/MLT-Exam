@@ -143,7 +143,7 @@ Each question MUST follow this EXACT Schema:
       ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (Extract or infer the most appropriate academic or professional subject. E.g., Pathology, Biochemistry, Microbiology, Physics, etc. Categorize Hematology/Histology as Pathology)",
+      "subject": "string (Extract or infer the most appropriate academic or professional subject. E.g., Pathology, Biochemistry, Microbiology, Physics, etc. Categorize Hematology/Histology as Pathology. Use 'Math' instead of 'Mathematics')",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]
@@ -241,7 +241,7 @@ STRICT JSON SCHEMA:
       ${hindiInstructions}
       "correctOptionIndex": number (0-3),
       "englishExplanation": "string",
-      "subject": "string (Extract or infer the most appropriate academic or professional subject. E.g., Pathology, Biochemistry, Microbiology, Physics, etc. Categorize Hematology/Histology as Pathology)",
+      "subject": "string (Extract or infer the most appropriate academic or professional subject. E.g., Pathology, Biochemistry, Microbiology, Physics, etc. Categorize Hematology/Histology as Pathology. Use 'Math' instead of 'Mathematics')",
       "difficulty": "easy" | "medium" | "hard"
     }
   ]

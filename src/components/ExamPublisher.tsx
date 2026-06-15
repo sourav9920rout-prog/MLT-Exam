@@ -64,7 +64,13 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
     try {
       const snap = await getDocs(collection(db, 'questionBank'));
       const list: BankQuestion[] = [];
-      snap.forEach(d => list.push({ id: d.id, ...d.data() } as BankQuestion));
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.subject && data.subject.trim().toLowerCase() === 'mathematics') {
+          data.subject = 'Math';
+        }
+        list.push({ id: d.id, ...data } as BankQuestion);
+      });
       setBankQuestions(list);
     } catch (e) {
       onNotify("Error loading question bank", true);
