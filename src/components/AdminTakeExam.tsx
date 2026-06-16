@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, query, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { Exam } from '../types.ts';
@@ -63,16 +64,17 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
     : exams.filter(e => !e.isMockSeries);
 
   if (result) {
-      return (
-        <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto p-6">
+      return createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-50 overflow-y-auto p-6">
            <ResultViewer reviewResult={result} onBack={() => { setResult(null); setActiveExam(null); }} />
-        </div>
+        </div>,
+        document.body
       );
   }
 
   if (activeExam) {
-     return (
-       <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto">
+     return createPortal(
+       <div className="fixed inset-0 z-[9999] bg-slate-50 overflow-y-auto">
           <QuizRunner 
              exam={activeExam}
              studentId={`admin_test_${Date.now()}`}
@@ -85,7 +87,8 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
              onCancel={() => setActiveExam(null)}
              onNotify={(msg) => console.log(msg)}
           />
-       </div>
+       </div>,
+       document.body
      );
   }
 
@@ -151,15 +154,16 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
           </div>
       )}
 
-      {leaderboardExam && (
+      {leaderboardExam && createPortal(
         <Leaderboard 
           examId={leaderboardExam.id} 
           examName={leaderboardExam.title} 
           onClose={() => setLeaderboardExam(null)} 
-        />
+        />,
+        document.body
       )}
 
-      {examToDelete && (
+      {examToDelete && createPortal(
         <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
             <h3 className="text-lg font-bold text-slate-800 mb-2">Delete Examination?</h3>
@@ -174,7 +178,8 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

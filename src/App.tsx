@@ -517,7 +517,7 @@ export default function App() {
               {adminTab === 'results' && <AdminResultsViewer />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
               {adminTab === 'mock_series' && (
-                <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-sm p-4 border border-slate-200">
+                <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
                   <AdminTakeExam filterByMockSeries={true} />
                 </div>
