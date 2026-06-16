@@ -655,13 +655,13 @@ export default function QuizRunner({
              if (!res.ok) {
                  const err = await res.json().catch(() => ({}));
                  console.error("Email send API error:", err);
-                 onNotify(`Failed to send email to ${studentEmail}.`, true);
+                 onNotify(`Email failed: ${err.details || err.error || 'Server error'}. Check Vercel logs.`, true);
              } else {
                  onNotify(`Result email sent successfully to ${studentEmail}`);
              }
          }).catch(e => {
              console.warn('Background email dispatch failed', e);
-             onNotify(`Network error while sending email to ${studentEmail}.`, true);
+             onNotify(`Network error: Could not reach the email API.`, true);
          });
       } catch(e) {
           console.error("Email prep failed", e);

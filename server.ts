@@ -60,10 +60,11 @@ app.post('/api/send-result-email', async (req, res) => {
       return res.status(400).json({ error: 'Missing student email' });
     }
 
+    const port = parseInt(process.env.SMTP_PORT || '587', 10);
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '465', 10),
-      secure: true,
+      port: port,
+      secure: port === 465,
       auth: {
         user: process.env.SMTP_EMAIL || 'result.mlt.exams@gmail.com',
         pass: process.env.SMTP_PASSWORD || 'dowqtoxyibzwpsqy'
