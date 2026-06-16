@@ -15,7 +15,6 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 import { decrypt, encrypt } from './src/utils/crypto.js';
 import { appendResultToGoogleSheet } from './src/utils/googleSheets.js';
 import nodemailer from 'nodemailer';
@@ -556,7 +555,8 @@ Return ONLY the exact string from the Available Subjects list. Do not explain.`;
 // ----------------------------------------------------
 
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
