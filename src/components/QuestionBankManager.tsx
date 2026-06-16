@@ -670,7 +670,20 @@ export default function QuestionBankManager({
       const dbh = questions.slice().sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)); // Keep newest
       for (const q of dbh) {
         if (!q.englishQuestion) continue;
-        const key = q.englishQuestion.trim().toLowerCase();
+        
+        // Strictly check exact match for question, options, images, and explanations
+        const key = JSON.stringify({
+          eq: (q.englishQuestion || '').trim(),
+          hq: (q.hindiQuestion || '').trim(),
+          eo: (q.englishOptions || []).map(o => o.trim()),
+          ho: (q.hindiOptions || []).map(o => o.trim()),
+          ans: q.correctOptionIndex,
+          img: q.imageUrl || null,
+          oImg: q.optionImageUrls || [],
+          ee: (q.englishExplanation || '').trim(),
+          he: (q.hindiExplanation || '').trim()
+        });
+
         if (seen.has(key)) {
           toDelete.push(q.id);
         } else {
