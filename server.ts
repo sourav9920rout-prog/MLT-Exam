@@ -16,8 +16,8 @@ import path from 'path';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
-import { decrypt, encrypt } from './src/utils/crypto.ts';
-import { appendResultToGoogleSheet } from './src/utils/googleSheets.ts';
+import { decrypt, encrypt } from './src/utils/crypto.js';
+import { appendResultToGoogleSheet } from './src/utils/googleSheets.js';
 import nodemailer from 'nodemailer';
 
 const app = express();
