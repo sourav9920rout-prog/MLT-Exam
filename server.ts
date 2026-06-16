@@ -16,7 +16,6 @@ import path from 'path';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import { decrypt, encrypt } from './src/utils/crypto.js';
-import { appendResultToGoogleSheet } from './src/utils/googleSheets.js';
 import nodemailer from 'nodemailer';
 
 const app = express();
@@ -473,21 +472,8 @@ app.post('/api/exams/submit', async (req, res) => {
     // 1. (Frontend will handle saving to Firestore)
     // await setDoc(doc(db, 'results', resultId), resultPayload);
 
-    // 2. Append result row into Google Sheets API reporting
-    console.log('[Server] About to append to Google Sheets...');
-    await appendResultToGoogleSheet({
-      studentName,
-      studentEmail,
-      examName,
-      score,
-      totalQuestions,
-      percentage,
-      passed,
-      submittedAt: resultPayload.submittedAt,
-      // Pass the new field so the util knows to place it or we can ignore it
-      timeTaken: timeTakenSeconds || 0
-    });
-
+    // Google Sheets integration removed
+    
     // 3. Email dispatch bypassed
     console.log('[Server] Bypassing result email dispatch...');
 
