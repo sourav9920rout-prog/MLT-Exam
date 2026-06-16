@@ -18,15 +18,13 @@ import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { decrypt, encrypt } from './src/utils/crypto.ts';
 import { appendResultToGoogleSheet } from './src/utils/googleSheets.ts';
+import nodemailer from 'nodemailer';
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const PORT = 3000;
-
-// Dynamic In-Memory Store for OTP Codes (Email -> { otpCode, expiresAt })
-// Removed per user request.
 
 // Lazy-initialize Gemini AI instance to prevent crash if key is absent
 let aiClient: GoogleGenAI | null = null;
@@ -53,6 +51,46 @@ function getGeminiClient(): GoogleGenAI {
 // ----------------------------------------------------
 // API ROUTES
 // ----------------------------------------------------
+
+app.post('/api/send-result-email', async (req, res) => {
+  try {
+    const { studentEmail, studentName, examName, score, maxScore, percentage, htmlReport } = req.body;
+    
+    if (!studentEmail) {
+      return res.status(400).json({ error: 'Missing student email' });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '465', 10),
+      secure: true,
+      auth: {
+        user: process.env.SMTP_EMAIL || 'result.mlt.exams@gmail.com',
+        pass: process.env.SMTP_PASSWORD || 'dowqtoxyibzwpsqy'
+      }
+    });
+
+    const mailOptions = {
+      from: `"MLT Exams" <${process.env.SMTP_EMAIL || 'result.mlt.exams@gmail.com'}>`,
+      to: studentEmail,
+      subject: `Exam Result: ${examName}`,
+      html: htmlReport || `
+        <h2>Hi ${studentName},</h2>
+        <p>Thank you for taking the exam <strong>${examName}</strong>.</p>
+        <p>Your Score: <strong>${score} / ${maxScore}</strong> (${percentage.toFixed(2)}%)</p>
+        <p>Your detailed answer copy is available on the platform.</p>
+        <br>
+        <p>Best regards,<br>MLT Exams Team</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: 'Email sent successfully' });
+  } catch (error: any) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ error: 'Failed to send email', details: error.message });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });

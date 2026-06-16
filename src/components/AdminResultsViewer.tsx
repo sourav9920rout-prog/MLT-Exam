@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { collection, query, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
-import { RefreshCw, Trash2 } from 'lucide-react';
+import { RefreshCw, Trash2, Filter } from 'lucide-react';
 
 export default function AdminResultsViewer() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedExamId, setSelectedExamId] = useState<string>('all');
 
   const fetchResults = async () => {
     setLoading(true);
@@ -49,17 +50,49 @@ export default function AdminResultsViewer() {
     fetchResults();
   }, []);
 
+  const uniqueExams = useMemo(() => {
+    const map = new Map<string, string>();
+    results.forEach(r => {
+      if (r.examId && r.examName) {
+        map.set(r.examId, r.examName);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [results]);
+
+  const filteredResults = useMemo(() => {
+    if (selectedExamId === 'all') return results;
+    return results.filter(r => r.examId === selectedExamId);
+  }, [results, selectedExamId]);
+
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">Student Results & Outcomes</h2>
            <p className="text-sm text-slate-500 mt-1">Review all submitted exam attempts across all students.</p>
         </div>
-        <button onClick={fetchResults} className="p-2 border border-slate-200 text-slate-600 rounded hover:bg-slate-50 relative group">
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          <div className="absolute opacity-0 group-hover:opacity-100 transition bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-[10px] px-2 py-1 rounded w-max">Refresh</div>
-        </button>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+               <Filter className="h-4 w-4 text-slate-400" />
+             </div>
+             <select
+               value={selectedExamId}
+               onChange={(e) => setSelectedExamId(e.target.value)}
+               className="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white placeholder-slate-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+             >
+               <option value="all">All Exams</option>
+               {uniqueExams.map(exam => (
+                 <option key={exam.id} value={exam.id}>{exam.name}</option>
+               ))}
+             </select>
+          </div>
+          <button onClick={fetchResults} className="p-2 border border-slate-200 text-slate-600 rounded hover:bg-slate-50 relative group">
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            <div className="absolute opacity-0 group-hover:opacity-100 transition bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-[10px] px-2 py-1 rounded w-max">Refresh</div>
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
@@ -77,12 +110,14 @@ export default function AdminResultsViewer() {
               </tr>
             </thead>
             <tbody>
-              {results.length === 0 && !loading && (
+              {filteredResults.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-500 text-sm italic">No results have been submitted yet.</td>
+                  <td colSpan={7} className="py-8 text-center text-slate-500 text-sm italic">
+                     {selectedExamId === 'all' ? 'No results have been submitted yet.' : 'No results found for this specific exam.'}
+                  </td>
                 </tr>
               )}
-              {results.map(r => (
+              {filteredResults.map(r => (
                 <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition duration-150">
                   <td className="py-4 px-4 font-medium text-slate-800">{r.studentName || 'Unknown'}</td>
                   <td className="py-4 px-4 text-slate-500">{r.studentEmail || 'Unknown'}</td>

@@ -591,6 +591,82 @@ export default function QuizRunner({
       onNotify('Examination result computed and dispatched successfully!');
       onFinished(resultObject);
 
+      // Assemble Email Report
+      try {
+         let htmlReport = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">`;
+         htmlReport += `<h2 style="color: #2563eb; text-align: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">${exam.title} - Results</h2>`;
+         htmlReport += `<p>Hi <strong>${studentName}</strong>,</p>`;
+         htmlReport += `<p>Here is your examination result summary and answer copy.</p>`;
+         
+         htmlReport += `<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">`;
+         htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Score</td><td style="padding: 8px; border: 1px solid #ddd;">${resultObject.score} / ${maxScore}</td></tr>`;
+         htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Percentage</td><td style="padding: 8px; border: 1px solid #ddd;">${percentage.toFixed(2)}%</td></tr>`;
+         htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Status</td><td style="padding: 8px; border: 1px solid #ddd; color: ${passed ? 'green' : 'red'}; font-weight: bold;">${passed ? 'PASSED' : 'FAILED'}</td></tr>`;
+         htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Correct</td><td style="padding: 8px; border: 1px solid #ddd; color: green;">${correctCount}</td></tr>`;
+         htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Incorrect</td><td style="padding: 8px; border: 1px solid #ddd; color: red;">${incorrectCount}</td></tr>`;
+         htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Skipped</td><td style="padding: 8px; border: 1px solid #ddd;">${unansweredCount}</td></tr>`;
+         htmlReport += `</table>`;
+
+         htmlReport += `<h3 style="margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Detailed Answer Copy</h3>`;
+         
+         questions.forEach((q, idx) => {
+             const userAns = answers[q.id];
+             const isCorrect = userAns === q.correctOptionIndex;
+             const statusColor = isCorrect ? 'green' : (userAns === undefined ? '#6b7280' : 'red');
+             const statusText = isCorrect ? '✅ Correct' : (userAns === undefined ? '⚪ Skipped' : '❌ Incorrect');
+             
+             htmlReport += `<div style="margin-bottom: 25px; padding: 15px; border: 1px solid #eee; border-radius: 8px;">`;
+             htmlReport += `<p style="margin: 0 0 10px 0; font-weight: bold;">Q${idx + 1}. ${q.englishQuestion}</p>`;
+             
+             q.englishOptions.forEach((opt, oIdx) => {
+                 let bg = 'transparent';
+                 if (oIdx === q.correctOptionIndex) bg = '#dcfce3'; // Highlight correct answer in light green
+                 else if (oIdx === userAns && !isCorrect) bg = '#fee2e2'; // Highlight wrong selected answer in light red
+                 
+                 htmlReport += `<div style="padding: 5px; margin: 3px 0; border-radius: 4px; background-color: ${bg}; border: 1px solid ${bg === 'transparent' ? '#fff' : bg};">`;
+                 htmlReport += `${String.fromCharCode(65 + oIdx)}. ${opt}`;
+                 if (oIdx === q.correctOptionIndex) htmlReport += ` <strong>(Correct Answer)</strong>`;
+                 if (oIdx === userAns) htmlReport += ` <strong>(Your Selection)</strong>`;
+                 htmlReport += `</div>`;
+             });
+             htmlReport += `<p style="margin: 10px 0 0 0; color: ${statusColor}; font-weight: bold; font-size: 14px;">${statusText}</p>`;
+             if (q.englishExplanation && q.englishExplanation.trim() !== '') {
+                 htmlReport += `<p style="margin: 10px 0 0 0; font-size: 13px; color: #4b5563; background: #f3f4f6; padding: 10px; border-radius: 4px;"><strong>Explanation:</strong><br/>${q.englishExplanation.replace(/\\n/g, '<br/>')}</p>`;
+             }
+             htmlReport += `</div>`;
+         });
+
+         htmlReport += `<p style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 40px;">This is an automatically generated email from MLT Exams.</p>`;
+         htmlReport += `</div>`;
+
+         fetch('/api/send-result-email', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+                 studentEmail,
+                 studentName,
+                 examName: exam.title,
+                 score: resultObject.score,
+                 maxScore,
+                 percentage,
+                 htmlReport
+             })
+         }).then(async (res) => {
+             if (!res.ok) {
+                 const err = await res.json().catch(() => ({}));
+                 console.error("Email send API error:", err);
+                 onNotify(`Failed to send email to ${studentEmail}.`, true);
+             } else {
+                 onNotify(`Result email sent successfully to ${studentEmail}`);
+             }
+         }).catch(e => {
+             console.warn('Background email dispatch failed', e);
+             onNotify(`Network error while sending email to ${studentEmail}.`, true);
+         });
+      } catch(e) {
+          console.error("Email prep failed", e);
+      }
+
       // Attempt to ping the server to trigger Google Sheets append in background (fire-and-forget)
       try {
          fetch('/api/exams/submit', {
