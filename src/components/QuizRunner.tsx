@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { collection, doc, setDoc, getDocs, getDoc, query, where, documentId } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
-import { Clock, Send, AlertTriangle, RefreshCw, AlertCircle, Save, Flag, XCircle } from 'lucide-react';
+import { Clock, Send, AlertTriangle, RefreshCw, AlertCircle, Save, Flag, XCircle, Menu } from 'lucide-react';
 import { Exam, BankQuestion, ExamAttempt, ExamSection } from '../types.ts';
 import SmartImage from './SmartImage';
 
@@ -759,7 +759,7 @@ export default function QuizRunner({
   }
 
   return (
-    <div className={`fixed inset-0 z-50 w-full h-full bg-slate-100 flex flex-col font-sans select-none overflow-hidden ${(isFrozen || submitting) ? 'pointer-events-none opacity-[0.98]' : ''}`}>
+    <div className={`fixed inset-0 z-50 w-full h-[100dvh] bg-slate-100 flex flex-col font-sans select-none overflow-hidden ${(isFrozen || submitting) ? 'pointer-events-none opacity-[0.98]' : ''}`}>
       
       {(isFrozen || submitting) && (
         <div className="fixed inset-0 z-[9999] bg-transparent cursor-not-allowed"></div>
