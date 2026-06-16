@@ -128,8 +128,11 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
           return;
         }
         
-        // Shuffle & Slice
-        rulePool = rulePool.sort(() => 0.5 - Math.random());
+        // Shuffle & Slice using Fisher-Yates
+        for (let j = rulePool.length - 1; j > 0; j--) {
+          const randIdx = Math.floor(Math.random() * (j + 1));
+          [rulePool[j], rulePool[randIdx]] = [rulePool[randIdx], rulePool[j]];
+        }
         const selected = rulePool.slice(0, rule.count);
         finalQIds.push(...selected.map(q => q.id));
         
@@ -139,8 +142,11 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
       }
 
       // Shuffle final compilation so sections are mixed (or leave them ordered by subjects?)
-      // We will shuffle the finalQIds globally
-      finalQIds = finalQIds.sort(() => 0.5 - Math.random());
+      // We will shuffle the finalQIds globally using Fisher-Yates
+      for (let j = finalQIds.length - 1; j > 0; j--) {
+        const randIdx = Math.floor(Math.random() * (j + 1));
+        [finalQIds[j], finalQIds[randIdx]] = [finalQIds[randIdx], finalQIds[j]];
+      }
     }
 
     // Build configured sections

@@ -88,20 +88,34 @@ app.post('/api/admin/notify-new-admin', async (req, res) => {
  * Endpoint to extract questions from a document using Gemini AI.
  * Receives base64 encoded document (PDF, DOCX, TXT) and parses.
  */
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 5;
+const FALLBACK_MODELS = [
+  "gemini-3.5-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-flash-lite-latest",
+  "gemini-3.1-flash-lite-preview"
+];
+
 async function generateContentWithRetry(client: any, config: any) {
   let lastError;
+  let originalModel = config.model;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
+      if (attempt > 1) {
+        const nextModel = FALLBACK_MODELS[(attempt - 2) % FALLBACK_MODELS.length];
+        config.model = nextModel;
+        console.log(`[AI] Switching to fallback model: ${nextModel}`);
+      }
       return await client.models.generateContent(config);
     } catch (error: any) {
       lastError = error;
       const status = error?.status;
       // Retry on 503 (Unavailable), 429 (Too Many Requests), or 500 (Internal Server Error)
-      if (status === 503 || status === 429 || status === 500 || error?.message?.includes("503")) {
-        console.warn(`[AI] Attempt ${attempt} failed with ${status}. Retrying...`);
+      if (status === 503 || status === 429 || status === 500 || error?.message?.includes("503") || error?.message?.includes("429")) {
+        console.warn(`[AI] Attempt ${attempt} failed with ${status} on model ${config.model}. Retrying...`);
         if (attempt < MAX_RETRIES) {
-          await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+          const delay = status === 429 ? 5000 * attempt : 3000 * attempt;
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
       }
