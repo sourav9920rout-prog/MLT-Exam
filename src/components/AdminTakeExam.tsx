@@ -16,6 +16,11 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
   const [leaderboardExam, setLeaderboardExam] = useState<Exam | null>(null);
 
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
+  
+  const [examToMakeLive, setExamToMakeLive] = useState<Exam | null>(null);
+  const [notifyAdmins, setNotifyAdmins] = useState<{email: string, selected: boolean}[]>([]);
+  const [notifyStudents, setNotifyStudents] = useState<{email: string, selected: boolean}[]>([]);
+  const [isSendingEmails, setIsSendingEmails] = useState(false);
 
   const fetchExams = async () => {
     try {
@@ -47,15 +52,70 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
     }
   };
 
-  const toggleVisibility = async (exam: Exam) => {
+  const handleToggleVisibility = async (exam: Exam) => {
+    if (exam.isHidden) {
+      setExamToMakeLive(exam);
+      try {
+        const adminSnap = await getDocs(collection(db, 'adminEmails'));
+        const adminList: any[] = [];
+        adminSnap.forEach(d => adminList.push({ email: d.id, selected: true }));
+        setNotifyAdmins(adminList);
+
+        const studentSnap = await getDocs(collection(db, 'students'));
+        const studentList: any[] = [];
+        studentSnap.forEach(d => {
+          const data = d.data();
+          if (data.email) {
+            studentList.push({ email: data.email, selected: true });
+          }
+        });
+        setNotifyStudents(studentList);
+      } catch (err) {
+         console.error("Failed to load users for notification", err);
+      }
+    } else {
+      try {
+        await updateDoc(doc(db, 'exams', exam.id), {
+          isHidden: true
+        });
+        fetchExams();
+      } catch (err) {
+        console.error("Failed to hide exam", err);
+        alert("Error hiding exam: " + String(err));
+      }
+    }
+  };
+
+  const confirmMakeLive = async () => {
+    if (!examToMakeLive) return;
+    setIsSendingEmails(true);
     try {
-      await updateDoc(doc(db, 'exams', exam.id), {
-        isHidden: !exam.isHidden
+      await updateDoc(doc(db, 'exams', examToMakeLive.id), {
+        isHidden: false
       });
+      
+      const pAdmins = notifyAdmins.filter(a => a.selected).map(a => a.email);
+      const pStudents = notifyStudents.filter(s => s.selected).map(s => s.email);
+
+      if (pAdmins.length > 0 || pStudents.length > 0) {
+        await fetch('/api/admin/notify-exam-live', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            examTitle: examToMakeLive.title,
+            adminEmails: pAdmins,
+            studentEmails: pStudents
+          })
+        });
+      }
+
       fetchExams();
-    } catch (err) {
-      console.error("Failed to toggle visibility", err);
-      alert("Error toggling visibility: " + String(err));
+    } catch (e) {
+      console.error(e);
+      alert("Error pushing to live or sending emails");
+    } finally {
+      setIsSendingEmails(false);
+      setExamToMakeLive(null);
     }
   };
 
@@ -181,7 +241,7 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
                       <Play size={16} /> Take Exam
                    </button>
                    <button
-                      onClick={() => toggleVisibility(ex)}
+                      onClick={() => handleToggleVisibility(ex)}
                       className="w-full py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-sm rounded transition flex items-center justify-center gap-2"
                    >
                       {ex.isHidden ? <><Eye size={16} /> Push to Live</> : <><EyeOff size={16} /> Hide to Students</>}
@@ -224,6 +284,62 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
                 className="px-5 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {examToMakeLive && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Publish Exam: {examToMakeLive.title}</h3>
+            <p className="text-sm text-slate-500 mb-6">Select users to notify via email that this exam is now live. (This runs via SMTP 2 independently of other email setup limits)</p>
+            
+            <div className="mb-4">
+               <div className="flex justify-between items-center mb-2">
+                 <h4 className="font-bold text-slate-700 text-sm">Admins ({notifyAdmins.length})</h4>
+                 <div className="flex gap-2 text-xs">
+                    <button onClick={() => setNotifyAdmins(prev => prev.map(a => ({...a, selected: true})))} className="text-blue-600 hover:underline">Select All</button>
+                    <button onClick={() => setNotifyAdmins(prev => prev.map(a => ({...a, selected: false})))} className="text-slate-600 hover:underline">Deselect All</button>
+                 </div>
+               </div>
+               <div className="max-h-32 overflow-y-auto border border-slate-200 rounded p-2 text-sm bg-slate-50 space-y-1">
+                 {notifyAdmins.length === 0 ? <p className="text-slate-400">No admins found.</p> : notifyAdmins.map((a, i) => (
+                    <label key={i} className="flex items-center gap-2">
+                       <input type="checkbox" checked={a.selected} onChange={() => setNotifyAdmins(prev => prev.map((x, j) => j === i ? {...x, selected: !x.selected} : x))} />
+                       <span>{a.email}</span>
+                    </label>
+                 ))}
+               </div>
+            </div>
+
+            <div className="mb-6">
+               <div className="flex justify-between items-center mb-2">
+                 <h4 className="font-bold text-slate-700 text-sm">Students ({notifyStudents.length})</h4>
+                 <div className="flex gap-2 text-xs">
+                    <button onClick={() => setNotifyStudents(prev => prev.map(s => ({...s, selected: true})))} className="text-blue-600 hover:underline">Select All</button>
+                    <button onClick={() => setNotifyStudents(prev => prev.map(s => ({...s, selected: false})))} className="text-slate-600 hover:underline">Deselect All</button>
+                 </div>
+               </div>
+               <div className="max-h-32 overflow-y-auto border border-slate-200 rounded p-2 text-sm bg-slate-50 space-y-1">
+                 {notifyStudents.length === 0 ? <p className="text-slate-400">No students found.</p> : notifyStudents.map((s, i) => (
+                    <label key={i} className="flex items-center gap-2">
+                       <input type="checkbox" checked={s.selected} onChange={() => setNotifyStudents(prev => prev.map((x, j) => j === i ? {...x, selected: !x.selected} : x))} />
+                       <span>{s.email}</span>
+                    </label>
+                 ))}
+               </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <button disabled={isSendingEmails} onClick={() => setExamToMakeLive(null)} className="px-5 py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Cancel</button>
+              <button 
+                disabled={isSendingEmails}
+                onClick={confirmMakeLive}
+                className="px-5 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm disabled:opacity-50"
+              >
+                {isSendingEmails ? 'Publishing & Sending...' : 'Confirm & Publish'}
               </button>
             </div>
           </div>

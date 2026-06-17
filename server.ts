@@ -113,6 +113,57 @@ app.post('/api/admin/notify-status-update', async (req, res) => {
 /**
  * Dispatch admin notification upon being added as an admin (SMTP 2)
  */
+app.post('/api/admin/notify-exam-live', async (req, res) => {
+  const { examTitle, adminEmails, studentEmails } = req.body;
+  if (!examTitle) return res.status(400).json({ error: 'Missing exam title.' });
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_REGISTRATION_EMAIL || 'registration.mlt.exams@gmail.com',
+        pass: process.env.SMTP_REGISTRATION_PASSWORD || 'eeeqmujitrxegggk'
+      }
+    });
+
+    const allRecipients = [];
+    if (adminEmails && Array.isArray(adminEmails)) allRecipients.push(...adminEmails);
+    if (studentEmails && Array.isArray(studentEmails)) allRecipients.push(...studentEmails);
+
+    if (allRecipients.length === 0) {
+      return res.json({ success: true, message: 'No recipients provided.' });
+    }
+
+    const mailOptions = {
+       from: `"MLT Exams" <${process.env.SMTP_REGISTRATION_EMAIL || 'registration.mlt.exams@gmail.com'}>`,
+       bcc: allRecipients,
+       subject: `Live Notification: ${examTitle}`,
+       text: `Dear user,\n\nThe exam "${examTitle}" is now live and available on the portal.\n\nBest Regards,\nMLT Admin`,
+       html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+         <div style="background-color: #0f172a; padding: 20px; text-align: center;">
+           <h2 style="color: #ffffff; margin: 0;">New Exam Announced</h2>
+         </div>
+         <div style="padding: 20px; color: #1e293b;">
+           <p style="font-size: 16px;">Hello,</p>
+           <p style="font-size: 16px;">We are pleased to announce that the exam <strong>"${examTitle}"</strong> is now live on the MLT learning portal.</p>
+           <p style="font-size: 16px;">Please log in to your account to review the exam details.</p>
+         </div>
+         <div style="background-color: #f8fafc; padding: 15px; text-align: center; color: #64748b; font-size: 14px;">
+           <p style="margin: 0;">© ${new Date().getFullYear()} MLT Portal. All Rights Reserved.</p>
+         </div>
+       </div>`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Live exam email sent: ${info.messageId}`);
+    return res.json({ success: true, message: 'Notification emails sent successfully.' });
+
+  } catch (error) {
+    console.error('SMTP notification error:', error);
+    return res.status(500).json({ error: 'Failed to send notifications. Try again later.' });
+  }
+});
+
 app.post('/api/admin/notify-new-admin', async (req, res) => {
   return res.json({ success: true, message: 'Notification bypassed.', smtpConfigured: false });
 });
