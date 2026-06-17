@@ -129,7 +129,7 @@ export default function App() {
               const requireApproval = settingsSnap.exists() ? (settingsSnap.data().requireAdminApproval ?? true) : true;
               const newStatus = requireApproval ? 'pending' : 'approved';
               
-              const updatedData = { ...data, status: newStatus as const };
+              const updatedData: StudentProfile = { ...data, status: newStatus as StudentProfile["status"] };
               await updateDoc(doc(db, 'students', user.uid), { status: newStatus });
               
               // Email dispatch ignored during auto-login context to prevent spam, 
@@ -736,7 +736,7 @@ export default function App() {
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
                         </div>
                       ) : (
-                        activeExams.filter(e => !e.isHidden && !e.isMockSeries).map((exam) => {
+                        activeExams.filter(e => !e.isHidden && !e.isMockSeries).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
@@ -891,7 +891,7 @@ export default function App() {
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">Coming live on 20th June Stay Tuned</p>
                         </div>
                       ) : (
-                        activeExams.filter(e => e.isMockSeries && !e.isHidden).map((exam) => {
+                        activeExams.filter(e => e.isMockSeries && !e.isHidden).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (

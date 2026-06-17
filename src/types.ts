@@ -65,6 +65,7 @@ export interface Exam {
   isHidden?: boolean;
   showLeaderboard?: boolean;
   createdAt: string;
+  order?: number;
 }
 
 export interface ExamAttempt {

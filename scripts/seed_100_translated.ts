@@ -11,7 +11,7 @@ const db = getFirestore(app, config.firestoreDatabaseId);
 async function clean() {
   const q = query(collection(db, 'questionBank'), where('subject', '==', 'Special Test-1'));
   const snap = await getDocs(q);
-  const { chunk } = await import('lodash-es').catch(() => ({ chunk: (arr, size) => Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size)) }));
+  const chunk = (arr: any[], size: number) => Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
   
   const batches = chunk(snap.docs, 100);
   console.log(`Found ${snap.size} to delete in ${batches.length} batches`);

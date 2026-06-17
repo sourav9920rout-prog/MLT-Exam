@@ -162,6 +162,50 @@ async function generateContentWithRetry(client: any, config: any) {
   throw lastError;
 }
 
+function parseJSONRobust(text: string) {
+  let cleanText = text.trim();
+  
+  if (cleanText.startsWith('```')) {
+    const match = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (match && match[1]) {
+      cleanText = match[1].trim();
+    }
+  }
+
+  try { return JSON.parse(cleanText); } catch(e) {}
+  
+  // Clean trailing commas
+  const noTrailingCommas = cleanText.replace(/,\s*([\]}])/g, '$1');
+  try { return JSON.parse(noTrailingCommas); } catch(e) {}
+  
+  // Repair deeply truncated {"questions": [...] } JSON
+  let repairedText = noTrailingCommas;
+  if (!repairedText.endsWith('}') && !repairedText.endsWith(']')) {
+    const lastCompleteObject = repairedText.lastIndexOf('},');
+    if (lastCompleteObject !== -1) {
+       try { return JSON.parse(repairedText.substring(0, lastCompleteObject + 1) + ']}'); } catch(e3) {}
+       try { return JSON.parse(repairedText.substring(0, lastCompleteObject + 1) + ']'); } catch(e3) {}
+    }
+  }
+
+  const startIndex = noTrailingCommas.indexOf('{');
+  const endIndex = noTrailingCommas.lastIndexOf('}');
+  if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+    const maybeJson = noTrailingCommas.substring(startIndex, endIndex + 1);
+    try { return JSON.parse(maybeJson); } catch(e3) {}
+  }
+  
+  const arrStartIndex = noTrailingCommas.indexOf('[');
+  const arrEndIndex = noTrailingCommas.lastIndexOf(']');
+  if (arrStartIndex !== -1 && arrEndIndex !== -1 && arrEndIndex > arrStartIndex) {
+    const maybeJsonArr = noTrailingCommas.substring(arrStartIndex, arrEndIndex + 1);
+    try { return JSON.parse(maybeJsonArr); } catch(e4) {}
+  }
+
+  // Fallback to original throw
+  return JSON.parse(cleanText); 
+}
+
 app.post('/api/admin/extract-questions', async (req, res) => {
   const { documentBase64, mimeType, languageMode } = req.body;
   if (!documentBase64 || !mimeType) {
@@ -216,7 +260,7 @@ Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`j
     });
 
     const outputText = response.text || "{}";
-    const parsedData = JSON.parse(outputText);
+    const parsedData = parseJSONRobust(outputText);
     return res.json({ success: true, questions: parsedData.questions || [] });
 
   } catch (error) {
@@ -242,8 +286,8 @@ app.post('/api/admin/extract-questions-raw', async (req, res) => {
       currentChunk.push(line);
       currentLength += line.length + 1;
       
-      // Split when chunk is roughly 15000 chars and we hit an empty line or a line starting with 'Q'
-      if (currentLength > 15000 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) {
+      // Split when chunk is roughly 4500 chars and we hit an empty line or a line starting with 'Q'
+      if (currentLength > 4500 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) {
         chunks.push(currentChunk.join('\n'));
         currentChunk = [];
         currentLength = 0;
@@ -310,7 +354,7 @@ Return ONLY the raw JSON object.`;
             });
 
             const outputText = response.text || "{}";
-            const parsedData = JSON.parse(outputText);
+            const parsedData = parseJSONRobust(outputText);
             if (parsedData.questions && Array.isArray(parsedData.questions)) {
                 allQuestions.push(...parsedData.questions);
             }
@@ -379,7 +423,7 @@ Return ONLY a raw JSON object matching this schema exactly, do not wrap in markd
     });
 
     const outputText = response.text || "{}";
-    const parsedData = JSON.parse(outputText);
+    const parsedData = parseJSONRobust(outputText);
     return res.json({ success: true, question: parsedData });
 
   } catch (error) {

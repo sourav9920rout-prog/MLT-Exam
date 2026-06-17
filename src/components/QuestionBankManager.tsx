@@ -252,26 +252,48 @@ export default function QuestionBankManager({
       if (isDirectJson) {
         onNotify(`Detected valid JSON. Processing ${extracted.length} questions directly...`);
       } else {
-        onNotify("Processing pasted text via AI. This may take a minute...");
-
-        const response = await fetch("/api/admin/extract-questions-raw", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rawText, languageMode }),
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `Server returned ${response.status} ${response.statusText}`,
-          );
+        const rawLines = rawText.split('\n');
+        const textChunks = [];
+        let currChunk = [];
+        let currLen = 0;
+        for (const line of rawLines) {
+           currChunk.push(line);
+           currLen += line.length + 1;
+           if (currLen > 3000 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) {
+              textChunks.push(currChunk.join('\n'));
+              currChunk = [];
+              currLen = 0;
+           }
         }
+        if (currChunk.length > 0) textChunks.push(currChunk.join('\n'));
 
-        const data = await response.json();
-        if (!data.success || !data.questions) {
-          throw new Error(data.error || "Failed to extract");
+        onNotify(`Processing pasted text via AI in ${textChunks.length} chunks. Please wait...`);
+
+        for (let i = 0; i < textChunks.length; i++) {
+           if (i > 0) {
+             onNotify(`Processing chunk ${i+1} of ${textChunks.length}... (cooldown)`);
+             await new Promise(res => setTimeout(res, 4500));
+           } else {
+             onNotify(`Processing chunk ${i+1} of ${textChunks.length}...`);
+           }
+           
+           try {
+             const response = await fetch("/api/admin/extract-questions-raw", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({ rawText: textChunks[i], languageMode }),
+             });
+             
+             if (response.ok) {
+               const data = await response.json();
+               if (data.success && data.questions) {
+                 extracted.push(...data.questions);
+               }
+             }
+           } catch(e) {
+             console.error(`Chunk ${i+1} failed`, e);
+           }
         }
-
-        extracted = data.questions;
       }
 
       onNotify(`Saving ${extracted.length} questions to database...`);

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { Exam } from '../types.ts';
-import { Play, Trash2, Trophy, Eye, EyeOff } from 'lucide-react';
+import { Play, Trash2, Trophy, Eye, EyeOff, GripHorizontal } from 'lucide-react';
+import { motion } from 'motion/react';
 import QuizRunner from './QuizRunner.tsx';
 import ResultViewer from './ResultViewer.tsx';
 import Leaderboard from './Leaderboard.tsx';
@@ -58,9 +59,49 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
     }
   };
 
-  const displayedExams = filterByMockSeries 
+  const displayedExams = (filterByMockSeries 
     ? exams.filter(e => e.isMockSeries)
-    : exams.filter(e => !e.isMockSeries);
+    : exams.filter(e => !e.isMockSeries)
+  ).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  const [draggedExamId, setDraggedExamId] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedExamId(id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedExamId || draggedExamId === targetId) return;
+    
+    const newExams = [...displayedExams];
+    const draggedIdx = newExams.findIndex(x => x.id === draggedExamId);
+    const targetIdx = newExams.findIndex(x => x.id === targetId);
+    
+    if (draggedIdx === -1 || targetIdx === -1) return;
+
+    const [draggedItem] = newExams.splice(draggedIdx, 1);
+    newExams.splice(targetIdx, 0, draggedItem);
+    
+    const updated = newExams.map((ex, idx) => ({ ...ex, order: idx }));
+    
+    setExams(prev => prev.map(p => {
+       const u = updated.find(x => x.id === p.id);
+       return u ? u : p;
+    }));
+
+    try {
+        await Promise.all(updated.map(ex => updateDoc(doc(db, 'exams', ex.id), { order: ex.order })));
+    } catch(err) {
+        console.error("Failed to save order", err);
+    }
+  };
 
   if (result) {
       return (
@@ -110,10 +151,22 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
       ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {displayedExams.map(ex => (
-              <div key={ex.id} className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+              <motion.div 
+                layout
+                key={ex.id} 
+                draggable
+                onDragStart={(e: React.DragEvent<HTMLDivElement>) => handleDragStart(e, ex.id)}
+                onDragOver={handleDragOver}
+                onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e, ex.id)}
+                onDragEnd={() => setDraggedExamId(null)}
+                className={`bg-white p-5 rounded-xl border border-slate-200 flex flex-col justify-between cursor-move hover:border-slate-300 transition ${draggedExamId === ex.id ? 'opacity-50 border-blue-400 border-dashed bg-blue-50' : ''}`}
+              >
                 <div>
                    <div className="flex justify-between items-start">
-                     <h3 className="font-bold text-slate-800">{ex.title}</h3>
+                     <div className="flex items-center gap-2">
+                       <GripHorizontal size={18} className="text-slate-400" />
+                       <h3 className="font-bold text-slate-800">{ex.title}</h3>
+                     </div>
                      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${ex.isHidden ? 'bg-slate-100 text-slate-600' : 'bg-emerald-100 text-emerald-700'}`}>
                        {ex.isHidden ? 'Hidden' : 'Live'}
                      </span>
@@ -146,7 +199,7 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
                       <Trash2 size={16} /> Delete Exam
                    </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
       )}
