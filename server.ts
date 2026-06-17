@@ -139,19 +139,108 @@ app.post('/api/admin/notify-exam-live', async (req, res) => {
        bcc: allRecipients,
        subject: `Live Notification: ${examTitle}`,
        text: `Dear user,\n\nThe exam "${examTitle}" is now live and available on the portal.\n\nBest Regards,\nMLT Admin`,
-       html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-         <div style="background-color: #0f172a; padding: 20px; text-align: center;">
-           <h2 style="color: #ffffff; margin: 0;">New Exam Announced</h2>
-         </div>
-         <div style="padding: 20px; color: #1e293b;">
-           <p style="font-size: 16px;">Hello,</p>
-           <p style="font-size: 16px;">We are pleased to announce that the exam <strong>"${examTitle}"</strong> is now live on the MLT learning portal.</p>
-           <p style="font-size: 16px;">Please log in to your account to review the exam details.</p>
-         </div>
-         <div style="background-color: #f8fafc; padding: 15px; text-align: center; color: #64748b; font-size: 14px;">
-           <p style="margin: 0;">© ${new Date().getFullYear()} MLT Portal. All Rights Reserved.</p>
-         </div>
-       </div>`
+       html: `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MLT Achievement Portal</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f9;padding:20px 0;">
+  <tr>
+    <td align="center">
+
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td align="center" style="background:#0f172a;padding:30px 20px;">
+            <img src="https://i.postimg.cc/PxRJfkMR/1000525174.png"
+                 alt="MLT Achievement Portal"
+                 width="120"
+                 style="display:block;border:0;">
+            <h1 style="color:#ffffff;font-size:26px;margin:15px 0 0 0;">
+              MLT Achievement Portal
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:35px 30px;">
+
+            <p style="font-size:16px;color:#333333;margin:0 0 20px 0;">
+              Hello <strong>Aspirant</strong>,
+            </p>
+
+            <p style="font-size:15px;line-height:1.8;color:#555555;">
+              We are pleased to inform you that <strong>${examTitle}</strong> is now available on the
+              <strong>MLT Achievement Portal</strong>.
+            </p>
+
+            <p style="font-size:15px;line-height:1.8;color:#555555;">
+              Continue your preparation journey with our carefully designed mock tests and practice series to improve your confidence, accuracy, and performance.
+            </p>
+
+            <div style="text-align:center;margin:35px 0;">
+              <a href="https://mlt-exam-mu.vercel.app/"
+                 style="background:#0f172a;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:bold;display:inline-block;">
+                Start Test
+              </a>
+            </div>
+
+            <p style="font-size:15px;color:#555555;line-height:1.8;">
+              Click the button above or visit our portal to access your test and track your progress.
+            </p>
+
+            <p style="font-size:15px;color:#333333;margin-top:30px;">
+              Best Wishes,<br>
+              <strong>MLT Achievement Portal Team</strong>
+            </p>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td align="center" style="background:#f8fafc;padding:25px;border-top:1px solid #e5e7eb;">
+
+            <img src="https://i.postimg.cc/PxRJfkMR/1000525174.png"
+                 alt="MLT Achievement Portal"
+                 width="70"
+                 style="display:block;border:0;">
+
+            <p style="margin:12px 0 5px 0;font-size:16px;font-weight:bold;color:#111827;">
+              MLT Achievement Portal
+            </p>
+
+            <p style="margin:0;font-size:13px;color:#6b7280;">
+              Empowering MLT Aspirants Through Quality Practice Tests
+            </p>
+
+            <p style="margin:15px 0 0 0;">
+              <a href="https://mlt-exam-mu.vercel.app/"
+                 style="color:#2563eb;text-decoration:none;font-weight:bold;">
+                Visit MLT Achievement Portal
+              </a>
+            </p>
+
+            <p style="margin-top:15px;font-size:12px;color:#9ca3af;">
+              © ${new Date().getFullYear()} MLT Achievement Portal. All Rights Reserved.
+            </p>
+
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>`
     };
 
     const info = await transporter.sendMail(mailOptions);
