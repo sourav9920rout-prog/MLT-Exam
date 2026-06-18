@@ -56,6 +56,7 @@ import AdminResultsViewer from './components/AdminResultsViewer.tsx';
 import Leaderboard from './components/Leaderboard.tsx';
 import SmartImage from './components/SmartImage.tsx';
 import AdminTakeExam from './components/AdminTakeExam.tsx';
+import NoticeBoard from './components/NoticeBoard.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -67,8 +68,8 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series'>('students');
-  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series'>('exams');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices'>('students');
+  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
   const [mobileInput, setMobileInput] = useState('');
@@ -507,6 +508,16 @@ export default function App() {
                 >
                   30 Day 30 Mock Test Series
                 </button>
+                <button
+                  onClick={() => setAdminTab('notices')}
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'notices' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                  }`}
+                >
+                  Notice Board
+                </button>
               </div>
             </div>
 
@@ -516,6 +527,7 @@ export default function App() {
               {adminTab === 'exams' && <QuestCreator onNotify={showNotification} />}
               {adminTab === 'results' && <AdminResultsViewer />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
+              {adminTab === 'notices' && <NoticeBoard isAdmin={true} onNotify={showNotification} />}
               {adminTab === 'mock_series' && (
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
@@ -720,6 +732,16 @@ export default function App() {
                       }`}
                     >
                       30 Day 30 Mock Test Series
+                    </button>
+                    <button
+                      onClick={() => setStudentTab('notices')}
+                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'notices' 
+                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      }`}
+                    >
+                      Notice Board
                     </button>
                   </div>
                 </div>
@@ -929,6 +951,9 @@ export default function App() {
                       )}
                     </div>
                   )}
+
+                  {/* TABS: NOTICES */}
+                  {studentTab === 'notices' && <NoticeBoard isAdmin={false} onNotify={showNotification} />}
 
                 </div>
               </div>

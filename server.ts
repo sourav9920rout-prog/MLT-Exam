@@ -134,12 +134,7 @@ app.post('/api/admin/notify-exam-live', async (req, res) => {
       return res.json({ success: true, message: 'No recipients provided.' });
     }
 
-    const mailOptions = {
-       from: `"MLT Exams" <${process.env.SMTP_REGISTRATION_EMAIL || 'registration.mlt.exams@gmail.com'}>`,
-       bcc: allRecipients,
-       subject: `Live Notification: ${examTitle}`,
-       text: `Dear user,\n\nThe exam "${examTitle}" is now live and available on the portal.\n\nBest Regards,\nMLT Admin`,
-       html: `<!DOCTYPE html>
+    const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -240,12 +235,178 @@ app.post('/api/admin/notify-exam-live', async (req, res) => {
 </table>
 
 </body>
-</html>`
-    };
+</html>`;
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Live exam email sent: ${info.messageId}`);
-    return res.json({ success: true, message: 'Notification emails sent successfully.' });
+    let sentCount = 0;
+    const chunkSize = 50;
+
+    for (let i = 0; i < allRecipients.length; i += chunkSize) {
+      const batch = allRecipients.slice(i, i + chunkSize);
+      const mailOptions = {
+         from: `"MLT Exams" <${process.env.SMTP_REGISTRATION_EMAIL || 'registration.mlt.exams@gmail.com'}>`,
+         bcc: batch,
+         subject: `Live Notification: ${examTitle}`,
+         text: `Dear user,\n\nThe exam "${examTitle}" is now live and available on the portal.\n\nBest Regards,\nMLT Admin`,
+         html: htmlContent
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`Live exam email batch sent: ${info.messageId} (${batch.length} recipients)`);
+      sentCount += batch.length;
+      
+      if (i + chunkSize < allRecipients.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    return res.json({ success: true, message: `Notification emails sent successfully to ${sentCount} recipients.` });
+
+  } catch (error) {
+    console.error('SMTP notification error:', error);
+    return res.status(500).json({ error: 'Failed to send notifications. Try again later.' });
+  }
+});
+
+app.post('/api/admin/notify-notice', async (req, res) => {
+  const { noticeTitle, noticeContent, adminEmails, studentEmails } = req.body;
+  if (!noticeTitle) return res.status(400).json({ error: 'Missing notice title.' });
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_REGISTRATION_EMAIL || 'registration.mlt.exams@gmail.com',
+        pass: process.env.SMTP_REGISTRATION_PASSWORD || 'eeeqmujitrxegggk'
+      }
+    });
+
+    const allRecipients = [];
+    if (adminEmails && Array.isArray(adminEmails)) allRecipients.push(...adminEmails);
+    if (studentEmails && Array.isArray(studentEmails)) allRecipients.push(...studentEmails);
+
+    if (allRecipients.length === 0) {
+      return res.json({ success: true, message: 'No recipients provided.' });
+    }
+
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MLT Achievement Portal</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f9;padding:20px 0;">
+  <tr>
+    <td align="center">
+
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td align="center" style="background:#0f172a;padding:30px 20px;">
+            <img src="https://i.postimg.cc/PxRJfkMR/1000525174.png"
+                 alt="MLT Achievement Portal"
+                 width="120"
+                 style="display:block;border:0;">
+            <h1 style="color:#ffffff;font-size:26px;margin:15px 0 0 0;">
+              Important Notice
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:35px 30px;">
+
+            <p style="font-size:16px;color:#333333;margin:0 0 20px 0;">
+              Hello <strong>Aspirant</strong>,
+            </p>
+
+            <h3 style="color:#111827;font-size:20px;margin:0 0 15px 0;">
+              ${noticeTitle}
+            </h3>
+
+            <p style="font-size:15px;line-height:1.8;color:#555555;white-space:pre-wrap;">${noticeContent}</p>
+
+            <div style="text-align:center;margin:35px 0;">
+              <a href="https://mlt-exam-mu.vercel.app/"
+                 style="background:#0f172a;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:bold;display:inline-block;">
+                Go to Portal
+              </a>
+            </div>
+
+            <p style="font-size:15px;color:#333333;margin-top:30px;">
+              Best Wishes,<br>
+              <strong>MLT Achievement Portal Team</strong>
+            </p>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td align="center" style="background:#f8fafc;padding:25px;border-top:1px solid #e5e7eb;">
+
+            <img src="https://i.postimg.cc/PxRJfkMR/1000525174.png"
+                 alt="MLT Achievement Portal"
+                 width="70"
+                 style="display:block;border:0;">
+
+            <p style="margin:12px 0 5px 0;font-size:16px;font-weight:bold;color:#111827;">
+              MLT Achievement Portal
+            </p>
+
+            <p style="margin:0;font-size:13px;color:#6b7280;">
+              Empowering MLT Aspirants Through Quality Practice Tests
+            </p>
+
+            <p style="margin:15px 0 0 0;">
+              <a href="https://mlt-exam-mu.vercel.app/"
+                 style="color:#2563eb;text-decoration:none;font-weight:bold;">
+                Visit MLT Achievement Portal
+              </a>
+            </p>
+
+            <p style="margin-top:15px;font-size:12px;color:#9ca3af;">
+              © ${new Date().getFullYear()} MLT Achievement Portal. All Rights Reserved.
+            </p>
+
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>`;
+
+    let sentCount = 0;
+    const chunkSize = 50;
+
+    for (let i = 0; i < allRecipients.length; i += chunkSize) {
+      const batch = allRecipients.slice(i, i + chunkSize);
+      const mailOptions = {
+         from: `"MLT Exams" <${process.env.SMTP_REGISTRATION_EMAIL || 'registration.mlt.exams@gmail.com'}>`,
+         bcc: batch,
+         subject: `Important Notice: ${noticeTitle}`,
+         text: `Dear Aspirant,\n\n${noticeTitle}\n\n${noticeContent}\n\nBest Regards,\nMLT Admin`,
+         html: htmlContent
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`Notice email batch sent: ${info.messageId} (${batch.length} recipients)`);
+      sentCount += batch.length;
+      
+      if (i + chunkSize < allRecipients.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    return res.json({ success: true, message: `Notification emails sent successfully to ${sentCount} recipients.` });
 
   } catch (error) {
     console.error('SMTP notification error:', error);

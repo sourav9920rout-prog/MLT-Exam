@@ -113,8 +113,8 @@ export default function Leaderboard({ examId, examName, onClose, studentId }: Le
         </div>
 
         {/* DESKTOP LIST */}
-        <div className="hidden md:flex flex-1 overflow-x-auto overflow-y-hidden flex-col bg-white">
-          <div className="min-w-[800px] h-full flex flex-col">
+        <div className="hidden md:flex flex-1 min-h-0 overflow-x-auto overflow-y-hidden flex-col bg-white">
+          <div className="min-w-[800px] flex-1 min-h-0 flex flex-col">
             {/* Header Row */}
             <div className="grid grid-cols-[60px_1.5fr_120px_100px_100px_100px_120px_150px_40px] gap-2 items-center px-4 py-3 border-b border-slate-100 bg-white shrink-0 text-xs font-semibold tracking-wider uppercase text-slate-400">
               <div className="text-center">Rank</div>
