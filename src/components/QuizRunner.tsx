@@ -910,7 +910,22 @@ export default function QuizRunner({
       {/* TOP HEADER: Dark background */}
       <div className="bg-zinc-800 text-white flex justify-between items-center px-2 md:px-4 py-1.5 md:py-2 shrink-0">
           <div className="font-bold text-xs md:text-sm text-yellow-400 truncate pr-2 max-w-[50%]">{exam.title}</div>
-          <div className="flex items-center gap-4 text-sm font-medium">
+          <div className="flex items-center gap-2 md:gap-4 text-sm font-medium">
+             {/* Language Switch Button */}
+             <button
+                onClick={() => setExamLanguage(prev => prev === 'english' ? 'hindi' : 'english')}
+                className="flex items-center gap-1 md:gap-1.5 bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 px-1.5 md:px-2 py-0.5 md:py-1 rounded shadow-sm transition text-xs md:text-sm"
+                title="Switch Language"
+             >
+                <RefreshCw size={12} className="text-sky-300 shrink-0" />
+                <span className="font-medium text-slate-100 hidden sm:inline text-[11px] md:text-xs tracking-wider uppercase">
+                  {examLanguage}
+                </span>
+                <span className="font-medium text-slate-100 sm:hidden text-[10px] uppercase">
+                  Lang
+                </span>
+             </button>
+
              <div className="flex items-center gap-2 bg-zinc-900/80 px-2 md:px-4 py-0.5 md:py-1 rounded-md border border-zinc-700 shadow-inner">
                <Clock size={14} className={overallTimeLeft < 300 ? "text-red-500 animate-pulse" : "text-emerald-400"} />
                <span className="text-zinc-400 text-[10px] uppercase tracking-wider font-bold">Exam Time Remaining:</span>
