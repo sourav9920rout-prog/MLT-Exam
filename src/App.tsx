@@ -10,6 +10,7 @@ import {
   User as FirebaseUser
 } from 'firebase/auth';
 import { 
+  addDoc,
   doc, 
   getDoc, 
   setDoc, 
@@ -41,7 +42,8 @@ import {
   Vote,
   Printer,
   Trophy,
-  Calendar
+  Calendar,
+  Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -57,6 +59,7 @@ import Leaderboard from './components/Leaderboard.tsx';
 import SmartImage from './components/SmartImage.tsx';
 import AdminTakeExam from './components/AdminTakeExam.tsx';
 import NoticeBoard from './components/NoticeBoard.tsx';
+import AdminFeedbackViewer from './components/AdminFeedbackViewer.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -68,7 +71,7 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices'>('students');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback'>('students');
   const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
@@ -76,6 +79,8 @@ export default function App() {
 
   // Active quiz container
   const [activeExam, setActiveExam] = useState<any | null>(null);
+  const [pendingFeedbackResult, setPendingFeedbackResult] = useState<any | null>(null);
+  const [feedbackRatings, setFeedbackRatings] = useState({ ux: 0, difficulty: 0, relevance: 0 });
   const [reviewResult, setReviewResult] = useState<any | null>(null);
   const [leaderboardExam, setLeaderboardExam] = useState<{ id: string, name: string } | null>(null);
 
@@ -518,6 +523,16 @@ export default function App() {
                 >
                   Notice Board
                 </button>
+                <button
+                  onClick={() => setAdminTab('feedback')}
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'feedback' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                  }`}
+                >
+                  Ratings & Feedback
+                </button>
               </div>
             </div>
 
@@ -528,6 +543,7 @@ export default function App() {
               {adminTab === 'results' && <AdminResultsViewer />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
               {adminTab === 'notices' && <NoticeBoard isAdmin={true} onNotify={showNotification} />}
+              {adminTab === 'feedback' && <AdminFeedbackViewer />}
               {adminTab === 'mock_series' && (
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
@@ -552,14 +568,78 @@ export default function App() {
                 studentPhotoURL={currentUser.photoURL}
                 onFinished={(res) => {
                   setActiveExam(null);
-                  setReviewResult(res);
-                  fetchAttemptsRoster();
+                  setPendingFeedbackResult(res);
                 }}
                 onCancel={() => {
                   setActiveExam(null);
                 }}
                 onNotify={showNotification}
               />
+            ) : pendingFeedbackResult ? (
+              <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 relative flex flex-col items-center">
+                   <div className="bg-blue-50 text-blue-600 p-4 rounded-full mb-4">
+                      <Star size={32} />
+                   </div>
+                   <h2 className="text-2xl font-bold text-slate-900 text-center">Interview Experience</h2>
+                   <p className="text-sm text-slate-500 mb-8 text-center mt-2">
+                     Before we display your results, please rate your experience across these parameters.
+                   </p>
+                   
+                   <div className="w-full space-y-6">
+                     {[
+                       { key: 'ux', label: 'User Experience', desc: 'How would you rate the overall platform?' },
+                       { key: 'difficulty', label: 'Difficulty of Questions', desc: 'How appropriate was the difficulty level?' },
+                       { key: 'relevance', label: 'Relevance of Questions', desc: 'Alignment of questions with the target role.' }
+                     ].map((item) => (
+                       <div key={item.key} className="space-y-2">
+                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                           <span className="font-semibold text-slate-800 text-sm">{item.label}</span>
+                           <span className="text-xs text-slate-500 hidden sm:inline">{item.desc}</span>
+                         </div>
+                         <div className="flex gap-2">
+                           {[1, 2, 3, 4, 5].map(star => (
+                             <button 
+                               key={star} 
+                               onClick={() => setFeedbackRatings(prev => ({ ...prev, [item.key]: star }))}
+                               className={`p-2 rounded-full transition-all hover:scale-110 ${((feedbackRatings as any)[item.key] || 0) >= star ? 'text-amber-400 bg-amber-50' : 'text-slate-300 hover:text-amber-200'}`}
+                             >
+                               <Star size={24} fill={((feedbackRatings as any)[item.key] || 0) >= star ? 'currentColor' : 'none'} />
+                             </button>
+                           ))}
+                         </div>
+                         <p className="text-[10px] text-slate-400 sm:hidden">{item.desc}</p>
+                       </div>
+                     ))}
+                   </div>
+                   
+                   <button 
+                     disabled={Object.values(feedbackRatings).some(v => v === 0)}
+                     onClick={async () => {
+                        try {
+                          await addDoc(collection(db, 'feedbacks'), {
+                             studentId: currentUser.uid,
+                             studentName: studentProfile?.fullName || currentUser.displayName,
+                             examId: pendingFeedbackResult.examId,
+                             examName: pendingFeedbackResult.examName,
+                             ratings: feedbackRatings,
+                             createdAt: new Date().toISOString()
+                          });
+                        } catch (e) {
+                          console.error('Failed to submit feedback', e);
+                        }
+                        
+                        setReviewResult(pendingFeedbackResult);
+                        fetchAttemptsRoster();
+                        setPendingFeedbackResult(null);
+                        setFeedbackRatings({ ux: 0, difficulty: 0, relevance: 0 });
+                     }}
+                     className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     Submit Feedback & View Results
+                   </button>
+                </div>
+              </div>
             ) : reviewResult ? (
               
               /* IMMERSIVE AI DETAILED REVIEW VIEWPORT */

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 import { Bell, Copy, Plus, Trash2, Send, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export interface Notice {
   id: string;
@@ -177,9 +178,16 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
         {notices.length === 0 ? (
           <div className="text-center py-12 text-slate-400 font-mono text-sm">No notices available.</div>
         ) : (
-          notices.map(notice => (
-            <div key={notice.id} className={`p-4 border rounded-lg ${notice.isPublished ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 border-dashed'}`}>
-              <div className="flex justify-between items-start mb-2">
+          <AnimatePresence>
+            {notices.map(notice => (
+              <motion.div 
+                key={notice.id} 
+                initial={{ opacity: 0, height: 0, scale: 0.95, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', scale: 1, marginBottom: 16 }}
+                exit={{ opacity: 0, height: 0, scale: 0.95, marginBottom: 0, padding: 0, margin: 0, border: 0 }}
+                className={`p-4 border rounded-lg overflow-hidden ${notice.isPublished ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 border-dashed'}`}
+              >
+                <div className="flex justify-between items-start mb-2">
                 <h3 className="font-bold text-lg text-slate-800">{notice.title}</h3>
                 <div className="flex items-center gap-2">
                    {!notice.isPublished && isAdmin && (
@@ -216,8 +224,9 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
                    </button>
                  )}
               </div>
-            </div>
-          ))
+            </motion.div>
+            ))}
+          </AnimatePresence>
         )}
       </div>
 
