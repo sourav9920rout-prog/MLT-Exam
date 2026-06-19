@@ -260,6 +260,31 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
     });
   };
 
+  const deleteAllQuestions = async () => {
+    if (!activeChapter) return;
+    setConfirmConfig({
+      title: "Delete ALL questions in this chapter?",
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          const qSnap = await getDocs(collection(db, `chapter_chapters/${activeChapter.id}/questions`));
+          const batch = writeBatch(db);
+          qSnap.docs.forEach(d => {
+            batch.delete(doc(db, `chapter_chapters/${activeChapter.id}/questions`, d.id));
+          });
+          await batch.commit();
+          fetchQuestions(activeChapter.id);
+          setConfirmConfig(null);
+          onNotify("All questions deleted");
+        } catch (err) {
+          console.error(err);
+          onNotify("Error deleting questions", true);
+        }
+        setLoading(false);
+      }
+    });
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row gap-6">
       
@@ -324,9 +349,7 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
                 <div className="flex gap-2">
                   <button onClick={() => fetchQuestions(activeChapter.id)} className="p-2 border rounded-lg text-slate-600 hover:bg-slate-50 transition"><RefreshCw size={14} /></button>
                   <button onClick={() => setIsRawTextModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs hover:bg-blue-700 transition">
-                    <Plus size={14} /> Bulk Paste
-                  </button>
-                </div>
+                    <Plus size={14} /> Bulk Paste</button>{questions.length > 0 && (<button onClick={deleteAllQuestions} className='flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-600 border border-red-200 rounded-lg font-bold text-xs hover:bg-red-200 transition'><Trash2 size={14} /> Delete All</button>)}</div>
              </div>
              
              <div className="space-y-3 overflow-y-auto max-h-[600px] pr-2">

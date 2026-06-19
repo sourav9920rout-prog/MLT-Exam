@@ -579,6 +579,7 @@ Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`j
         ]
       },
       config: {
+        maxOutputTokens: 8192,
         responseMimeType: "application/json",
         responseSchema: responseSchema
       }
@@ -713,6 +714,7 @@ Return ONLY the raw JSON object.`;
               model: "gemini-3.1-flash-lite",
               contents: extractionPrompt,
               config: {
+                maxOutputTokens: 8192,
                 responseMimeType: "application/json",
                 responseSchema: responseSchema
               }
