@@ -60,6 +60,8 @@ import SmartImage from './components/SmartImage.tsx';
 import AdminTakeExam from './components/AdminTakeExam.tsx';
 import NoticeBoard from './components/NoticeBoard.tsx';
 import AdminFeedbackViewer from './components/AdminFeedbackViewer.tsx';
+import AdminChapterWise from './components/AdminChapterWise.tsx';
+import StudentChapterWise from './components/StudentChapterWise.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -71,8 +73,8 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback'>('students');
-  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices'>('exams');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise'>('students');
+  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
   const [mobileInput, setMobileInput] = useState('');
@@ -533,6 +535,16 @@ export default function App() {
                 >
                   Ratings & Feedback
                 </button>
+                <button
+                  onClick={() => setAdminTab('chapter_wise')}
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'chapter_wise' 
+                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                  }`}
+                >
+                  Chapter Wise Quizzes
+                </button>
               </div>
             </div>
 
@@ -544,6 +556,7 @@ export default function App() {
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
               {adminTab === 'notices' && <NoticeBoard isAdmin={true} onNotify={showNotification} />}
               {adminTab === 'feedback' && <AdminFeedbackViewer />}
+              {adminTab === 'chapter_wise' && <AdminChapterWise onNotify={showNotification} />}
               {adminTab === 'mock_series' && (
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
@@ -823,6 +836,16 @@ export default function App() {
                     >
                       Notice Board
                     </button>
+                    <button
+                      onClick={() => setStudentTab('chapter_wise')}
+                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'chapter_wise' 
+                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
+                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      }`}
+                    >
+                      Chapter Wise Quizzes
+                    </button>
                   </div>
                 </div>
 
@@ -1034,6 +1057,15 @@ export default function App() {
 
                   {/* TABS: NOTICES */}
                   {studentTab === 'notices' && <NoticeBoard isAdmin={false} onNotify={showNotification} />}
+
+                  {studentTab === 'chapter_wise' && (
+                    <StudentChapterWise 
+                      studentId={currentUser.uid}
+                      studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
+                      studentEmail={currentUser.email || ''}
+                      onNotify={showNotification}
+                    />
+                  )}
 
                 </div>
               </div>
