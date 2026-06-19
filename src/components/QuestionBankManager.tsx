@@ -253,13 +253,26 @@ export default function QuestionBankManager({
         onNotify(`Detected valid JSON. Processing ${extracted.length} questions directly...`);
       } else {
         const rawLines = rawText.split('\n');
+        const processedLines = [];
+        for (const line of rawLines) {
+           if (line.length > 3000) {
+             let remaining = line;
+             while (remaining.length > 0) {
+               processedLines.push(remaining.substring(0, 3000));
+               remaining = remaining.substring(3000);
+             }
+           } else {
+             processedLines.push(line);
+           }
+        }
+
         const textChunks = [];
         let currChunk = [];
         let currLen = 0;
-        for (const line of rawLines) {
+        for (const line of processedLines) {
            currChunk.push(line);
            currLen += line.length + 1;
-           if (currLen > 3000 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) {
+           if ((currLen > 3000 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) || currLen > 5000) {
               textChunks.push(currChunk.join('\n'));
               currChunk = [];
               currLen = 0;

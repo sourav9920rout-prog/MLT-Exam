@@ -159,10 +159,25 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
       // Chunky upload
       const textChunks = [];
       let currentChunk = "";
+      
+      // Process lines, breaking any overly long lines
+      const processedLines = [];
       const lines = rawTextValue.split("\n");
       for (const line of lines) {
+        if (line.length > 3000) {
+          let remaining = line;
+          while (remaining.length > 0) {
+            processedLines.push(remaining.substring(0, 3000));
+            remaining = remaining.substring(3000);
+          }
+        } else {
+          processedLines.push(line);
+        }
+      }
+
+      for (const line of processedLines) {
         if (currentChunk.length + line.length > 3000) {
-          textChunks.push(currentChunk);
+          if (currentChunk) textChunks.push(currentChunk);
           currentChunk = line + "\n";
         } else {
           currentChunk += line + "\n";
@@ -179,7 +194,21 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
           body: JSON.stringify({ rawText: textChunks[i], languageMode: 'bilingual' }),
         });
         
-        const data = await response.json();
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          console.error("Non-JSON response from server", e);
+          onNotify(`Chunk ${i+1} failed: Server returned an invalid response.`, true);
+          continue;
+        }
+
+        if (!response.ok) {
+           console.error("Server error", data);
+           onNotify(`Chunk ${i+1} failed: ${data.error || 'Unknown error'}`, true);
+           continue;
+        }
+
         if (data.questions && data.questions.length > 0) {
           const batch = writeBatch(db);
           for (const q of data.questions) {

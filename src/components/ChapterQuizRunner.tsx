@@ -33,7 +33,15 @@ export default function ChapterQuizRunner({ chapter, subjectName, studentId, stu
   const fetchQuestions = async () => {
     try {
       const snap = await getDocs(collection(db, `chapter_chapters/${chapter.id}/questions`));
-      setQuestions(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as BankQuestion[]);
+      const fetchedQuestions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as BankQuestion[];
+      
+      // Shuffle questions
+      for (let i = fetchedQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [fetchedQuestions[i], fetchedQuestions[j]] = [fetchedQuestions[j], fetchedQuestions[i]];
+      }
+      
+      setQuestions(fetchedQuestions);
     } catch (e) {
       console.error(e);
       onNotify("Failed to load questions", true);
@@ -42,12 +50,11 @@ export default function ChapterQuizRunner({ chapter, subjectName, studentId, stu
   };
 
   const handleSelectOption = (optIndex: number) => {
-    if (isSubmitted) return;
+    if (isSubmitted || answers[currentIndex] !== undefined) return;
     setAnswers(prev => ({ ...prev, [currentIndex]: optIndex }));
   };
 
   const calculateResults = async () => {
-    setShowConfirmSubmit(false);
     setSubmitting(true);
     let correct = 0;
     
@@ -142,23 +149,56 @@ export default function ChapterQuizRunner({ chapter, subjectName, studentId, stu
            {currentQ.hindiQuestion && <p className="text-lg text-slate-600 mb-6">{currentQ.hindiQuestion}</p>}
            
            <div className="space-y-3 mt-8">
-             {currentQ.englishOptions.map((opt, i) => (
+             {currentQ.englishOptions.map((opt, i) => {
+               const hasAnswered = answers[currentIndex] !== undefined;
+               const isSelected = answers[currentIndex] === i;
+               const isCorrect = currentQ.correctOptionIndex === i;
+               
+               let optionClass = "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50";
+               let textClass = "text-slate-700";
+               
+               if (hasAnswered) {
+                 if (isCorrect) {
+                    optionClass = "border-green-500 bg-green-50 shadow-sm";
+                    textClass = "text-green-800";
+                 } else if (isSelected) {
+                    optionClass = "border-red-500 bg-red-50 shadow-sm";
+                    textClass = "text-red-800";
+                 } else {
+                    optionClass = "border-slate-200 bg-white opacity-60";
+                 }
+               } else if (isSelected) {
+                  optionClass = "border-blue-500 bg-blue-50/50 shadow-sm";
+                  textClass = "text-blue-800";
+               }
+
+               return (
                <button
                  key={i}
+                 disabled={hasAnswered}
                  onClick={() => handleSelectOption(i)}
-                 className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${answers[currentIndex] === i ? 'border-blue-500 bg-blue-50/50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
+                 className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${optionClass}`}
                >
                  <div>
-                   <p className={`font-semibold ${answers[currentIndex] === i ? 'text-blue-800' : 'text-slate-700'}`}>{opt}</p>
-                   {currentQ.hindiOptions[i] && <p className={`mt-1 text-sm ${answers[currentIndex] === i ? 'text-blue-600' : 'text-slate-500'}`}>{currentQ.hindiOptions[i]}</p>}
+                   <p className={`font-semibold ${textClass}`}>{opt}</p>
+                   {currentQ.hindiOptions[i] && <p className={`mt-1 text-sm ${hasAnswered && (isCorrect || isSelected) ? textClass : 'text-slate-500'}`}>{currentQ.hindiOptions[i]}</p>}
                  </div>
-                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${answers[currentIndex] === i ? 'border-blue-500 bg-blue-500' : 'border-slate-300 group-hover:border-slate-400'}`}>
-                   {answers[currentIndex] === i && <CheckCircle size={14} className="text-white" />}
+                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${hasAnswered && isCorrect ? 'border-green-500 bg-green-500' : hasAnswered && isSelected && !isCorrect ? 'border-red-500 bg-red-500' : isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300 group-hover:border-slate-400'}`}>
+                   {hasAnswered && isCorrect && <CheckCircle size={14} className="text-white" />}
+                   {hasAnswered && isSelected && !isCorrect && <XCircle size={14} className="text-white" />}
                  </div>
                </button>
-             ))}
+             )})}
            </div>
          </div>
+         
+         {answers[currentIndex] !== undefined && (currentQ.englishExplanation || currentQ.hindiExplanation) && (
+           <div className="mt-8 bg-blue-50 border border-blue-100 p-6 rounded-xl shadow-sm">
+              <h4 className="font-bold text-blue-900 mb-2">Explanation</h4>
+              {currentQ.englishExplanation && <p className="text-slate-700 leading-relaxed mb-2">{currentQ.englishExplanation}</p>}
+              {currentQ.hindiExplanation && <p className="text-slate-600 leading-relaxed">{currentQ.hindiExplanation}</p>}
+           </div>
+         )}
        </div>
        
        {/* Footer */}
@@ -184,23 +224,23 @@ export default function ChapterQuizRunner({ chapter, subjectName, studentId, stu
            </button>
          ) : (
            <button 
-             onClick={() => setShowConfirmSubmit(true)}
+             onClick={calculateResults}
              disabled={submitting}
              className="px-8 py-3 bg-red-600 border-2 border-red-600 text-white rounded-lg font-bold shadow-[0_4px_15px_rgba(220,38,38,0.3)] hover:bg-red-700 hover:border-red-700 hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-50"
            >
-             {submitting ? 'Submitting...' : 'Submit Quiz'} <CheckCircle size={18} />
+             {submitting ? 'Finishing...' : 'Finish Quiz'} <CheckCircle size={18} />
            </button>
          )}
        </div>
 
         {/* Submit Confirmation Modal */}
-        {showConfirmSubmit && (
+        {false && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
                 <CheckCircle size={32} />
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">Submit Quiz?</h3>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Finish Quiz?</h3>
               <p className="text-slate-600 mb-6 font-medium">Are you sure you want to lock in your answers and submit?</p>
               <div className="flex gap-4 w-full">
                 <button 

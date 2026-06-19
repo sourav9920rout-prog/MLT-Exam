@@ -14,7 +14,7 @@ dotenv.config();
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { decrypt, encrypt } from './src/utils/crypto.js';
 import nodemailer from 'nodemailer';
 
@@ -547,6 +547,29 @@ Each question MUST follow this EXACT Schema:
 ${extraInstruction}
 Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`json.`;
 
+    const responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        questions: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              englishQuestion: { type: Type.STRING },
+              englishOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+              hindiQuestion: { type: Type.STRING },
+              hindiOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+              correctOptionIndex: { type: Type.INTEGER },
+              englishExplanation: { type: Type.STRING },
+              hindiExplanation: { type: Type.STRING },
+              subject: { type: Type.STRING },
+              difficulty: { type: Type.STRING },
+            },
+          },
+        },
+      },
+    };
+
     const response = await generateContentWithRetry(gClient, {
       model: "gemini-3.1-flash-lite",
       contents: {
@@ -556,7 +579,8 @@ Return ONLY the raw JSON object, without markdown formatting blocks like \`\`\`j
         ]
       },
       config: {
-        responseMimeType: "application/json"
+        responseMimeType: "application/json",
+        responseSchema: responseSchema
       }
     });
 
@@ -581,14 +605,30 @@ app.post('/api/admin/extract-questions-raw', async (req, res) => {
     const chunks: string[] = [];
     let currentChunk: string[] = [];
     let currentLength = 0;
-    const lines = rawText.split('\n');
     
-    for (const line of lines) {
+    // First, split into lines
+    const rawLines = rawText.split('\n');
+    const processedLines: string[] = [];
+    
+    // Break any excessively long lines into smaller parts to avoid massive single lines
+    for (const line of rawLines) {
+      if (line.length > 3000) {
+        let remaining = line;
+        while (remaining.length > 0) {
+          processedLines.push(remaining.substring(0, 3000));
+          remaining = remaining.substring(3000);
+        }
+      } else {
+        processedLines.push(line);
+      }
+    }
+    
+    for (const line of processedLines) {
       currentChunk.push(line);
       currentLength += line.length + 1;
       
-      // Split when chunk is roughly 4500 chars and we hit an empty line or a line starting with 'Q'
-      if (currentLength > 4500 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) {
+      // Split when chunk is roughly 4500 chars and we hit an empty line or a line starting with 'Q', OR hit an absolute hard limit
+      if ((currentLength > 4500 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) || currentLength > 8000) {
         chunks.push(currentChunk.join('\n'));
         currentChunk = [];
         currentLength = 0;
@@ -646,11 +686,35 @@ ${extraInstruction}
 Return ONLY the raw JSON object.`;
 
         try {
+            const responseSchema = {
+              type: Type.OBJECT,
+              properties: {
+                questions: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      englishQuestion: { type: Type.STRING },
+                      englishOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      hindiQuestion: { type: Type.STRING },
+                      hindiOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      correctOptionIndex: { type: Type.INTEGER },
+                      englishExplanation: { type: Type.STRING },
+                      hindiExplanation: { type: Type.STRING },
+                      subject: { type: Type.STRING },
+                      difficulty: { type: Type.STRING },
+                    },
+                  },
+                },
+              },
+            };
+
             const response = await generateContentWithRetry(gClient, {
               model: "gemini-3.1-flash-lite",
               contents: extractionPrompt,
               config: {
-                responseMimeType: "application/json"
+                responseMimeType: "application/json",
+                responseSchema: responseSchema
               }
             });
 
@@ -714,11 +778,27 @@ Return ONLY a raw JSON object matching this schema exactly, do not wrap in markd
   "difficulty": "string"
 }`;
 
+    const responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        englishQuestion: { type: Type.STRING },
+        hindiQuestion: { type: Type.STRING },
+        englishOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        hindiOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        correctOptionIndex: { type: Type.INTEGER },
+        englishExplanation: { type: Type.STRING },
+        hindiExplanation: { type: Type.STRING },
+        subject: { type: Type.STRING },
+        difficulty: { type: Type.STRING }
+      }
+    };
+
     const response = await generateContentWithRetry(ai, {
       model: "gemini-3.1-flash-lite",
       contents: extractionPrompt,
       config: {
         responseMimeType: "application/json",
+        responseSchema: responseSchema,
         temperature: 0.1
       }
     });
