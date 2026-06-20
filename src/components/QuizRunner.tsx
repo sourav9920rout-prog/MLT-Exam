@@ -189,17 +189,37 @@ export default function QuizRunner({
              return (seed - 1) / 2147483646;
         };
 
-        // Shuffle within sections
+        // Split questions into Core and General
+        const isCore = (q: BankQuestion) => {
+            const subj = (q.subject || '').trim().toUpperCase();
+            return subj.startsWith('CRE') || subj.startsWith('SUBJECT');
+        };
+
+        const coreIds = rawQuestions.filter(isCore).map(q => q.id).sort();
+        const genIds = rawQuestions.filter(q => !isCore(q)).map(q => q.id).sort();
+        const orderedIds = [...coreIds, ...genIds];
+
+        // Shuffle within sections, keeping Core and General separated
         let myQIds: string[] = [];
         let startIndex = 0;
         for (const sec of actSections) {
-             const secIds = exam.questionIds.slice(startIndex, startIndex + sec.questionCount);
-             // Fisher-Yates
-             for (let i = secIds.length - 1; i > 0; i--) {
+             const secIds = orderedIds.slice(startIndex, startIndex + sec.questionCount);
+             
+             const secCore = secIds.filter(id => coreIds.includes(id));
+             const secGen = secIds.filter(id => genIds.includes(id));
+
+             // Fisher-Yates for Core
+             for (let i = secCore.length - 1; i > 0; i--) {
                  const j = Math.floor(prng() * (i + 1));
-                 [secIds[i], secIds[j]] = [secIds[j], secIds[i]];
+                 [secCore[i], secCore[j]] = [secCore[j], secCore[i]];
              }
-             myQIds = myQIds.concat(secIds);
+             // Fisher-Yates for General
+             for (let i = secGen.length - 1; i > 0; i--) {
+                 const j = Math.floor(prng() * (i + 1));
+                 [secGen[i], secGen[j]] = [secGen[j], secGen[i]];
+             }
+             
+             myQIds = myQIds.concat(secCore, secGen);
              startIndex += sec.questionCount;
         }
 
