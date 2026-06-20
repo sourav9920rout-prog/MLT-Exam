@@ -855,7 +855,7 @@ export default function QuizRunner({
   }
 
   return (
-    <div className={`fixed inset-0 z-50 w-full h-[100dvh] bg-slate-100 flex flex-col font-sans select-none overflow-hidden ${(isFrozen || submitting) ? 'pointer-events-none opacity-[0.98]' : ''}`}>
+    <div className={`fixed inset-0 z-50 w-full h-[100dvh] h-[100svh] bg-slate-100 flex flex-col font-sans select-none overflow-hidden ${(isFrozen || submitting) ? 'pointer-events-none opacity-[0.98]' : ''}`}>
       
       {(isFrozen || submitting) && (
         <div className="fixed inset-0 z-[9999] bg-transparent cursor-not-allowed"></div>
@@ -1090,7 +1090,7 @@ export default function QuizRunner({
           </div>
 
           {/* RIGHT: PALETTE PANEL */}
-          <div className="w-full md:w-[300px] landscape:w-[260px] bg-slate-100/80 flex flex-col shrink-0 border-t-[3px] md:border-t-0 md:border-l-[3px] landscape:border-t-0 landscape:border-l-[3px] border-slate-300">
+          <div className="w-full h-[40%] md:h-auto landscape:h-auto md:w-[300px] landscape:w-[260px] bg-slate-100/80 flex flex-col shrink-0 border-t-[3px] md:border-t-0 md:border-l-[3px] landscape:border-t-0 landscape:border-l-[3px] border-slate-300">
               
               {/* Profile Block */}
               <div className="bg-white border-b border-slate-300 flex items-center gap-2 md:gap-3 py-1 md:py-2 px-2 md:px-3 shrink-0 drop-shadow-sm z-10 justify-between">
