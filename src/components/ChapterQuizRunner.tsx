@@ -149,7 +149,7 @@ export default function ChapterQuizRunner({ chapter, subjectName, studentId, stu
            {currentQ.hindiQuestion && <p className="text-lg text-slate-600 mb-6">{currentQ.hindiQuestion}</p>}
            
            <div className="space-y-3 mt-8">
-             {currentQ.englishOptions.map((opt, i) => {
+             {(currentQ.englishOptions || ["", "", "", ""]).map((opt, i) => {
                const hasAnswered = answers[currentIndex] !== undefined;
                const isSelected = answers[currentIndex] === i;
                const isCorrect = currentQ.correctOptionIndex === i;

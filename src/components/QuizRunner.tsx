@@ -618,7 +618,7 @@ export default function QuizRunner({
              htmlReport += `<div style="margin-bottom: 25px; padding: 15px; border: 1px solid #eee; border-radius: 8px;">`;
              htmlReport += `<p style="margin: 0 0 10px 0; font-weight: bold;">Q${idx + 1}. ${q.englishQuestion}</p>`;
              
-             q.englishOptions.forEach((opt, oIdx) => {
+             (q.englishOptions || ["", "", "", ""]).forEach((opt, oIdx) => {
                  let bg = 'transparent';
                  if (oIdx === q.correctOptionIndex) bg = '#dcfce3'; // Highlight correct answer in light green
                  else if (oIdx === userAns && !isCorrect) bg = '#fee2e2'; // Highlight wrong selected answer in light red

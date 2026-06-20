@@ -29,9 +29,9 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
   const fetchSubjects = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, 'chapter_subjects'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      setSubjects(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const snap = await getDocs(collection(db, 'chapter_subjects'));
+      const sorted = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+      setSubjects(sorted);
     } catch (e) {
       console.error(e);
       onNotify("Error fetching subjects", true);
@@ -42,9 +42,11 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
   const fetchChapters = async (subjectId: string) => {
     setLoading(true);
     try {
-      const q = query(collection(db, 'chapter_chapters'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      setChapters(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter((c: any) => c.subjectId === subjectId));
+      const snap = await getDocs(collection(db, 'chapter_chapters'));
+      const sorted = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter((c: any) => c.subjectId === subjectId)
+        .sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+      setChapters(sorted);
     } catch (e) {
       console.error(e);
       onNotify("Error fetching chapters", true);
@@ -55,9 +57,10 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
   const fetchQuestions = async (chapterId: string) => {
     setLoading(true);
     try {
-      const q = query(collection(db, `chapter_chapters/${chapterId}/questions`), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      setQuestions(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as BankQuestion[]);
+      const snap = await getDocs(collection(db, `chapter_chapters/${chapterId}/questions`));
+      const sorted = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        .sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0)) as BankQuestion[];
+      setQuestions(sorted);
     } catch (e) {
       console.error(e);
       onNotify("Error fetching questions", true);
@@ -362,9 +365,9 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
                      <p className="text-sm text-slate-800 font-medium mb-1">{q.englishQuestion}</p>
                      <p className="text-sm text-slate-600 mb-3">{q.hindiQuestion}</p>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                       {q.englishOptions.map((opt, i) => (
+                       {(q.englishOptions || ["", "", "", ""]).map((opt, i) => (
                          <div key={i} className={`p-2 rounded border ${i === q.correctOptionIndex ? 'bg-green-100 border-green-300 text-green-800 font-bold' : 'bg-white border-slate-200 text-slate-600'}`}>
-                           {opt} | {q.hindiOptions[i]}
+                           {opt} | {q.hindiOptions?.[i] || ""}
                          </div>
                        ))}
                      </div>

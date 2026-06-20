@@ -26,11 +26,14 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
   const fetchData = async () => {
     setLoading(true);
     try {
-      const subSnap = await getDocs(query(collection(db, 'chapter_subjects'), orderBy('createdAt', 'desc')));
-      const chSnap = await getDocs(query(collection(db, 'chapter_chapters'), orderBy('createdAt', 'desc')));
+      const subSnap = await getDocs(collection(db, 'chapter_subjects'));
+      const chSnap = await getDocs(collection(db, 'chapter_chapters'));
       
-      setSubjects(subSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setChapters(chSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const subs = subSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+      const chaps = chSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+      
+      setSubjects(subs);
+      setChapters(chaps);
     } catch (e) {
       console.error(e);
       onNotify("Error loading subjects", true);

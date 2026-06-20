@@ -725,7 +725,7 @@ export default function App() {
                             )}
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                              {q.englishOptions.map((optText: string, oIdx: number) => {
+                              {(q.englishOptions || ["", "", "", ""]).map((optText: string, oIdx: number) => {
                                 const isSelected = studentChoiceIdx === oIdx;
                                 const isCorrectKey = q.correctOptionIndex === oIdx;
 
@@ -871,7 +871,18 @@ export default function App() {
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
                                 {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide">Mock Series</span>}
                               </div>
-                              <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
+                              <details className="mt-2 group">
+                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-700 transition-colors select-none [&::-webkit-details-marker]:hidden">
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="group-open:rotate-90 transition-transform duration-200 text-[10px]">▶</span>
+                                    <span className="group-open:hidden">View Details</span>
+                                    <span className="hidden group-open:inline">Hide Details</span>
+                                  </span>
+                                </summary>
+                                <div className="mt-3 p-3 bg-slate-50/50 border border-slate-100 rounded-lg">
+                                  <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
+                                </div>
+                              </details>
                               <div className="flex gap-4 pt-2 font-mono text-[11px] text-slate-500">
                                 <span>⏲️ Speed: {exam.durationMinutes} Minutes</span>
                                 <span>🎯 Correct Rate: {exam.passingPercentage}% pass</span>
@@ -908,52 +919,94 @@ export default function App() {
                           Result documents will generate immediately upon complete answers submission.
                         </div>
                       ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-sm border-collapse">
-                            <thead>
-                              <tr className="border-b border-slate-250 text-slate-400 font-mono text-xs uppercase bg-slate-50/70 p-2">
-                                <th className="py-3 px-4 font-normal">Exam Name</th>
-                                <th className="py-3 px-4 font-normal">Submission Date</th>
-                                <th className="py-3 px-4 font-normal">Percentage Grade</th>
-                                <th className="py-3 px-4 font-normal">Results Verdict</th>
-                                <th className="py-3 px-4 font-normal text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-150">
-                              {historicalResults.map((resItem) => (
-                                <tr key={resItem.id} className="hover:bg-slate-50 transition">
-                                  <td className="py-4 px-4 font-semibold text-slate-900">{resItem.examName}</td>
-                                  <td className="py-4 px-4 font-mono text-xs text-slate-600">
-                                    {new Date(resItem.submittedAt).toLocaleDateString()}
-                                  </td>
-                                  <td className="py-4 px-4 font-bold text-slate-800">{resItem.percentage}% ({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</td>
-                                  <td className="py-4 px-4">
-                                    <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
-                                      resItem.passed ? 'bg-emerald-50 text-emerald-700 font-mono border border-emerald-250' : 'bg-rose-50 text-rose-700 font-mono border border-rose-250'
-                                    }`}>
-                                      {resItem.passed ? 'Passed 🎉' : 'Failed 📋'}
-                                    </span>
-                                  </td>
-                                  <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
-                                    {activeExams.find(e => e.id === resItem.examId)?.showLeaderboard && (
-                                      <button
-                                        onClick={() => setLeaderboardExam({ id: resItem.examId, name: resItem.examName })}
-                                        className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-600 cursor-pointer flex items-center justify-center gap-1"
-                                      >
-                                        <Trophy size={13} /> Leaderboard
-                                      </button>
-                                    )}
-                                    <button
-                                      onClick={() => setReviewResult(resItem)}
-                                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1"
-                                    >
-                                      <Eye size={13} /> View Correction
-                                    </button>
-                                  </td>
+                        <div className="space-y-4">
+                          {/* Desktop Table View */}
+                          <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left text-sm border-collapse">
+                              <thead>
+                                <tr className="border-b border-slate-250 text-slate-400 font-mono text-xs uppercase bg-slate-50/70 p-2">
+                                  <th className="py-3 px-4 font-normal">Exam Name</th>
+                                  <th className="py-3 px-4 font-normal">Submission Date</th>
+                                  <th className="py-3 px-4 font-normal">Percentage Grade</th>
+                                  <th className="py-3 px-4 font-normal">Results Verdict</th>
+                                  <th className="py-3 px-4 font-normal text-right">Actions</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody className="divide-y divide-slate-150">
+                                {historicalResults.map((resItem) => (
+                                  <tr key={resItem.id} className="hover:bg-slate-50 transition">
+                                    <td className="py-4 px-4 font-semibold text-slate-900">{resItem.examName}</td>
+                                    <td className="py-4 px-4 font-mono text-xs text-slate-600">
+                                      {new Date(resItem.submittedAt).toLocaleDateString()}
+                                    </td>
+                                    <td className="py-4 px-4 font-bold text-slate-800">{resItem.percentage}% ({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</td>
+                                    <td className="py-4 px-4">
+                                      <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                                        resItem.passed ? 'bg-emerald-50 text-emerald-700 font-mono border border-emerald-250' : 'bg-rose-50 text-rose-700 font-mono border border-rose-250'
+                                      }`}>
+                                        {resItem.passed ? 'Passed 🎉' : 'Failed 📋'}
+                                      </span>
+                                    </td>
+                                    <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
+                                      {activeExams.find(e => e.id === resItem.examId)?.showLeaderboard && (
+                                        <button
+                                          onClick={() => setLeaderboardExam({ id: resItem.examId, name: resItem.examName })}
+                                          className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-600 cursor-pointer flex items-center justify-center gap-1"
+                                        >
+                                          <Trophy size={13} /> Leaderboard
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => setReviewResult(resItem)}
+                                        className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1"
+                                      >
+                                        <Eye size={13} /> View Correction
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* Mobile Cards View */}
+                          <div className="md:hidden space-y-3">
+                            {historicalResults.map((resItem) => (
+                              <div key={resItem.id} className="bg-slate-50 border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
+                                <div className="flex justify-between items-start gap-4">
+                                  <div>
+                                    <h4 className="font-semibold text-slate-900 text-sm leading-tight">{resItem.examName}</h4>
+                                    <p className="font-mono text-xs text-slate-500 mt-1.5">{new Date(resItem.submittedAt).toLocaleDateString()}</p>
+                                  </div>
+                                  <span className={`shrink-0 inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                                    resItem.passed ? 'bg-emerald-100 text-emerald-700 font-mono border border-emerald-200' : 'bg-rose-100 text-rose-700 font-mono border border-rose-200'
+                                  }`}>
+                                    {resItem.passed ? 'Passed 🎉' : 'Failed 📋'}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm py-1">
+                                  <span className="text-slate-500 font-medium text-xs">Score</span>
+                                  <span className="font-bold text-slate-800">{resItem.percentage}% <span className="text-slate-400 font-medium text-xs ml-1">({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</span></span>
+                                </div>
+                                <div className="flex gap-2 pt-2 border-t border-slate-200">
+                                  {activeExams.find(e => e.id === resItem.examId)?.showLeaderboard && (
+                                    <button
+                                      onClick={() => setLeaderboardExam({ id: resItem.examId, name: resItem.examName })}
+                                      className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-600 cursor-pointer flex items-center justify-center gap-1.5 bg-white"
+                                    >
+                                      <Trophy size={13} /> Leaderboard
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setReviewResult(resItem)}
+                                    className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1.5 bg-white"
+                                  >
+                                    <Eye size={13} /> Review
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1026,7 +1079,18 @@ export default function App() {
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide">Mock Series</span>
                               </div>
-                              <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
+                              <details className="mt-2 group">
+                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-700 transition-colors select-none [&::-webkit-details-marker]:hidden">
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="group-open:rotate-90 transition-transform duration-200 text-[10px]">▶</span>
+                                    <span className="group-open:hidden">View Details</span>
+                                    <span className="hidden group-open:inline">Hide Details</span>
+                                  </span>
+                                </summary>
+                                <div className="mt-3 p-3 bg-slate-50/50 border border-slate-100 rounded-lg">
+                                  <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
+                                </div>
+                              </details>
                               <div className="flex gap-4 pt-2 font-mono text-[11px] text-slate-500">
                                 <span>⏲️ Speed: {exam.durationMinutes} Minutes</span>
                                 <span>🎯 Correct Rate: {exam.passingPercentage}% pass</span>

@@ -586,19 +586,19 @@ export default function QuestionBankManager({
 
       await setDoc(doc(db, "questionBank", qId), payload);
 
-      // Cascade update to existing results and exam attempts
+      // Cascade update to ongoing exam attempts (skip historical results to preserve past grades)
       if (editingId) {
         try {
           const { writeBatch } = await import("firebase/firestore");
-          let updatedDocs = 0;
-          const qRes = query(collection(db, "results"), where("questionIds", "array-contains", qId));
-          const resultsSnap = await getDocs(qRes);
           
           const qAtt = query(collection(db, "examAttempts"), where("questionIds", "array-contains", qId));
           const attemptsSnap = await getDocs(qAtt);
 
-          const batch = writeBatch(db);
-          const processSnapshot = (snap: any, collName: string) => {
+          
+          let totalUpdated = 0;
+          const operations: { ref: any, data: any }[] = [];
+
+          const processSnapshot = (snap: any) => {
               snap.forEach((d: any) => {
                   let needsUpdate = false;
                   const data = d.data();
@@ -652,19 +652,27 @@ export default function QuestionBankManager({
                   }
                   
                   if (needsUpdate) {
-                      const docRef = doc(db, collName, d.id);
-                      batch.update(docRef, data);
-                      updatedDocs++;
+                      operations.push({ ref: d.ref, data });
                   }
               });
           };
           
-          processSnapshot(resultsSnap, "results");
-          processSnapshot(attemptsSnap, "examAttempts");
+          processSnapshot(attemptsSnap);
           
-          if (updatedDocs > 0) {
-             await batch.commit();
-             console.log(`Cascaded update to ${updatedDocs} existing records.`);
+          if (operations.length > 0) {
+             const CHUNK_SIZE = 15; // Kept lower to prevent 10MB payload limit errors per batch.
+             for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+                 const chunk = operations.slice(i, i + CHUNK_SIZE);
+                 const chunkBatch = writeBatch(db);
+                 for (const op of chunk) {
+                     chunkBatch.update(op.ref, op.data);
+                 }
+                 await chunkBatch.commit();
+                 totalUpdated += chunk.length;
+                 // Small delay to prevent write stream exhaustion
+                 await new Promise(r => setTimeout(r, 400));
+             }
+             console.log(`Cascaded update to ${totalUpdated} existing records.`);
           }
         } catch (err) {
            console.error("Error cascading update", err);
