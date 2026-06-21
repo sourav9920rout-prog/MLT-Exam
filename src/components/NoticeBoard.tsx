@@ -142,34 +142,34 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
   if (loading) return <div className="p-8 text-center text-slate-500">Loading notices...</div>;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+    <div className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold flex items-center gap-2"><Bell className="text-blue-600" /> Notice Board</h2>
+        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900"><Bell className="text-blue-600" /> Notice Board</h2>
         {isAdmin && !isCreating && (
-          <button onClick={() => setIsCreating(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
+          <button onClick={() => setIsCreating(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow-[0_2px_10px_rgba(37,99,235,0.2)]">
             <Plus size={16} /> New Notice
           </button>
         )}
       </div>
 
       {isCreating && (
-        <div className="bg-slate-50 p-4 border border-slate-200 rounded-lg mb-6 space-y-4">
+        <div className="bg-white/50 p-4 border border-white rounded-lg mb-6 space-y-4 shadow-sm">
           <input
             type="text"
-            className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full p-2 border border-slate-200 rounded bg-white text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="Notice Title"
             value={newNoticeTitle}
             onChange={e => setNewNoticeTitle(e.target.value)}
           />
           <textarea
-            className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-32 resize-none"
+            className="w-full p-2 border border-slate-200 rounded bg-white text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-32 resize-none"
             placeholder="Notice Content..."
             value={newNoticeContent}
             onChange={e => setNewNoticeContent(e.target.value)}
           />
           <div className="flex justify-end gap-2">
-            <button onClick={() => setIsCreating(false)} className="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded">Cancel</button>
-            <button onClick={handleCreateNotice} className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded">Save Notice</button>
+            <button onClick={() => setIsCreating(false)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded">Cancel</button>
+            <button onClick={handleCreateNotice} className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded shadow-sm">Save Notice</button>
           </div>
         </div>
       )}
@@ -185,27 +185,27 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
                 initial={{ opacity: 0, height: 0, scale: 0.95, marginBottom: 0 }}
                 animate={{ opacity: 1, height: 'auto', scale: 1, marginBottom: 16 }}
                 exit={{ opacity: 0, height: 0, scale: 0.95, marginBottom: 0, padding: 0, margin: 0, border: 0 }}
-                className={`p-4 border rounded-lg overflow-hidden ${notice.isPublished ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 border-dashed'}`}
+                className={`p-4 border rounded-lg overflow-hidden backdrop-blur-md transition shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${notice.isPublished ? 'bg-white border-slate-100' : 'bg-slate-50 border-slate-200 border-dashed'}`}
               >
                 <div className="flex justify-between items-start mb-2">
-                <h3 className="font-bold text-lg text-slate-800">{notice.title}</h3>
+                <h3 className="font-bold text-lg text-slate-900">{notice.title}</h3>
                 <div className="flex items-center gap-2">
                    {!notice.isPublished && isAdmin && (
-                     <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Draft</span>
+                     <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-amber-200">Draft</span>
                    )}
                    {isAdmin && (
                      <div className="flex items-center gap-2">
                        {confirmDeleteId === notice.id ? (
                          <div className="flex items-center gap-1">
-                           <button onClick={() => handleDeleteNotice(notice.id)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-bold transition" title="Confirm Delete">
+                           <button onClick={() => handleDeleteNotice(notice.id)} className="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2 py-1 rounded text-xs font-bold transition border border-rose-200" title="Confirm Delete">
                              Confirm
                            </button>
-                           <button onClick={() => setConfirmDeleteId(null)} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1 rounded text-xs font-bold transition" title="Cancel">
+                           <button onClick={() => setConfirmDeleteId(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded text-xs font-bold transition" title="Cancel">
                              Cancel
                            </button>
                          </div>
                        ) : (
-                         <button onClick={() => setConfirmDeleteId(notice.id)} className="text-red-500 hover:bg-red-50 p-1.5 rounded" title="Delete">
+                         <button onClick={() => setConfirmDeleteId(notice.id)} className="text-rose-500 hover:bg-rose-50 p-1.5 rounded transition" title="Delete">
                             <Trash2 size={16} />
                          </button>
                        )}
@@ -215,11 +215,11 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
               </div>
               <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">{notice.content}</p>
               <div className="mt-4 flex items-center justify-between">
-                 <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+                 <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
                     <Clock size={12} /> {new Date(notice.createdAt).toLocaleString()}
                  </div>
                  {isAdmin && !notice.isPublished && (
-                   <button onClick={() => openPublishModal(notice)} className="flex items-center gap-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded text-sm font-bold transition">
+                   <button onClick={() => openPublishModal(notice)} className="flex items-center gap-1 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 px-3 py-1.5 rounded text-sm font-bold transition">
                      <Send size={14} /> Publish
                    </button>
                  )}

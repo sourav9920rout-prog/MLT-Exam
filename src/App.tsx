@@ -375,8 +375,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-[#1e293b] font-sans antialiased selection:bg-blue-100 selection:text-blue-800">
+    <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-slate-800 font-sans antialiased selection:bg-blue-200/50 selection:text-blue-900 relative overflow-hidden">
       
+      {/* PREMIUM LIGHT MESH BACKGROUND */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center p-0 m-0" aria-hidden="true">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/50 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-200/40 blur-[120px]" />
+        <div className="absolute top-[40%] left-[60%] w-[40%] h-[40%] rounded-full bg-violet-200/50 blur-[120px]" />
+      </div>
+
       {/* GLOBAL NOTIFICATION COMPONENT */}
       <AnimatePresence>
         {toast && (
@@ -443,12 +450,12 @@ export default function App() {
       </AnimatePresence>
 
       {/* SYSTEM NAV HEADER HEADER */}
-      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-8 sticky top-0 z-30 print:hidden">
+      <header className="h-16 bg-white/60 backdrop-blur-xl border-b border-white shadow-sm flex items-center justify-between px-6 md:px-8 sticky top-0 z-30 print:hidden relative">
         <div className="flex items-center gap-3">
           <img 
             src="/logo.png" 
             alt="MLT Achievement Logo" 
-            className="w-8 h-8 md:w-10 md:h-10 object-contain shrink-0 rounded" 
+            className="w-8 h-8 md:w-10 md:h-10 object-contain shrink-0 rounded shadow-sm" 
             onError={(e) => {
               e.currentTarget.onerror = null;
               // Fallback placeholder if logo.png doesn't exist yet
@@ -464,8 +471,8 @@ export default function App() {
         {currentUser && (
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col text-right justify-center">
-              <span className="text-xs font-bold truncate leading-tight">{currentUser.displayName || 'Active Member'}</span>
-              <span className="text-[10px] text-slate-400 truncate leading-tight mt-0.5">
+              <span className="text-xs font-bold truncate leading-tight text-slate-900">{currentUser.displayName || 'Active Member'}</span>
+              <span className="text-[10px] text-slate-500 truncate leading-tight mt-0.5">
                 {userRole === 'admin' ? 'Super Admin' : 'Student'}
               </span>
             </div>
@@ -474,7 +481,7 @@ export default function App() {
             )}
             <button
               onClick={handleSignOut}
-              className="p-2 text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center rounded-full hover:bg-slate-100 cursor-pointer"
+              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center justify-center rounded-full cursor-pointer"
               title="Logout"
             >
               <LogOut size={18} />
@@ -506,8 +513,8 @@ export default function App() {
         ) : studentStatus !== 'approved' && userRole !== 'admin' ? (
           
           /* PENDING / REJECTED STATUS SPLASHES */
-          <div className="max-w-lg mx-auto bg-white border border-slate-200 p-8 rounded-2xl shadow-xl text-center space-y-6 mt-12">
-            <div className={`p-4 rounded-full max-w-fit mx-auto ${studentStatus === 'rejected' || studentStatus === 'revoked' ? 'bg-rose-50 text-rose-500' : 'bg-amber-50 text-amber-500'}`}>
+          <div className="max-w-lg mx-auto bg-white/70 backdrop-blur-xl border border-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] text-center space-y-6 mt-12 relative z-10">
+            <div className={`p-4 rounded-full max-w-fit mx-auto ${studentStatus === 'rejected' || studentStatus === 'revoked' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
               <AlertCircle size={40} className="animate-bounce" />
             </div>
             
@@ -524,14 +531,14 @@ export default function App() {
               </p>
             </div>
 
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-500 space-y-1">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-600 space-y-1">
               <p>Requested: {currentUser.email}</p>
               <p>Admissions Status: <span className="font-bold uppercase text-amber-600">{studentStatus}</span></p>
             </div>
 
             <button
               onClick={handleSignOut}
-              className="px-6 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 transition text-sm font-semibold cursor-pointer"
+              className="px-6 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition text-sm font-semibold cursor-pointer text-slate-700"
             >
               Sign Out & Disconnect
             </button>
@@ -552,13 +559,13 @@ export default function App() {
               </div>
 
               {/* NAV TAB CONTROLS */}
-              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-200/50 backdrop-blur-xl rounded-xl border border-white/60 shadow-[inset_0_1px_4px_rgba(0,0,0,0.03)] overflow-x-auto w-full max-w-full">
+              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/50 backdrop-blur-md rounded-xl border border-white/60 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
                 <button
                   onClick={() => setAdminTab('students')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'students' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   Student Management
@@ -567,8 +574,8 @@ export default function App() {
                   onClick={() => setAdminTab('exams')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'exams' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   Exam Bank
@@ -577,8 +584,8 @@ export default function App() {
                   onClick={() => setAdminTab('results')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'results' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   Results
@@ -587,8 +594,8 @@ export default function App() {
                   onClick={() => setAdminTab('admins')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'admins' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   Global Admins
@@ -597,8 +604,8 @@ export default function App() {
                   onClick={() => setAdminTab('mock_series')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'mock_series' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   30 Day 30 Mock Test Series
@@ -607,8 +614,8 @@ export default function App() {
                   onClick={() => setAdminTab('notices')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'notices' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   Notice Board
@@ -617,8 +624,8 @@ export default function App() {
                   onClick={() => setAdminTab('feedback')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'feedback' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   Ratings & Feedback
@@ -627,8 +634,8 @@ export default function App() {
                   onClick={() => setAdminTab('chapter_wise')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'chapter_wise' 
-                      ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                   }`}
                 >
                   Chapter Wise Quizzes
@@ -768,33 +775,33 @@ export default function App() {
 
                 {/* Score and percentage cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
                     <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Final Score</span>
-                    <h4 className="text-2xl font-bold text-slate-900 mt-2">{reviewResult.score} / {reviewResult.maxScore || reviewResult.totalQuestions}</h4>
+                    <h4 className="text-2xl font-bold text-white mt-2">{reviewResult.score} / {reviewResult.maxScore || reviewResult.totalQuestions}</h4>
                   </div>
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
                     <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Percentage Pass Grade</span>
-                    <h4 className="text-2xl font-bold text-blue-600 mt-2">{reviewResult.percentage}%</h4>
+                    <h4 className="text-2xl font-bold text-indigo-400 mt-2">{reviewResult.percentage}%</h4>
                   </div>
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
                     <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Evaluation Status</span>
                     <span className={`inline-block mt-2 px-3.5 py-1 text-xs font-bold rounded-full ${
                       reviewResult.passed 
-                        ? 'bg-emerald-55 text-emerald-800' 
-                        : 'bg-rose-55 text-rose-800'
+                        ? 'bg-emerald-500/20 text-emerald-400' 
+                        : 'bg-rose-500/20 text-rose-400'
                     }`}>
                       {reviewResult.passed ? 'PASSED' : 'FAILED'}
                     </span>
                   </div>
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
                     <span className="text-xs font-mono text-slate-400 font-bold uppercase block font-medium">Wrong Answers Map</span>
-                    <h4 className="text-2xl font-bold text-rose-600 mt-2">{reviewResult.incorrectCount} / {reviewResult.totalQuestions}</h4>
+                    <h4 className="text-2xl font-bold text-rose-400 mt-2">{reviewResult.incorrectCount} / {reviewResult.totalQuestions}</h4>
                   </div>
                 </div>
 
                 {/* Historical answers mapping list */}
-                <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
-                  <h4 className="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Questions Review Block</h4>
+                <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 rounded-xl p-6 md:p-8 shadow-2xl space-y-6">
+                  <h4 className="font-bold text-white text-base border-b border-white/10 pb-2">Questions Review Block</h4>
                   {reviewResult.questionsList && reviewResult.questionsList.length > 0 ? (
                     <div className="divide-y divide-slate-150">
                       {reviewResult.questionsList.map((q: any, idx: number) => {
@@ -873,13 +880,13 @@ export default function App() {
                   </div>
 
                   {/* Tabs header list */}
-                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-200/50 backdrop-blur-xl rounded-xl border border-white/60 shadow-[inset_0_1px_4px_rgba(0,0,0,0.03)] overflow-x-auto w-full max-w-full">
+                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/50 backdrop-blur-md rounded-xl border border-white/60 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
                     <button
                       onClick={() => setStudentTab('exams')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'exams' 
-                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                       }`}
                     >
                       Exam Bank
@@ -888,8 +895,8 @@ export default function App() {
                       onClick={() => setStudentTab('results')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'results' 
-                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                       }`}
                     >
                       History Results
@@ -898,8 +905,8 @@ export default function App() {
                       onClick={() => setStudentTab('profile')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'profile' 
-                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                       }`}
                     >
                       Profile
@@ -908,8 +915,8 @@ export default function App() {
                       onClick={() => setStudentTab('mock_series')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'mock_series' 
-                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                       }`}
                     >
                       30 Day 30 Mock Test Series
@@ -918,8 +925,8 @@ export default function App() {
                       onClick={() => setStudentTab('notices')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'notices' 
-                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                       }`}
                     >
                       Notice Board
@@ -928,8 +935,8 @@ export default function App() {
                       onClick={() => setStudentTab('chapter_wise')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'chapter_wise' 
-                          ? 'text-blue-900 bg-white/80 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white' 
-                          : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/40'
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
                       }`}
                     >
                       Chapter Wise Quizzes
@@ -944,8 +951,8 @@ export default function App() {
                   {studentTab === 'exams' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {activeExams.filter(e => !e.isHidden && !e.isMockSeries).length === 0 ? (
-                        <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-none">
-                          <BookOpen className="mx-auto text-slate-300" size={36} />
+                        <div className="md:col-span-2 text-center py-16 bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-10 space-y-3 shadow-sm">
+                          <BookOpen className="mx-auto text-slate-400" size={36} />
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
                         </div>
                       ) : (
@@ -953,21 +960,21 @@ export default function App() {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
-                          <div key={exam.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+                          <div key={exam.id} className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
-                                {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide">Mock Series</span>}
+                                {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>}
                               </div>
                               <details className="mt-2 group">
-                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-700 transition-colors select-none [&::-webkit-details-marker]:hidden">
+                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-800 transition-colors select-none [&::-webkit-details-marker]:hidden">
                                   <span className="flex items-center gap-1.5">
                                     <span className="group-open:rotate-90 transition-transform duration-200 text-[10px]">▶</span>
                                     <span className="group-open:hidden">View Details</span>
                                     <span className="hidden group-open:inline">Hide Details</span>
                                   </span>
                                 </summary>
-                                <div className="mt-3 p-3 bg-slate-50/50 border border-slate-100 rounded-lg">
+                                <div className="mt-3 p-3 bg-white/50 border border-slate-100 rounded-lg">
                                   <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
                                 </div>
                               </details>
@@ -985,12 +992,12 @@ export default function App() {
                                     setActiveExam(exam);
                                   }
                                 }}
-                                className={`py-2 rounded-lg text-white font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-sm ${hasAttempted ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'}`}
+                                className={`py-2 rounded-lg font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] ${hasAttempted ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'}`}
                               >
                                 {hasAttempted ? 'Already Attempted' : <>Launch Examination <ChevronRight size={14} /></>}
                               </button>
                               {hasAttempted && (
-                                <p className="text-[10px] text-center text-slate-500 font-medium">You have already submitted this exam. Only one attempt is allowed.</p>
+                                <p className="text-[10px] text-center text-slate-400 font-medium">You have already submitted this exam. Only one attempt is allowed.</p>
                               )}
                             </div>
                           </div>
@@ -1001,9 +1008,9 @@ export default function App() {
 
                   {/* TABS: COMPLETED RESULTS LIST */}
                   {studentTab === 'results' && (
-                    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                    <div className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm">
                       {historicalResults.length === 0 ? (
-                        <div className="text-center py-12 text-slate-400 font-mono text-sm">
+                        <div className="text-center py-12 text-slate-500 font-mono text-sm">
                           Result documents will generate immediately upon complete answers submission.
                         </div>
                       ) : (
@@ -1012,7 +1019,7 @@ export default function App() {
                           <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left text-sm border-collapse">
                               <thead>
-                                <tr className="border-b border-slate-250 text-slate-400 font-mono text-xs uppercase bg-slate-50/70 p-2">
+                                <tr className="border-b border-slate-200 text-slate-500 font-mono text-xs uppercase bg-slate-50/50 p-2">
                                   <th className="py-3 px-4 font-normal">Exam Name</th>
                                   <th className="py-3 px-4 font-normal">Submission Date</th>
                                   <th className="py-3 px-4 font-normal">Percentage Grade</th>
@@ -1020,17 +1027,17 @@ export default function App() {
                                   <th className="py-3 px-4 font-normal text-right">Actions</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-150">
+                              <tbody className="divide-y divide-slate-100">
                                 {historicalResults.map((resItem) => (
                                   <tr key={resItem.id} className="hover:bg-slate-50 transition">
                                     <td className="py-4 px-4 font-semibold text-slate-900">{resItem.examName}</td>
-                                    <td className="py-4 px-4 font-mono text-xs text-slate-600">
+                                    <td className="py-4 px-4 font-mono text-xs text-slate-500">
                                       {new Date(resItem.submittedAt).toLocaleDateString()}
                                     </td>
-                                    <td className="py-4 px-4 font-bold text-slate-800">{resItem.percentage}% ({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</td>
+                                    <td className="py-4 px-4 font-bold text-blue-700">{resItem.percentage}% <span className="text-slate-400 text-xs font-normal">({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</span></td>
                                     <td className="py-4 px-4">
                                       <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
-                                        resItem.passed ? 'bg-emerald-50 text-emerald-700 font-mono border border-emerald-250' : 'bg-rose-50 text-rose-700 font-mono border border-rose-250'
+                                        resItem.passed ? 'bg-emerald-100 text-emerald-700 font-mono border border-emerald-200' : 'bg-rose-100 text-rose-700 font-mono border border-rose-200'
                                       }`}>
                                         {resItem.passed ? 'Passed 🎉' : 'Failed 📋'}
                                       </span>
@@ -1039,7 +1046,7 @@ export default function App() {
                                       {activeExams.find(e => e.id === resItem.examId)?.showLeaderboard && (
                                         <button
                                           onClick={() => setLeaderboardExam({ id: resItem.examId, name: resItem.examName })}
-                                          className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-600 cursor-pointer flex items-center justify-center gap-1"
+                                          className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-700 cursor-pointer flex items-center justify-center gap-1 bg-white"
                                         >
                                           <Trophy size={13} /> Leaderboard
                                         </button>
@@ -1047,14 +1054,14 @@ export default function App() {
                                       <button
                                         onClick={() => handleResendEmail(resItem)}
                                         disabled={sendingResultEmail === resItem.id}
-                                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' : 'border-indigo-200 hover:bg-indigo-50 text-indigo-600 cursor-pointer'} flex items-center justify-center gap-1`}
+                                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' : 'border-indigo-200 hover:bg-indigo-50 text-indigo-700 cursor-pointer bg-white'} flex items-center justify-center gap-1`}
                                       >
                                         <Mail size={13} /> 
                                         {sendingResultEmail === resItem.id ? 'Sending...' : 'Email Result'}
                                       </button>
                                       <button
                                         onClick={() => setReviewResult(resItem)}
-                                        className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1"
+                                        className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-teal-200 hover:bg-teal-50 text-teal-700 cursor-pointer flex items-center justify-center gap-1 bg-white"
                                       >
                                         <Eye size={13} /> View Correction
                                       </button>
@@ -1068,7 +1075,7 @@ export default function App() {
                           {/* Mobile Cards View */}
                           <div className="md:hidden space-y-3">
                             {historicalResults.map((resItem) => (
-                              <div key={resItem.id} className="bg-slate-50 border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
+                              <div key={resItem.id} className="bg-white/50 border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
                                 <div className="flex justify-between items-start gap-4">
                                   <div>
                                     <h4 className="font-semibold text-slate-900 text-sm leading-tight">{resItem.examName}</h4>
@@ -1082,13 +1089,13 @@ export default function App() {
                                 </div>
                                 <div className="flex justify-between items-center text-sm py-1">
                                   <span className="text-slate-500 font-medium text-xs">Score</span>
-                                  <span className="font-bold text-slate-800">{resItem.percentage}% <span className="text-slate-400 font-medium text-xs ml-1">({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</span></span>
+                                  <span className="font-bold text-slate-900">{resItem.percentage}% <span className="text-slate-400 font-medium text-xs ml-1">({resItem.score}/{resItem.maxScore || resItem.totalQuestions})</span></span>
                                 </div>
-                                <div className="flex gap-2 pt-2 border-t border-slate-200">
+                                <div className="flex gap-2 pt-2 border-t border-slate-100">
                                   {activeExams.find(e => e.id === resItem.examId)?.showLeaderboard && (
                                     <button
                                       onClick={() => setLeaderboardExam({ id: resItem.examId, name: resItem.examName })}
-                                      className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-600 cursor-pointer flex items-center justify-center gap-1.5 bg-white"
+                                      className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-50 text-amber-700 cursor-pointer flex items-center justify-center gap-1.5 bg-white"
                                     >
                                       <Trophy size={13} /> Leaderboard
                                     </button>
@@ -1096,13 +1103,13 @@ export default function App() {
                                   <button
                                     onClick={() => handleResendEmail(resItem)}
                                     disabled={sendingResultEmail === resItem.id}
-                                    className={`flex-1 px-2.5 py-2 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' : 'border-indigo-200 hover:bg-indigo-50 text-indigo-600 cursor-pointer'} flex items-center justify-center gap-1.5 bg-white shrink-0`}
+                                    className={`flex-1 px-2.5 py-2 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-white/5 border-white/5 text-slate-500 cursor-not-allowed' : 'border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-400 cursor-pointer'} flex items-center justify-center gap-1.5 bg-transparent shrink-0`}
                                   >
                                     <Mail size={13} /> {sendingResultEmail === resItem.id ? 'Wait...' : 'Email'}
                                   </button>
                                   <button
                                     onClick={() => setReviewResult(resItem)}
-                                    className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1.5 bg-white"
+                                    className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-teal-500/30 hover:bg-teal-500/10 text-teal-400 cursor-pointer flex items-center justify-center gap-1.5 bg-transparent"
                                   >
                                     <Eye size={13} /> Review
                                   </button>
@@ -1117,12 +1124,12 @@ export default function App() {
 
                   {/* TABS: PROFILE EDITING */}
                   {studentTab === 'profile' && (
-                    <div className="bg-white border border-slate-200 rounded-xl p-6.5 max-w-xl shadow-sm space-y-6">
+                    <div className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6.5 max-w-xl shadow-sm space-y-6">
                       <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
                         {currentUser.photoURL ? (
                           <img src={currentUser.photoURL} alt="User Profile Avatar" className="w-16 h-16 rounded-full border-2 border-slate-200 shadow-sm object-cover" referrerPolicy="no-referrer" />
                         ) : (
-                          <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center text-slate-400">
+                          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 border border-slate-200">
                              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                           </div>
                         )}
@@ -1132,10 +1139,10 @@ export default function App() {
                         </div>
                       </div>
                       
-                      <div className="space-y-4 bg-slate-50/70 p-4 border border-slate-150 rounded-xl font-mono text-xs text-slate-600">
-                        <p><strong>Email Address:</strong> {currentUser.email} <span className="text-[10px] bg-slate-200 text-slate-500 rounded px-1 ml-1.5 font-bold uppercase select-none">Read Only</span></p>
-                        <p><strong>Full Name:</strong> {studentProfile?.fullName || currentUser.displayName} <span className="text-[10px] bg-slate-200 text-slate-500 rounded px-1 ml-1.5 font-bold uppercase select-none">Read Only</span></p>
-                        <p><strong>Verification status:</strong> APPROVED STATUS ACTIVE</p>
+                      <div className="space-y-4 bg-slate-50 p-4 border border-slate-200 rounded-xl font-mono text-xs text-slate-600">
+                        <p><strong className="text-slate-800">Email Address:</strong> {currentUser.email} <span className="text-[10px] bg-slate-200 text-slate-600 rounded px-1 ml-1.5 font-bold uppercase select-none">Read Only</span></p>
+                        <p><strong className="text-slate-800">Full Name:</strong> {studentProfile?.fullName || currentUser.displayName} <span className="text-[10px] bg-slate-200 text-slate-600 rounded px-1 ml-1.5 font-bold uppercase select-none">Read Only</span></p>
+                        <p><strong className="text-slate-800">Verification status:</strong> APPROVED STATUS ACTIVE</p>
                       </div>
 
                       <div className="space-y-4 pt-2">
@@ -1146,13 +1153,13 @@ export default function App() {
                             placeholder="Your mobile phone number"
                             value={mobileInput || (studentProfile?.mobileNumber && studentProfile.mobileNumber !== 'Not provided' ? studentProfile.mobileNumber : '')}
                             onChange={(e) => setMobileInput(e.target.value)}
-                            className="w-full text-sm px-3.5 py-2 rounded-lg border border-slate-200"
+                            className="w-full text-sm px-3.5 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                           />
                         </div>
 
                         <button
                           onClick={handleSaveMobileNumber}
-                          className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition cursor-pointer shadow-sm"
+                          className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition cursor-pointer shadow-[0_2px_10px_rgba(37,99,235,0.2)]"
                         >
                           Save Mobile Number
                         </button>
@@ -1164,11 +1171,11 @@ export default function App() {
                   {studentTab === 'mock_series' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {activeExams.filter(e => e.isMockSeries && !e.isHidden).length === 0 ? (
-                        <div className="md:col-span-2 text-center py-16 bg-white/90 backdrop-blur-md border border-slate-200 rounded-2xl p-10 space-y-3 shadow-none">
-                          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="md:col-span-2 text-center py-16 bg-white/70 backdrop-blur-xl border border-white rounded-2xl p-10 space-y-3 shadow-sm">
+                          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                             <Calendar size={32} />
                           </div>
-                          <h3 className="text-xl font-bold text-slate-800">30 Day 30 Mock Test Series</h3>
+                          <h3 className="text-xl font-bold text-slate-900">30 Day 30 Mock Test Series</h3>
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">Coming live on 20th June Stay Tuned</p>
                         </div>
                       ) : (
@@ -1176,21 +1183,21 @@ export default function App() {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
-                          <div key={exam.id} className="bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+                          <div key={exam.id} className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide">Mock Series</span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>
                               </div>
                               <details className="mt-2 group">
-                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-700 transition-colors select-none [&::-webkit-details-marker]:hidden">
+                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-800 transition-colors select-none [&::-webkit-details-marker]:hidden">
                                   <span className="flex items-center gap-1.5">
                                     <span className="group-open:rotate-90 transition-transform duration-200 text-[10px]">▶</span>
                                     <span className="group-open:hidden">View Details</span>
                                     <span className="hidden group-open:inline">Hide Details</span>
                                   </span>
                                 </summary>
-                                <div className="mt-3 p-3 bg-slate-50/50 border border-slate-100 rounded-lg">
+                                <div className="mt-3 p-3 bg-white/50 border border-slate-100 rounded-lg">
                                   <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
                                 </div>
                               </details>
@@ -1208,12 +1215,12 @@ export default function App() {
                                     setActiveExam(exam);
                                   }
                                 }}
-                                className={`py-2 rounded-lg text-white font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-sm ${hasAttempted ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'}`}
+                                className={`py-2 rounded-lg font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] ${hasAttempted ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'}`}
                               >
                                 {hasAttempted ? 'Already Attempted' : <>Launch Examination <ChevronRight size={14} /></>}
                               </button>
                               {hasAttempted && (
-                                <p className="text-[10px] text-center text-slate-500 font-medium">You have already submitted this mock exam. Only one attempt is allowed.</p>
+                                <p className="text-[10px] text-center text-slate-400 font-medium">You have already submitted this mock exam. Only one attempt is allowed.</p>
                               )}
                             </div>
                           </div>
@@ -1253,12 +1260,12 @@ export default function App() {
 
       {/* FOOTER */}
       {!activeExam && (
-        <footer className="py-6 border-t border-slate-200 text-center text-[10px] md:text-xs font-mono text-blue-600 print:hidden flex flex-col items-center gap-2 px-4">
-          <p className="text-slate-500 mb-1">If you face any problem kindly join our group and tell us:</p>
+        <footer className="py-6 border-t border-slate-200 text-center text-[10px] md:text-xs font-mono text-slate-500 print:hidden flex flex-col items-center gap-2 px-4 relative z-10">
+          <p className="text-slate-600 mb-1">If you face any problem kindly join our group and tell us:</p>
           <div className="flex flex-wrap justify-center items-center gap-3">
-            <a href="https://chat.whatsapp.com/Kpn6wug6PmyBHUqzgqIiym" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors">
+            <a href="https://chat.whatsapp.com/Kpn6wug6PmyBHUqzgqIiym" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white backdrop-blur-sm border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-sm text-slate-800">
               <svg viewBox="0 0 24 24" fill="#22c55e" className="w-4 h-4 shrink-0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-              <span className="font-semibold text-xs text-slate-800 font-sans tracking-tight">MLT Achievement</span>
+              <span className="font-semibold text-xs text-slate-900 font-sans tracking-tight">MLT Achievement</span>
             </a>
           </div>
         </footer>

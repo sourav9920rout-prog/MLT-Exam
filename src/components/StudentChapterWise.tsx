@@ -77,44 +77,44 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Subjects List */}
-            <div className="md:col-span-1 bg-white border border-slate-200 rounded-xl shadow-sm p-4 h-fit max-h-[80vh] overflow-y-auto">
-               <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 pb-2 border-b"><Folder className="text-blue-500" size={20} /> Subjects</h2>
+            <div className="md:col-span-1 bg-white/70 backdrop-blur-xl border border-white rounded-xl shadow-sm p-4 h-fit max-h-[80vh] overflow-y-auto">
+               <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 pb-2 border-b border-slate-100"><Folder className="text-blue-600" size={20} /> Subjects</h2>
                <div className="space-y-2">
                  {subjects.map(sub => (
                    <div 
                      key={sub.id}
                      onClick={() => setActiveSubject(sub)}
-                     className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex justify-between items-center group ${activeSubject?.id === sub.id ? 'border-blue-400 bg-blue-50 text-blue-800 font-bold shadow-sm' : 'border-slate-100 hover:border-slate-300 text-slate-700 bg-slate-50 hover:bg-white'}`}
+                     className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex justify-between items-center group ${activeSubject?.id === sub.id ? 'border-sky-200 bg-sky-50 text-sky-700 font-bold shadow-sm' : 'border-transparent hover:border-slate-200 text-slate-600 bg-white hover:bg-slate-50 shadow-[0_2px_10px_rgba(0,0,0,0.02)]'}`}
                    >
                      <span className="truncate">{sub.name}</span>
-                     <ChevronRight size={16} className={`transition-transform ${activeSubject?.id === sub.id ? 'text-blue-600 translate-x-1' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                     <ChevronRight size={16} className={`transition-transform ${activeSubject?.id === sub.id ? 'text-sky-500 translate-x-1' : 'text-slate-400 group-hover:text-slate-600'}`} />
                    </div>
                  ))}
                  {subjects.length === 0 && (
-                   <div className="text-center py-8 text-slate-400 text-sm">No subjects available yet.</div>
+                   <div className="text-center py-8 text-slate-500 text-sm">No subjects available yet.</div>
                  )}
                </div>
             </div>
             
             {/* Chapters View */}
-            <div className="md:col-span-2 bg-white border border-slate-200 rounded-xl shadow-sm p-6 h-fit min-h-[400px]">
+            <div className="md:col-span-2 bg-white/70 backdrop-blur-xl border border-white rounded-xl shadow-sm p-6 h-fit min-h-[400px]">
                {activeSubject ? (
                  <>
-                   <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                   <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                      <BookOpen className="text-blue-600" /> Chapters inside {activeSubject.name}
                    </h2>
                    
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      {chapters.filter(c => c.subjectId === activeSubject.id).map(chap => (
-                       <div key={chap.id} className="p-5 border border-slate-200 rounded-xl bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition group relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100/50 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-blue-200/50 transition"></div>
+                       <div key={chap.id} className="p-5 border border-slate-100 rounded-xl bg-white hover:bg-slate-50 hover:shadow-md transition shadow-[0_2px_10px_rgba(0,0,0,0.03)] group relative overflow-hidden backdrop-blur-md">
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-indigo-100 transition"></div>
                           
                           <div className="relative z-10">
-                            <h3 className="font-bold text-slate-800 text-lg mb-2 mr-6 leading-tight">{chap.name}</h3>
+                            <h3 className="font-bold text-slate-900 text-lg mb-2 mr-6 leading-tight">{chap.name}</h3>
                             
                             <button 
                               onClick={() => setQuizChapter(chap)}
-                              className="mt-4 flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition"
+                              className="mt-4 flex items-center gap-2 text-sm font-bold text-indigo-700 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition border border-indigo-100"
                             >
                               <PlayCircle size={16} /> Start Chapter Quiz
                             </button>
@@ -125,9 +125,9 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
                    
                    {chapters.filter(c => c.subjectId === activeSubject.id).length === 0 && (
                      <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl mt-4 bg-slate-50">
-                       <Folder size={48} className="mx-auto text-slate-300 mb-4" />
-                       <p className="text-slate-500 font-medium">No chapters added to this subject yet.</p>
-                       <p className="text-sm text-slate-400 mt-1">Check back later for updates.</p>
+                       <Folder size={48} className="mx-auto text-slate-400 mb-4" />
+                       <p className="text-slate-600 font-medium">No chapters added to this subject yet.</p>
+                       <p className="text-sm text-slate-500 mt-1">Check back later for updates.</p>
                      </div>
                    )}
                  </>
@@ -135,7 +135,7 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
                  <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
                    <Folder size={64} className="text-slate-200 mb-4" />
                    <h3 className="text-xl font-bold text-slate-400 mb-2">Select a Subject</h3>
-                   <p className="text-slate-400 text-sm max-w-xs mx-auto">Choose a subject from the sidebar to view its chapters and start practicing.</p>
+                   <p className="text-slate-500 text-sm max-w-xs mx-auto">Choose a subject from the sidebar to view its chapters and start practicing.</p>
                  </div>
                )}
             </div>
