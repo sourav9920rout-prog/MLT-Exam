@@ -116,6 +116,7 @@ export default function QuestionBankManager({
   const [isDeletingDuplicates, setIsDeletingDuplicates] = useState(false);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [isReflecting, setIsReflecting] = useState(false);
 
   const fetchQuestions = async (skipAutoSeed = false) => {
     setLoading(true);
@@ -846,6 +847,103 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
     }
   };
 
+  const handleReflectToExams = async () => {
+    setIsReflecting(true);
+    onNotify("Reflecting question updates to all results in the background...");
+    try {
+      const qbMap = new Map();
+      questions.forEach(q => qbMap.set(q.id, q));
+
+      const { writeBatch } = await import("firebase/firestore");
+      const resultsSnap = await getDocs(collection(db, "results"));
+      const operations: any[] = [];
+
+      resultsSnap.forEach(d => {
+        const data = d.data();
+        let needsUpdate = false;
+        let questionsList = data.questionsList || [];
+
+        for (let i = 0; i < questionsList.length; i++) {
+          const qId = questionsList[i].id;
+          if (qbMap.has(qId)) {
+            const latestQ = qbMap.get(qId);
+            // Check if any significant change happened (like correct option, options text, etc)
+            // Or just force update the question object in the array to ensure it matches the bank.
+            if (JSON.stringify(questionsList[i]) !== JSON.stringify(latestQ)) {
+              questionsList[i] = latestQ;
+              needsUpdate = true;
+            }
+          }
+        }
+
+        if (needsUpdate || data.score < 0) {
+          const pos = data.positiveMarks || 1;
+          const neg = data.negativeMarks !== undefined ? data.negativeMarks : 0;
+          const passP = data.passingPercentage || 0;
+
+          let cCount = 0;
+          let iCount = 0;
+          let answeredCount = 0;
+
+          for (let i = 0; i < questionsList.length; i++) {
+            const q = questionsList[i];
+            const ans = data.answers && data.answers[q.id];
+            if (ans !== undefined && ans !== -1) {
+              answeredCount++;
+              if (ans === q.correctOptionIndex) {
+                cCount++;
+              } else {
+                iCount++;
+              }
+            }
+          }
+
+          const rawScore = (cCount * pos) - (iCount * neg);
+          const maxScore = questionsList.length * pos;
+          let perc = Math.round((rawScore / maxScore) * 100);
+          perc = Math.max(0, perc);
+          const passed = perc >= passP;
+
+          operations.push({
+            ref: d.ref,
+            data: {
+              questionsList: questionsList,
+              score: parseFloat(rawScore.toFixed(2)),
+              percentage: perc,
+              passed: passed,
+              maxScore: maxScore,
+              correctCount: cCount,
+              incorrectCount: iCount,
+              unansweredCount: questionsList.length - answeredCount
+            }
+          });
+        }
+      });
+
+      if (operations.length > 0) {
+        let updated = 0;
+        const CHUNK_SIZE = 25;
+        for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+          const chunk = operations.slice(i, i + CHUNK_SIZE);
+          const batch = writeBatch(db);
+          for (const op of chunk) {
+            batch.update(op.ref, op.data);
+          }
+          await batch.commit();
+          updated += chunk.length;
+        }
+        onNotify(`Successfully updated ${operations.length} results.`);
+      } else {
+        onNotify("All results are already up-to-date with current Question Bank.");
+      }
+    } catch (err) {
+      console.error("Reflect to Exams error:", err);
+      onNotify("Error reflecting questions to exams.", true);
+    } finally {
+      setIsReflecting(false);
+    }
+  };
+
   const filteredQuestions = questions.filter((q) => {
     const term = searchTerm.toLowerCase();
     const matchTerm =
@@ -984,6 +1082,21 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs transition shadow-sm"
           >
             <Plus size={16} /> Manual Entry
+          </button>
+          <button
+            onClick={handleReflectToExams}
+            disabled={isReflecting}
+            className={`flex items-center gap-2 px-4 py-2 ${isReflecting ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"} text-white font-bold rounded text-xs transition shadow-sm`}
+          >
+            {isReflecting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="animate-spin" size={16} /> Reflecting...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <RefreshCw size={16} /> Reflect to Exams
+              </span>
+            )}
           </button>
           {selectedQuestionIds.length > 0 && (
             <button
