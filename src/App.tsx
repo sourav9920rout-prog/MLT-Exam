@@ -43,7 +43,8 @@ import {
   Printer,
   Trophy,
   Calendar,
-  Star
+  Star,
+  Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -85,6 +86,7 @@ export default function App() {
   const [feedbackRatings, setFeedbackRatings] = useState({ ux: 0, difficulty: 0, relevance: 0 });
   const [reviewResult, setReviewResult] = useState<any | null>(null);
   const [leaderboardExam, setLeaderboardExam] = useState<{ id: string, name: string } | null>(null);
+  const [sendingResultEmail, setSendingResultEmail] = useState<string | null>(null);
 
   // Roster lists for Students
   const [activeExams, setActiveExams] = useState<any[]>([]);
@@ -283,6 +285,92 @@ export default function App() {
       showNotification('Mobile number saved successfully.');
     } catch (e: any) {
       showNotification(e.message || 'Failed to save mobile number.', true);
+    }
+  };
+
+  const handleResendEmail = async (resItem: any) => {
+    setSendingResultEmail(resItem.id);
+    try {
+      const questions = resItem.questionsList || [];
+      const studentEmail = resItem.studentEmail || currentUser?.email || '';
+      
+      let htmlReport = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">`;
+      htmlReport += `<h2 style="color: #2563eb; text-align: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">${resItem.examName} - Results</h2>`;
+      htmlReport += `<p>Hi <strong>${resItem.studentName || currentUser?.displayName || 'Student'}</strong>,</p>`;
+      htmlReport += `<p>Here is your examination result summary and answer copy.</p>`;
+      
+      const maxScore = resItem.maxScore || resItem.totalQuestions;
+      htmlReport += `<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">`;
+      htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Score</td><td style="padding: 8px; border: 1px solid #ddd;">${resItem.score} / ${maxScore}</td></tr>`;
+      htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Percentage</td><td style="padding: 8px; border: 1px solid #ddd;">${Number(resItem.percentage).toFixed(2)}%</td></tr>`;
+      htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Status</td><td style="padding: 8px; border: 1px solid #ddd; color: ${resItem.passed ? 'green' : 'red'}; font-weight: bold;">${resItem.passed ? 'PASSED' : 'FAILED'}</td></tr>`;
+      htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Correct</td><td style="padding: 8px; border: 1px solid #ddd; color: green;">${resItem.correctCount || 0}</td></tr>`;
+      htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Incorrect</td><td style="padding: 8px; border: 1px solid #ddd; color: red;">${resItem.incorrectCount || 0}</td></tr>`;
+      htmlReport += `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Skipped</td><td style="padding: 8px; border: 1px solid #ddd;">${resItem.unansweredCount || 0}</td></tr>`;
+      htmlReport += `</table>`;
+
+      htmlReport += `<h3 style="margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Detailed Answer Copy</h3>`;
+      
+      questions.forEach((q: any, idx: number) => {
+          const userAns = resItem.answers ? resItem.answers[q.id] : undefined;
+          const isCorrect = userAns === q.correctOptionIndex;
+          const statusColor = isCorrect ? 'green' : (userAns === undefined || userAns === -1 ? '#6b7280' : 'red');
+          const statusText = isCorrect ? '✅ Correct' : (userAns === undefined || userAns === -1 ? '⚪ Skipped' : '❌ Incorrect');
+          
+          htmlReport += `<div style="margin-bottom: 25px; padding: 15px; border: 1px solid #eee; border-radius: 8px;">`;
+          htmlReport += `<p style="margin: 0 0 10px 0; font-weight: bold;">Q${idx + 1}. ${q.englishQuestion}</p>`;
+          
+          if (q.englishOptions && q.englishOptions.length > 0) {
+            q.englishOptions.forEach((opt: string, oIdx: number) => {
+                let symbol = '⭕';
+                let optColor = '#333';
+                let optBg = 'transparent';
+                if (oIdx === q.correctOptionIndex) {
+                    symbol = '✓';
+                    optColor = 'green';
+                    optBg = '#f0fdf4';
+                } else if (oIdx === userAns) {
+                    symbol = '✗';
+                    optColor = 'red';
+                    optBg = '#fef2f2';
+                }
+                htmlReport += `<div style="padding: 6px; margin: 4px 0; display: flex; align-items: flex-start; color: ${optColor}; background: ${optBg}; border-radius: 4px;">`;
+                htmlReport += `<span style="margin-right: 8px;">${symbol}</span><span>${opt}</span>`;
+                htmlReport += `</div>`;
+            });
+          }
+          
+          htmlReport += `<p style="margin: 10px 0 0 0; color: ${statusColor}; font-weight: bold; font-size: 14px;">${statusText}</p>`;
+          if (q.englishExplanation && q.englishExplanation.trim() !== '') {
+              htmlReport += `<p style="margin: 10px 0 0 0; font-size: 13px; color: #4b5563; background: #f3f4f6; padding: 10px; border-radius: 4px;"><strong>Explanation:</strong><br/>${q.englishExplanation.replace(/\n/g, '<br/>')}</p>`;
+          }
+          htmlReport += `</div>`;
+      });
+
+      htmlReport += `<p style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 40px;">This is an automatically generated email from MLT Exams.</p>`;
+      htmlReport += `</div>`;
+
+      const response = await fetch('/api/send-result-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              studentEmail,
+              studentName: resItem.studentName || currentUser?.displayName || 'Student',
+              examName: resItem.examName,
+              score: resItem.score,
+              maxScore: maxScore,
+              percentage: Number(resItem.percentage),
+              htmlReport
+          })
+      });
+
+      if (!response.ok) throw new Error("Failed to dispatch email");
+      showNotification("Result email resent successfully!");
+    } catch (err: any) {
+      console.error(err);
+      showNotification(err.message || "Could not resend email. Please try again.", true);
+    } finally {
+      setSendingResultEmail(null);
     }
   };
 
@@ -947,7 +1035,7 @@ export default function App() {
                                         {resItem.passed ? 'Passed 🎉' : 'Failed 📋'}
                                       </span>
                                     </td>
-                                    <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
+                                    <td className="py-4 px-4 text-right flex items-center justify-end gap-2 text-nowrap">
                                       {activeExams.find(e => e.id === resItem.examId)?.showLeaderboard && (
                                         <button
                                           onClick={() => setLeaderboardExam({ id: resItem.examId, name: resItem.examName })}
@@ -956,6 +1044,14 @@ export default function App() {
                                           <Trophy size={13} /> Leaderboard
                                         </button>
                                       )}
+                                      <button
+                                        onClick={() => handleResendEmail(resItem)}
+                                        disabled={sendingResultEmail === resItem.id}
+                                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' : 'border-indigo-200 hover:bg-indigo-50 text-indigo-600 cursor-pointer'} flex items-center justify-center gap-1`}
+                                      >
+                                        <Mail size={13} /> 
+                                        {sendingResultEmail === resItem.id ? 'Sending...' : 'Email Result'}
+                                      </button>
                                       <button
                                         onClick={() => setReviewResult(resItem)}
                                         className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1"
@@ -997,6 +1093,13 @@ export default function App() {
                                       <Trophy size={13} /> Leaderboard
                                     </button>
                                   )}
+                                  <button
+                                    onClick={() => handleResendEmail(resItem)}
+                                    disabled={sendingResultEmail === resItem.id}
+                                    className={`flex-1 px-2.5 py-2 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' : 'border-indigo-200 hover:bg-indigo-50 text-indigo-600 cursor-pointer'} flex items-center justify-center gap-1.5 bg-white shrink-0`}
+                                  >
+                                    <Mail size={13} /> {sendingResultEmail === resItem.id ? 'Wait...' : 'Email'}
+                                  </button>
                                   <button
                                     onClick={() => setReviewResult(resItem)}
                                     className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 text-blue-600 cursor-pointer flex items-center justify-center gap-1.5 bg-white"
