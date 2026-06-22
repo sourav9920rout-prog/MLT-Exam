@@ -44,8 +44,7 @@ import {
   Trophy,
   Calendar,
   Star,
-  Mail,
-  Radio
+  Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -55,10 +54,8 @@ import { StudentProfile } from './types.ts';
 import StudentManager from './components/StudentManager.tsx';
 import QuestCreator from './components/QuestCreator.tsx';
 import QuizRunner from './components/QuizRunner.tsx';
-import LiveQuizRunner from './components/LiveQuizRunner.tsx';
 import AdminManager from './components/AdminManager.tsx';
 import AdminResultsViewer from './components/AdminResultsViewer.tsx';
-import LiveQuizManager from './components/LiveQuizManager.tsx';
 import Leaderboard from './components/Leaderboard.tsx';
 import SmartImage from './components/SmartImage.tsx';
 import AdminTakeExam from './components/AdminTakeExam.tsx';
@@ -77,8 +74,8 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise' | 'live_quiz'>('students');
-  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise' | 'live_quiz'>('exams');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise'>('students');
+  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
   const [mobileInput, setMobileInput] = useState('');
@@ -636,16 +633,6 @@ export default function App() {
                 >
                   Chapter Wise Quizzes
                 </button>
-                <button
-                  onClick={() => setAdminTab('live_quiz')}
-                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
-                    adminTab === 'live_quiz' 
-                      ? 'text-purple-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
-                  }`}
-                >
-                  Live Quiz
-                </button>
               </div>
             </div>
 
@@ -664,9 +651,6 @@ export default function App() {
                   <AdminTakeExam filterByMockSeries={true} />
                 </div>
               )}
-              {adminTab === 'live_quiz' && (
-                <LiveQuizManager onNotify={showNotification} />
-              )}
             </div>
           </div>
         ) : (
@@ -677,37 +661,21 @@ export default function App() {
             {activeExam ? (
               
               /* EXAM RUNNING ENVIRONMENT */
-              activeExam.isLiveQuizMode ? (
-                 <LiveQuizRunner
-                   exam={activeExam}
-                   studentId={currentUser.uid}
-                   studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
-                   studentEmail={currentUser.email || ''}
-                   onFinished={(res) => {
-                     setActiveExam(null);
-                     setStudentTab('results');
-                   }}
-                   onCancel={() => {
-                     setActiveExam(null);
-                   }}
-                 />
-              ) : (
-                 <QuizRunner
-                   exam={activeExam}
-                   studentId={currentUser.uid}
-                   studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
-                   studentEmail={currentUser.email || ''}
-                   studentPhotoURL={currentUser.photoURL}
-                   onFinished={(res) => {
-                     setActiveExam(null);
-                     setPendingFeedbackResult(res);
-                   }}
-                   onCancel={() => {
-                     setActiveExam(null);
-                   }}
-                   onNotify={showNotification}
-                 />
-              )
+              <QuizRunner
+                exam={activeExam}
+                studentId={currentUser.uid}
+                studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
+                studentEmail={currentUser.email || ''}
+                studentPhotoURL={currentUser.photoURL}
+                onFinished={(res) => {
+                  setActiveExam(null);
+                  setPendingFeedbackResult(res);
+                }}
+                onCancel={() => {
+                  setActiveExam(null);
+                }}
+                onNotify={showNotification}
+              />
             ) : pendingFeedbackResult ? (
               <div className="fixed inset-0 z-[100] bg-slate-900/60 flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 relative flex flex-col items-center">
@@ -966,16 +934,6 @@ export default function App() {
                     >
                       Chapter Wise Quizzes
                     </button>
-                    <button
-                      onClick={() => setStudentTab('live_quiz')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
-                        studentTab === 'live_quiz' 
-                      ? 'text-purple-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
-                      }`}
-                    >
-                      Live Quiz
-                    </button>
                   </div>
                 </div>
 
@@ -985,13 +943,13 @@ export default function App() {
                   {/* TABS: ELIGIBLE EXAMS LIST */}
                   {studentTab === 'exams' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {activeExams.filter(e => !e.isHidden && !e.isMockSeries && !e.isLiveQuizMode).length === 0 ? (
+                      {activeExams.filter(e => !e.isHidden && !e.isMockSeries).length === 0 ? (
                         <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
                           <BookOpen className="mx-auto text-slate-400" size={36} />
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
                         </div>
                       ) : (
-                        activeExams.filter(e => !e.isHidden && !e.isMockSeries && !e.isLiveQuizMode).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
+                        activeExams.filter(e => !e.isHidden && !e.isMockSeries).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
@@ -1000,7 +958,6 @@ export default function App() {
                               <div className="flex gap-2 items-center">
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
                                 {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>}
-                                {exam.isLiveQuizMode && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wide shrink-0 animate-pulse border border-purple-200">🔴 Live Quiz</span>}
                               </div>
                               <details className="mt-2 group">
                                 <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-800 transition-colors select-none [&::-webkit-details-marker]:hidden">
@@ -1034,65 +991,6 @@ export default function App() {
                               </button>
                               {hasAttempted && (
                                 <p className="text-[10px] text-center text-slate-400 font-medium">You have already submitted this exam. Only one attempt is allowed.</p>
-                              )}
-                            </div>
-                          </div>
-                        )})
-                      )}
-                    </div>
-                  )}
-
-                  {studentTab === 'live_quiz' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {activeExams.filter(e => !e.isHidden && e.isLiveQuizMode).length === 0 ? (
-                        <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
-                          <Radio className="mx-auto text-purple-400 opacity-50" size={36} />
-                          <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
-                        </div>
-                      ) : (
-                        activeExams.filter(e => !e.isHidden && e.isLiveQuizMode).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
-                          const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
-                          
-                          return (
-                          <div key={exam.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
-                            <div className="space-y-2">
-                              <div className="flex gap-2 items-center">
-                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
-                                {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>}
-                                {exam.isLiveQuizMode && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wide shrink-0 animate-pulse border border-purple-200">🔴 Live Quiz</span>}
-                              </div>
-                              <details className="mt-2 group">
-                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-800 transition-colors select-none [&::-webkit-details-marker]:hidden">
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="group-open:rotate-90 transition-transform duration-200 text-[10px]">▶</span>
-                                    <span className="group-open:hidden">View Details</span>
-                                    <span className="hidden group-open:inline">Hide Details</span>
-                                  </span>
-                                </summary>
-                                <div className="mt-3 p-3 bg-white border border-slate-100 rounded-lg">
-                                  <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
-                                </div>
-                              </details>
-                              <div className="flex gap-4 pt-2 font-mono text-[11px] text-slate-500">
-                                <span>⏲️ Speed: {exam.durationMinutes} Minutes</span>
-                                <span>🎯 Correct Rate: {exam.passingPercentage}% pass</span>
-                                <span>📋 Item Counts: {exam.questionIds?.length || 0} MCQs</span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col space-y-2">
-                              <button
-                                disabled={hasAttempted}
-                                onClick={() => {
-                                  if (!hasAttempted) {
-                                    setActiveExam(exam);
-                                  }
-                                }}
-                                className={`py-2 rounded-lg font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] ${hasAttempted ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer'}`}
-                              >
-                                {hasAttempted ? 'Already Attempted' : <>Join Live Quiz <ChevronRight size={14} /></>}
-                              </button>
-                              {hasAttempted && (
-                                <p className="text-[10px] text-center text-slate-400 font-medium">You have already submitted this live session.</p>
                               )}
                             </div>
                           </div>

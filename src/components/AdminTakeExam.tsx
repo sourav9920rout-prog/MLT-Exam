@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { Exam } from '../types.ts';
-import { Play, Trash2, Trophy, Eye, EyeOff, GripHorizontal, Radio, Clock, Users } from 'lucide-react';
+import { Play, Trash2, Trophy, Eye, EyeOff, GripHorizontal } from 'lucide-react';
 import { motion } from 'motion/react';
 import QuizRunner from './QuizRunner.tsx';
 import ResultViewer from './ResultViewer.tsx';
 import Leaderboard from './Leaderboard.tsx';
 
-export default function AdminTakeExam({ filterByMockSeries, filterByLiveQuiz }: { filterByMockSeries?: boolean, filterByLiveQuiz?: boolean }) {
+export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeries?: boolean }) {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
@@ -18,7 +18,6 @@ export default function AdminTakeExam({ filterByMockSeries, filterByLiveQuiz }: 
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
   
   const [examToMakeLive, setExamToMakeLive] = useState<Exam | null>(null);
-  
   const [notifyAdmins, setNotifyAdmins] = useState<{email: string, selected: boolean}[]>([]);
   const [notifyStudents, setNotifyStudents] = useState<{email: string, selected: boolean}[]>([]);
   const [isSendingEmails, setIsSendingEmails] = useState(false);
@@ -120,11 +119,10 @@ export default function AdminTakeExam({ filterByMockSeries, filterByLiveQuiz }: 
     }
   };
 
-  const displayedExams = exams.filter(e => {
-    if (filterByLiveQuiz) return e.isLiveQuizMode;
-    if (filterByMockSeries) return e.isMockSeries && !e.isLiveQuizMode;
-    return !e.isMockSeries && !e.isLiveQuizMode;
-  }).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const displayedExams = (filterByMockSeries 
+    ? exams.filter(e => e.isMockSeries)
+    : exams.filter(e => !e.isMockSeries)
+  ).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const [draggedExamId, setDraggedExamId] = useState<string | null>(null);
 
@@ -347,7 +345,6 @@ export default function AdminTakeExam({ filterByMockSeries, filterByLiveQuiz }: 
           </div>
         </div>
       )}
-
     </div>
   );
 }

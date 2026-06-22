@@ -64,10 +64,6 @@ export interface Exam {
   isMockSeries?: boolean;
   isHidden?: boolean;
   showLeaderboard?: boolean;
-  isLiveQuizMode?: boolean;
-  liveQuizStartTime?: number;
-  liveQuizTimePerQuestion?: number;
-  embeddedQuestions?: BankQuestion[];
   createdAt: string;
   order?: number;
 }
