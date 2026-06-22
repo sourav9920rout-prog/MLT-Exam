@@ -67,7 +67,7 @@ export default function ResultViewer({ reviewResult, onBack }: ResultViewerProps
 
             {/* CLINICAL AI GENERATED INSIGHT REPORT */}
             <div className="bg-blue-600 print:bg-slate-100 text-white print:text-slate-900 rounded-xl p-6 md:p-8 space-y-4 border print:border-slate-300">
-              <div className="flex items-center gap-2 bg-white/10 print:bg-transparent max-w-fit px-3 py-1.5 rounded-lg border border-white/10 print:border-none print:p-0">
+              <div className="flex items-center gap-2 bg-slate-50 print:bg-transparent max-w-fit px-3 py-1.5 rounded-lg border border-slate-200 print:border-none print:p-0">
                 <CheckCircle className="text-amber-300 print:text-slate-700" size={16} />
                 <span className="text-xs font-mono font-bold tracking-wider uppercase text-yellow-100 print:text-slate-700">🤖 AI Diagnostic Tutoring Recommendation</span>
               </div>

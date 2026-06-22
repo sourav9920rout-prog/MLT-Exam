@@ -42,7 +42,7 @@ export default function Leaderboard({ examId, examName, onClose, studentId }: Le
   }, [examId]);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-4 font-sans max-h-[100dvh] overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-slate-900/60  flex items-center justify-center p-2 md:p-4 font-sans max-h-[100dvh] overflow-hidden">
       <div className="bg-white rounded-xl shadow-2xl flex flex-col w-full max-w-6xl max-h-full overflow-hidden relative">
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white shrink-0">
           <div className="flex items-center gap-3">

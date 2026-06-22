@@ -142,7 +142,7 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
   if (loading) return <div className="p-8 text-center text-slate-500">Loading notices...</div>;
 
   return (
-    <div className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900"><Bell className="text-blue-600" /> Notice Board</h2>
         {isAdmin && !isCreating && (
@@ -153,7 +153,7 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
       </div>
 
       {isCreating && (
-        <div className="bg-white/50 p-4 border border-white rounded-lg mb-6 space-y-4 shadow-sm">
+        <div className="bg-white p-4 border border-white rounded-lg mb-6 space-y-4 shadow-sm">
           <input
             type="text"
             className="w-full p-2 border border-slate-200 rounded bg-white text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
@@ -185,7 +185,7 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
                 initial={{ opacity: 0, height: 0, scale: 0.95, marginBottom: 0 }}
                 animate={{ opacity: 1, height: 'auto', scale: 1, marginBottom: 16 }}
                 exit={{ opacity: 0, height: 0, scale: 0.95, marginBottom: 0, padding: 0, margin: 0, border: 0 }}
-                className={`p-4 border rounded-lg overflow-hidden backdrop-blur-md transition shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${notice.isPublished ? 'bg-white border-slate-100' : 'bg-slate-50 border-slate-200 border-dashed'}`}
+                className={`p-4 border rounded-lg overflow-hidden  transition shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${notice.isPublished ? 'bg-white border-slate-100' : 'bg-slate-50 border-slate-200 border-dashed'}`}
               >
                 <div className="flex justify-between items-start mb-2">
                 <h3 className="font-bold text-lg text-slate-900">{notice.title}</h3>

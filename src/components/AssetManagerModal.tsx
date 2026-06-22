@@ -128,7 +128,7 @@ export default function AssetManagerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-sm flex justify-center items-center p-4">
+    <div className="fixed inset-0 z-[200] bg-slate-900/50  flex justify-center items-center p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b border-slate-200">
           <div className="flex items-center gap-2">

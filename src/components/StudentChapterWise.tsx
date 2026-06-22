@@ -62,7 +62,7 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="bg-gradient-to-r from-blue-900 to-slate-900 rounded-2xl p-8 sm:p-12 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
-         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50/50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
          <div className="relative z-10">
            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Chapter Wise Questions</h1>
            <p className="text-blue-100 max-w-xl text-lg opacity-90 leading-relaxed">
@@ -77,7 +77,7 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Subjects List */}
-            <div className="md:col-span-1 bg-white/70 backdrop-blur-xl border border-white rounded-xl shadow-sm p-4 h-fit max-h-[80vh] overflow-y-auto">
+            <div className="md:col-span-1 bg-white border border-slate-200 rounded-xl shadow-sm p-4 h-fit max-h-[80vh] overflow-y-auto">
                <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 pb-2 border-b border-slate-100"><Folder className="text-blue-600" size={20} /> Subjects</h2>
                <div className="space-y-2">
                  {subjects.map(sub => (
@@ -97,7 +97,7 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
             </div>
             
             {/* Chapters View */}
-            <div className="md:col-span-2 bg-white/70 backdrop-blur-xl border border-white rounded-xl shadow-sm p-6 h-fit min-h-[400px]">
+            <div className="md:col-span-2 bg-white border border-slate-200 rounded-xl shadow-sm p-6 h-fit min-h-[400px]">
                {activeSubject ? (
                  <>
                    <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -106,8 +106,8 @@ export default function StudentChapterWise({ studentId, studentName, studentEmai
                    
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      {chapters.filter(c => c.subjectId === activeSubject.id).map(chap => (
-                       <div key={chap.id} className="p-5 border border-slate-100 rounded-xl bg-white hover:bg-slate-50 hover:shadow-md transition shadow-[0_2px_10px_rgba(0,0,0,0.03)] group relative overflow-hidden backdrop-blur-md">
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-indigo-100 transition"></div>
+                       <div key={chap.id} className="p-5 border border-slate-100 rounded-xl bg-white hover:bg-slate-50 hover:shadow-md transition shadow-[0_2px_10px_rgba(0,0,0,0.03)] group relative overflow-hidden ">
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-8 -mt-8 group-hover:bg-indigo-100 transition"></div>
                           
                           <div className="relative z-10">
                             <h3 className="font-bold text-slate-900 text-lg mb-2 mr-6 leading-tight">{chap.name}</h3>

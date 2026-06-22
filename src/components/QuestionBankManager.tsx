@@ -959,7 +959,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
   return (
     <div className="space-y-6">
       {classifying && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 ">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
             <Loader2 size={40} className="text-indigo-600 animate-spin" />
             <h3 className="text-lg font-bold text-slate-800">
@@ -973,7 +973,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
         </div>
       )}
       {uploading && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 ">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
             <Loader2 size={40} className="text-blue-600 animate-spin" />
             <h3 className="text-lg font-bold text-slate-800">
@@ -987,7 +987,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
         </div>
       )}
       {isDeletingDuplicates && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 ">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
             <Loader2 size={40} className="text-amber-500 animate-spin" />
             <h3 className="text-lg font-bold text-slate-800">
@@ -1001,7 +1001,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       )}
 
       {isSavingQuestion && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-slate-900/60 ">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center justify-center space-y-4">
             <Loader2 size={40} className="text-green-600 animate-spin" />
             <h3 className="text-lg font-bold text-slate-800">
@@ -1297,7 +1297,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       </div>
 
       {isRawTextModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 ">
           <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-lg text-slate-800">
@@ -1391,7 +1391,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 ">
           <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl flex flex-col">
             <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex justify-between items-center z-10">
               <h3 className="font-bold text-lg text-slate-800">
@@ -1671,7 +1671,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       )}
       {/* Delete Confirmation Modals */}
       {showBulkDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 ">
           <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl p-6 text-center">
             <Trash2
               size={48}
@@ -1704,7 +1704,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
       )}
 
       {questionToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 ">
           <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl p-6 text-center">
             <Trash2
               size={48}

@@ -44,7 +44,8 @@ import {
   Trophy,
   Calendar,
   Star,
-  Mail
+  Mail,
+  Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -54,8 +55,10 @@ import { StudentProfile } from './types.ts';
 import StudentManager from './components/StudentManager.tsx';
 import QuestCreator from './components/QuestCreator.tsx';
 import QuizRunner from './components/QuizRunner.tsx';
+import LiveQuizRunner from './components/LiveQuizRunner.tsx';
 import AdminManager from './components/AdminManager.tsx';
 import AdminResultsViewer from './components/AdminResultsViewer.tsx';
+import LiveQuizManager from './components/LiveQuizManager.tsx';
 import Leaderboard from './components/Leaderboard.tsx';
 import SmartImage from './components/SmartImage.tsx';
 import AdminTakeExam from './components/AdminTakeExam.tsx';
@@ -74,8 +77,8 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise'>('students');
-  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise'>('exams');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise' | 'live_quiz'>('students');
+  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise' | 'live_quiz'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
   const [mobileInput, setMobileInput] = useState('');
@@ -377,13 +380,6 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-slate-800 font-sans antialiased selection:bg-blue-200/50 selection:text-blue-900 relative overflow-hidden">
       
-      {/* PREMIUM LIGHT MESH BACKGROUND */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center p-0 m-0" aria-hidden="true">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/50 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-200/40 blur-[120px]" />
-        <div className="absolute top-[40%] left-[60%] w-[40%] h-[40%] rounded-full bg-violet-200/50 blur-[120px]" />
-      </div>
-
       {/* GLOBAL NOTIFICATION COMPONENT */}
       <AnimatePresence>
         {toast && (
@@ -406,7 +402,7 @@ export default function App() {
       {/* MOBILE VERIFICATION PROMPT MODAL */}
       <AnimatePresence>
         {showMobilePrompt && (
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -450,7 +446,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* SYSTEM NAV HEADER HEADER */}
-      <header className="h-16 bg-white/60 backdrop-blur-xl border-b border-white shadow-sm flex items-center justify-between px-6 md:px-8 sticky top-0 z-30 print:hidden relative">
+      <header className="h-16 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between px-6 md:px-8 sticky top-0 z-30 print:hidden relative">
         <div className="flex items-center gap-3">
           <img 
             src="/logo.png" 
@@ -513,7 +509,7 @@ export default function App() {
         ) : studentStatus !== 'approved' && userRole !== 'admin' ? (
           
           /* PENDING / REJECTED STATUS SPLASHES */
-          <div className="max-w-lg mx-auto bg-white/70 backdrop-blur-xl border border-white p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] text-center space-y-6 mt-12 relative z-10">
+          <div className="max-w-lg mx-auto bg-white border border-slate-200 p-8 rounded-2xl shadow-sm text-center space-y-6 mt-12 relative z-10">
             <div className={`p-4 rounded-full max-w-fit mx-auto ${studentStatus === 'rejected' || studentStatus === 'revoked' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
               <AlertCircle size={40} className="animate-bounce" />
             </div>
@@ -559,13 +555,13 @@ export default function App() {
               </div>
 
               {/* NAV TAB CONTROLS */}
-              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/50 backdrop-blur-md rounded-xl border border-white/60 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
+              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-100/80 rounded-xl border border-slate-200 shadow-inner overflow-x-auto w-full max-w-full relative z-10">
                 <button
                   onClick={() => setAdminTab('students')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'students' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                   }`}
                 >
                   Student Management
@@ -575,7 +571,7 @@ export default function App() {
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'exams' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white'
                   }`}
                 >
                   Exam Bank
@@ -585,7 +581,7 @@ export default function App() {
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'results' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                   }`}
                 >
                   Results
@@ -595,7 +591,7 @@ export default function App() {
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'admins' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                   }`}
                 >
                   Global Admins
@@ -605,7 +601,7 @@ export default function App() {
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'mock_series' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                   }`}
                 >
                   30 Day 30 Mock Test Series
@@ -615,7 +611,7 @@ export default function App() {
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'notices' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                   }`}
                 >
                   Notice Board
@@ -625,7 +621,7 @@ export default function App() {
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'feedback' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                   }`}
                 >
                   Ratings & Feedback
@@ -635,10 +631,20 @@ export default function App() {
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                     adminTab === 'chapter_wise' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                   }`}
                 >
                   Chapter Wise Quizzes
+                </button>
+                <button
+                  onClick={() => setAdminTab('live_quiz')}
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'live_quiz' 
+                      ? 'text-purple-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                  }`}
+                >
+                  Live Quiz
                 </button>
               </div>
             </div>
@@ -658,6 +664,9 @@ export default function App() {
                   <AdminTakeExam filterByMockSeries={true} />
                 </div>
               )}
+              {adminTab === 'live_quiz' && (
+                <LiveQuizManager onNotify={showNotification} />
+              )}
             </div>
           </div>
         ) : (
@@ -668,23 +677,39 @@ export default function App() {
             {activeExam ? (
               
               /* EXAM RUNNING ENVIRONMENT */
-              <QuizRunner
-                exam={activeExam}
-                studentId={currentUser.uid}
-                studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
-                studentEmail={currentUser.email || ''}
-                studentPhotoURL={currentUser.photoURL}
-                onFinished={(res) => {
-                  setActiveExam(null);
-                  setPendingFeedbackResult(res);
-                }}
-                onCancel={() => {
-                  setActiveExam(null);
-                }}
-                onNotify={showNotification}
-              />
+              activeExam.isLiveQuizMode ? (
+                 <LiveQuizRunner
+                   exam={activeExam}
+                   studentId={currentUser.uid}
+                   studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
+                   studentEmail={currentUser.email || ''}
+                   onFinished={(res) => {
+                     setActiveExam(null);
+                     setStudentTab('results');
+                   }}
+                   onCancel={() => {
+                     setActiveExam(null);
+                   }}
+                 />
+              ) : (
+                 <QuizRunner
+                   exam={activeExam}
+                   studentId={currentUser.uid}
+                   studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
+                   studentEmail={currentUser.email || ''}
+                   studentPhotoURL={currentUser.photoURL}
+                   onFinished={(res) => {
+                     setActiveExam(null);
+                     setPendingFeedbackResult(res);
+                   }}
+                   onCancel={() => {
+                     setActiveExam(null);
+                   }}
+                   onNotify={showNotification}
+                 />
+              )
             ) : pendingFeedbackResult ? (
-              <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="fixed inset-0 z-[100] bg-slate-900/60 flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 relative flex flex-col items-center">
                    <div className="bg-blue-50 text-blue-600 p-4 rounded-full mb-4">
                       <Star size={32} />
@@ -775,33 +800,33 @@ export default function App() {
 
                 {/* Score and percentage cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
-                    <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Final Score</span>
-                    <h4 className="text-2xl font-bold text-white mt-2">{reviewResult.score} / {reviewResult.maxScore || reviewResult.totalQuestions}</h4>
+                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                    <span className="text-xs font-mono text-slate-500 font-bold uppercase block">Final Score</span>
+                    <h4 className="text-2xl font-bold text-slate-900 mt-2">{reviewResult.score} / {reviewResult.maxScore || reviewResult.totalQuestions}</h4>
                   </div>
-                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
-                    <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Percentage Pass Grade</span>
-                    <h4 className="text-2xl font-bold text-indigo-400 mt-2">{reviewResult.percentage}%</h4>
+                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                    <span className="text-xs font-mono text-slate-500 font-bold uppercase block">Percentage Pass Grade</span>
+                    <h4 className="text-2xl font-bold text-blue-700 mt-2">{reviewResult.percentage}%</h4>
                   </div>
-                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
-                    <span className="text-xs font-mono text-slate-400 font-bold uppercase block">Evaluation Status</span>
+                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                    <span className="text-xs font-mono text-slate-500 font-bold uppercase block">Evaluation Status</span>
                     <span className={`inline-block mt-2 px-3.5 py-1 text-xs font-bold rounded-full ${
                       reviewResult.passed 
-                        ? 'bg-emerald-500/20 text-emerald-400' 
-                        : 'bg-rose-500/20 text-rose-400'
+                        ? 'bg-emerald-100 text-emerald-700' 
+                        : 'bg-rose-100 text-rose-700'
                     }`}>
                       {reviewResult.passed ? 'PASSED' : 'FAILED'}
                     </span>
                   </div>
-                  <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 p-5 rounded-xl shadow-2xl text-center">
-                    <span className="text-xs font-mono text-slate-400 font-bold uppercase block font-medium">Wrong Answers Map</span>
-                    <h4 className="text-2xl font-bold text-rose-400 mt-2">{reviewResult.incorrectCount} / {reviewResult.totalQuestions}</h4>
+                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                    <span className="text-xs font-mono text-slate-500 font-bold uppercase block font-medium">Wrong Answers Map</span>
+                    <h4 className="text-2xl font-bold text-rose-600 mt-2">{reviewResult.incorrectCount} / {reviewResult.totalQuestions}</h4>
                   </div>
                 </div>
 
                 {/* Historical answers mapping list */}
-                <div className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 rounded-xl p-6 md:p-8 shadow-2xl space-y-6">
-                  <h4 className="font-bold text-white text-base border-b border-white/10 pb-2">Questions Review Block</h4>
+                <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
+                  <h4 className="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Questions Review Block</h4>
                   {reviewResult.questionsList && reviewResult.questionsList.length > 0 ? (
                     <div className="divide-y divide-slate-150">
                       {reviewResult.questionsList.map((q: any, idx: number) => {
@@ -880,13 +905,13 @@ export default function App() {
                   </div>
 
                   {/* Tabs header list */}
-                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/50 backdrop-blur-md rounded-xl border border-white/60 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
+                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-100/80 rounded-xl border border-slate-200 shadow-inner overflow-x-auto w-full max-w-full relative z-10">
                     <button
                       onClick={() => setStudentTab('exams')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'exams' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                       }`}
                     >
                       Exam Bank
@@ -896,7 +921,7 @@ export default function App() {
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'results' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                       }`}
                     >
                       History Results
@@ -906,7 +931,7 @@ export default function App() {
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'profile' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                       }`}
                     >
                       Profile
@@ -916,7 +941,7 @@ export default function App() {
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'mock_series' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                       }`}
                     >
                       30 Day 30 Mock Test Series
@@ -926,7 +951,7 @@ export default function App() {
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'notices' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                       }`}
                     >
                       Notice Board
@@ -936,10 +961,20 @@ export default function App() {
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'chapter_wise' 
                       ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50'
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
                       }`}
                     >
                       Chapter Wise Quizzes
+                    </button>
+                    <button
+                      onClick={() => setStudentTab('live_quiz')}
+                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'live_quiz' 
+                      ? 'text-purple-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      }`}
+                    >
+                      Live Quiz
                     </button>
                   </div>
                 </div>
@@ -950,21 +985,22 @@ export default function App() {
                   {/* TABS: ELIGIBLE EXAMS LIST */}
                   {studentTab === 'exams' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {activeExams.filter(e => !e.isHidden && !e.isMockSeries).length === 0 ? (
-                        <div className="md:col-span-2 text-center py-16 bg-white/60 backdrop-blur-xl border border-white rounded-2xl p-10 space-y-3 shadow-sm">
+                      {activeExams.filter(e => !e.isHidden && !e.isMockSeries && !e.isLiveQuizMode).length === 0 ? (
+                        <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
                           <BookOpen className="mx-auto text-slate-400" size={36} />
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
                         </div>
                       ) : (
-                        activeExams.filter(e => !e.isHidden && !e.isMockSeries).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
+                        activeExams.filter(e => !e.isHidden && !e.isMockSeries && !e.isLiveQuizMode).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
-                          <div key={exam.id} className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                          <div key={exam.id} className="bg-white border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
                                 {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>}
+                                {exam.isLiveQuizMode && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wide shrink-0 animate-pulse border border-purple-200">🔴 Live Quiz</span>}
                               </div>
                               <details className="mt-2 group">
                                 <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-800 transition-colors select-none [&::-webkit-details-marker]:hidden">
@@ -974,7 +1010,7 @@ export default function App() {
                                     <span className="hidden group-open:inline">Hide Details</span>
                                   </span>
                                 </summary>
-                                <div className="mt-3 p-3 bg-white/50 border border-slate-100 rounded-lg">
+                                <div className="mt-3 p-3 bg-white border border-slate-100 rounded-lg">
                                   <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
                                 </div>
                               </details>
@@ -1006,9 +1042,68 @@ export default function App() {
                     </div>
                   )}
 
+                  {studentTab === 'live_quiz' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {activeExams.filter(e => !e.isHidden && e.isLiveQuizMode).length === 0 ? (
+                        <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
+                          <Radio className="mx-auto text-purple-400 opacity-50" size={36} />
+                          <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
+                        </div>
+                      ) : (
+                        activeExams.filter(e => !e.isHidden && e.isLiveQuizMode).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
+                          const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
+                          
+                          return (
+                          <div key={exam.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                            <div className="space-y-2">
+                              <div className="flex gap-2 items-center">
+                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
+                                {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>}
+                                {exam.isLiveQuizMode && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wide shrink-0 animate-pulse border border-purple-200">🔴 Live Quiz</span>}
+                              </div>
+                              <details className="mt-2 group">
+                                <summary className="text-[11px] font-semibold text-slate-500 cursor-pointer list-none flex items-center hover:text-slate-800 transition-colors select-none [&::-webkit-details-marker]:hidden">
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="group-open:rotate-90 transition-transform duration-200 text-[10px]">▶</span>
+                                    <span className="group-open:hidden">View Details</span>
+                                    <span className="hidden group-open:inline">Hide Details</span>
+                                  </span>
+                                </summary>
+                                <div className="mt-3 p-3 bg-white border border-slate-100 rounded-lg">
+                                  <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
+                                </div>
+                              </details>
+                              <div className="flex gap-4 pt-2 font-mono text-[11px] text-slate-500">
+                                <span>⏲️ Speed: {exam.durationMinutes} Minutes</span>
+                                <span>🎯 Correct Rate: {exam.passingPercentage}% pass</span>
+                                <span>📋 Item Counts: {exam.questionIds?.length || 0} MCQs</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col space-y-2">
+                              <button
+                                disabled={hasAttempted}
+                                onClick={() => {
+                                  if (!hasAttempted) {
+                                    setActiveExam(exam);
+                                  }
+                                }}
+                                className={`py-2 rounded-lg font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] ${hasAttempted ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer'}`}
+                              >
+                                {hasAttempted ? 'Already Attempted' : <>Join Live Quiz <ChevronRight size={14} /></>}
+                              </button>
+                              {hasAttempted && (
+                                <p className="text-[10px] text-center text-slate-400 font-medium">You have already submitted this live session.</p>
+                              )}
+                            </div>
+                          </div>
+                        )})
+                      )}
+                    </div>
+                  )}
+
                   {/* TABS: COMPLETED RESULTS LIST */}
                   {studentTab === 'results' && (
-                    <div className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm">
+                    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
                       {historicalResults.length === 0 ? (
                         <div className="text-center py-12 text-slate-500 font-mono text-sm">
                           Result documents will generate immediately upon complete answers submission.
@@ -1075,7 +1170,7 @@ export default function App() {
                           {/* Mobile Cards View */}
                           <div className="md:hidden space-y-3">
                             {historicalResults.map((resItem) => (
-                              <div key={resItem.id} className="bg-white/50 border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
+                              <div key={resItem.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
                                 <div className="flex justify-between items-start gap-4">
                                   <div>
                                     <h4 className="font-semibold text-slate-900 text-sm leading-tight">{resItem.examName}</h4>
@@ -1103,7 +1198,7 @@ export default function App() {
                                   <button
                                     onClick={() => handleResendEmail(resItem)}
                                     disabled={sendingResultEmail === resItem.id}
-                                    className={`flex-1 px-2.5 py-2 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-white/5 border-white/5 text-slate-500 cursor-not-allowed' : 'border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-400 cursor-pointer'} flex items-center justify-center gap-1.5 bg-transparent shrink-0`}
+                                    className={`flex-1 px-2.5 py-2 text-xs font-semibold rounded-lg border ${sendingResultEmail === resItem.id ? 'bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed' : 'border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-400 cursor-pointer'} flex items-center justify-center gap-1.5 bg-transparent shrink-0`}
                                   >
                                     <Mail size={13} /> {sendingResultEmail === resItem.id ? 'Wait...' : 'Email'}
                                   </button>
@@ -1124,7 +1219,7 @@ export default function App() {
 
                   {/* TABS: PROFILE EDITING */}
                   {studentTab === 'profile' && (
-                    <div className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6.5 max-w-xl shadow-sm space-y-6">
+                    <div className="bg-white border border-slate-200 rounded-xl p-6.5 max-w-xl shadow-sm space-y-6">
                       <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
                         {currentUser.photoURL ? (
                           <img src={currentUser.photoURL} alt="User Profile Avatar" className="w-16 h-16 rounded-full border-2 border-slate-200 shadow-sm object-cover" referrerPolicy="no-referrer" />
@@ -1171,7 +1266,7 @@ export default function App() {
                   {studentTab === 'mock_series' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {activeExams.filter(e => e.isMockSeries && !e.isHidden).length === 0 ? (
-                        <div className="md:col-span-2 text-center py-16 bg-white/70 backdrop-blur-xl border border-white rounded-2xl p-10 space-y-3 shadow-sm">
+                        <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
                           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                             <Calendar size={32} />
                           </div>
@@ -1183,7 +1278,7 @@ export default function App() {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
-                          <div key={exam.id} className="bg-white/70 backdrop-blur-xl border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                          <div key={exam.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
@@ -1197,7 +1292,7 @@ export default function App() {
                                     <span className="hidden group-open:inline">Hide Details</span>
                                   </span>
                                 </summary>
-                                <div className="mt-3 p-3 bg-white/50 border border-slate-100 rounded-lg">
+                                <div className="mt-3 p-3 bg-white border border-slate-100 rounded-lg">
                                   <p className="text-slate-600 text-sm leading-relaxed font-normal">{exam.description || 'No additional syllabus mapped.'}</p>
                                 </div>
                               </details>
@@ -1263,7 +1358,7 @@ export default function App() {
         <footer className="py-6 border-t border-slate-200 text-center text-[10px] md:text-xs font-mono text-slate-500 print:hidden flex flex-col items-center gap-2 px-4 relative z-10">
           <p className="text-slate-600 mb-1">If you face any problem kindly join our group and tell us:</p>
           <div className="flex flex-wrap justify-center items-center gap-3">
-            <a href="https://chat.whatsapp.com/Kpn6wug6PmyBHUqzgqIiym" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white backdrop-blur-sm border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-sm text-slate-800">
+            <a href="https://chat.whatsapp.com/Kpn6wug6PmyBHUqzgqIiym" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white  border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-sm text-slate-800">
               <svg viewBox="0 0 24 24" fill="#22c55e" className="w-4 h-4 shrink-0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
               <span className="font-semibold text-xs text-slate-900 font-sans tracking-tight">MLT Achievement</span>
             </a>

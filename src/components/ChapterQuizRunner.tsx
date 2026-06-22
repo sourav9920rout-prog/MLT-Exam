@@ -235,7 +235,7 @@ export default function ChapterQuizRunner({ chapter, subjectName, studentId, stu
 
         {/* Submit Confirmation Modal */}
         {false && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
                 <CheckCircle size={32} />

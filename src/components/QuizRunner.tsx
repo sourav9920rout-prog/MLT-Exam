@@ -863,7 +863,7 @@ export default function QuizRunner({
 
       {/* Submit Confirmation Modal */}
       {showSubmitModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/50  flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800">
               <AlertTriangle className="text-amber-500" /> Confirm Submission
@@ -894,7 +894,7 @@ export default function QuizRunner({
 
       {/* Section Advance Confirm Modal */}
       {showSectionConfirmModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/50  flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800">
               <AlertTriangle className="text-amber-500" /> Caution

@@ -387,7 +387,7 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
 
        {/* Bulk Upload Modal */}
        {isRawTextModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 ">
           <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col p-6 max-h-[90vh]">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-lg text-slate-800">
@@ -443,7 +443,7 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
 
        {/* Generic Prompt Modal */}
        {promptConfig && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40  p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 relative">
             <button onClick={() => setPromptConfig(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><X size={18} /></button>
             <h3 className="text-lg font-bold text-slate-800 mb-4">{promptConfig.title}</h3>
@@ -481,7 +481,7 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
 
       {/* Generic Confirm Modal */}
       {confirmConfig && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40  p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative flex flex-col items-center text-center">
              <div className="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
                 <Trash2 size={24} />
