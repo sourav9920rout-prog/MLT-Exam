@@ -118,6 +118,7 @@ export default function AdminManager({ onNotify }: { onNotify: (msg: string, isE
             <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
                     <tr>
+                        <th className="px-6 py-3 font-semibold text-slate-700 w-12 text-center">S.No</th>
                         <th className="px-6 py-3 font-semibold text-slate-700">Admin Email Address</th>
                         <th className="px-6 py-3 font-semibold text-slate-700">Added Term</th>
                         <th className="px-6 py-3 font-semibold text-slate-700 w-10 text-right">Actions</th>
@@ -125,7 +126,8 @@ export default function AdminManager({ onNotify }: { onNotify: (msg: string, isE
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                     <tr className="bg-slate-50 opacity-80">
-                        <td className="px-6 py-4 font-medium text-slate-900 border-l-4 border-emerald-500">
+                        <td className="px-6 py-4 font-mono text-xs text-slate-400 text-center border-l-4 border-emerald-500">1</td>
+                        <td className="px-6 py-4 font-medium text-slate-900">
                            sourav.9920rout@gmail.com
                            <span className="ml-2 text-[10px] uppercase font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Super Founder</span>
                         </td>
@@ -136,7 +138,8 @@ export default function AdminManager({ onNotify }: { onNotify: (msg: string, isE
                     </tr>
                     {adminEmails.map((item, id) => (
                         <tr key={id} className="hover:bg-slate-50 transition">
-                            <td className="px-6 py-4 font-medium text-slate-700">{item.email}</td>
+                            <td className="px-6 py-4 font-mono text-xs text-slate-400 text-center">{id + 2}</td>
+                            <td className="px-6 py-4 font-medium text-slate-900">{item.email}</td>
                             <td className="px-6 py-4 text-slate-500">{new Date(item.addedAt).toLocaleDateString()}</td>
                             <td className="px-6 py-4 text-right">
                                 <button 

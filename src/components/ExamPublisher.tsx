@@ -384,7 +384,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
                     </select>
                   </div>
                  <div className="max-h-64 overflow-y-auto border border-slate-200 rounded p-2 space-y-1 bg-slate-50">
-                    {filteredManualQuestions.map(q => {
+                    {filteredManualQuestions.map((q, index) => {
                       const sel = selectedQuestionIds.includes(q.id);
                       return (
                         <label key={q.id} className={`flex items-start gap-2 p-2 rounded cursor-pointer transition border ${sel ? 'bg-amber-50 border-amber-200' : 'bg-white border-transparent hover:border-slate-300'}`}>
@@ -398,6 +398,7 @@ export default function ExamPublisher({ onNotify }: ExamPublisherProps) {
                                setSelectedQuestionIds(p => [...p, q.id]);
                             }
                           }} className="mt-1" />
+                          <span className="text-xs font-mono text-slate-400 mt-0.5">{index + 1}.</span>
                           <div>
                             <p className="text-xs font-bold text-slate-800 line-clamp-1">{q.englishQuestion}</p>
                             <p className="text-[10px] text-slate-500 mt-0.5 capitalize">{q.subject} • {q.difficulty}</p>

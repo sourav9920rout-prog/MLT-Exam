@@ -210,7 +210,7 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
           </div>
       ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {displayedExams.map(ex => (
+            {displayedExams.map((ex, index) => (
               <motion.div 
                 layout
                 key={ex.id} 
@@ -225,7 +225,7 @@ export default function AdminTakeExam({ filterByMockSeries }: { filterByMockSeri
                    <div className="flex justify-between items-start">
                      <div className="flex items-center gap-2">
                        <GripHorizontal size={18} className="text-slate-400" />
-                       <h3 className="font-bold text-slate-800">{ex.title}</h3>
+                       <h3 className="font-bold text-slate-800">{index + 1}. {ex.title}</h3>
                      </div>
                      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${ex.isHidden ? 'bg-slate-100 text-slate-600' : 'bg-emerald-100 text-emerald-700'}`}>
                        {ex.isHidden ? 'Hidden' : 'Live'}

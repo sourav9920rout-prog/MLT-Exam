@@ -100,6 +100,7 @@ export default function AdminResultsViewer() {
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-medium tracking-wide uppercase text-[10px] border-b border-slate-200">
+                <th className="py-3 px-4 font-normal w-12 text-center">S.No</th>
                 <th className="py-3 px-4 font-normal">Student</th>
                 <th className="py-3 px-4 font-normal">Email</th>
                 <th className="py-3 px-4 font-normal">Exam Name</th>
@@ -112,13 +113,14 @@ export default function AdminResultsViewer() {
             <tbody>
               {filteredResults.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-500 text-sm italic">
+                  <td colSpan={8} className="py-8 text-center text-slate-500 text-sm italic">
                      {selectedExamId === 'all' ? 'No results have been submitted yet.' : 'No results found for this specific exam.'}
                   </td>
                 </tr>
               )}
-              {filteredResults.map(r => (
+              {filteredResults.map((r, index) => (
                 <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition duration-150">
+                  <td className="py-4 px-4 font-mono text-xs text-slate-400 text-center">{index + 1}</td>
                   <td className="py-4 px-4 font-medium text-slate-800">{r.studentName || 'Unknown'}</td>
                   <td className="py-4 px-4 text-slate-500">{r.studentEmail || 'Unknown'}</td>
                   <td className="py-4 px-4 font-semibold text-slate-900">{r.examName || r.examId}</td>

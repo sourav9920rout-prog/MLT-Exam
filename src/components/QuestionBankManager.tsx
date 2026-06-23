@@ -1195,6 +1195,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                       }}
                     />
                   </th>
+                  <th className="px-6 py-4 w-12 text-center">S.No</th>
                   <th className="px-6 py-4">Question snippet (En)</th>
                   <th className="px-6 py-4">Subject</th>
                   <th className="px-6 py-4">Difficulty</th>
@@ -1202,7 +1203,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredQuestions.map((q) => (
+                {filteredQuestions.map((q, index) => (
                   <tr key={q.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4">
                       <input
@@ -1220,6 +1221,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
                         }}
                       />
                     </td>
+                    <td className="px-6 py-4 font-mono text-xs text-slate-400 text-center">{index + 1}</td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-slate-800 line-clamp-1">
                         {q.englishQuestion}

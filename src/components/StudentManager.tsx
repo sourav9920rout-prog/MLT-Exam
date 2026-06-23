@@ -202,6 +202,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
             <table className="w-full text-left text-sm border-collapse">
               <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 <tr>
+                  <th className="px-6 py-3 border-b border-slate-200 font-bold w-12 text-center">S.No</th>
                   <th className="px-6 py-3 border-b border-slate-200 font-bold">Full Name</th>
                   <th className="px-6 py-3 border-b border-slate-200 font-bold">Mobile Number</th>
                   <th className="px-6 py-3 border-b border-slate-200 font-bold">Email Address</th>
@@ -210,8 +211,9 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
                 </tr>
               </thead>
               <tbody className="text-sm">
-                {filteredList.map((student) => (
+                {filteredList.map((student, index) => (
                   <tr key={student.uid} className="hover:bg-slate-50 transition">
+                    <td className="px-6 py-4 border-b border-slate-100 font-mono text-xs text-slate-400 text-center">{index + 1}</td>
                     <td className="px-6 py-4 border-b border-slate-100 font-semibold text-slate-900">{student.fullName}</td>
                     <td className="px-6 py-4 border-b border-slate-100 text-slate-500">{student.mobileNumber || 'N/A'}</td>
                     <td className="px-6 py-4 border-b border-slate-100">{student.email}</td>

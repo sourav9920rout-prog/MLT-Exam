@@ -89,10 +89,11 @@ export default function AdminFeedbackViewer() {
         
         <h3 className="text-lg font-bold text-slate-800 mt-8 mb-4 border-b border-slate-100 pb-2">Recent Submissions</h3>
         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-           {feedbacks.map(fb => (
+           {feedbacks.map((fb, idx) => (
              <div key={fb.id} className="border border-slate-100 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-blue-100 hover:bg-slate-50/50 transition-colors">
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-slate-400 font-mono text-xs">{idx + 1}.</span>
                     <div className="bg-slate-100 p-1 rounded-full"><User size={14} className="text-slate-500" /></div>
                     <span className="font-bold text-sm text-slate-700">{fb.studentName || 'Anonymous'}</span>
                     <span className="text-[10px] font-mono text-slate-400 ml-2">{new Date(fb.createdAt).toLocaleString()}</span>

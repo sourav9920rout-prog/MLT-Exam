@@ -875,7 +875,6 @@ export default function App() {
                     )}
                     <div>
                       <h3 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Welcome, {currentUser?.displayName || studentProfile?.fullName || 'Student'}</h3>
-                      <p className="text-xs text-slate-500">Live evaluations, diagnostic syllabus, and active testing controls</p>
                     </div>
                   </div>
 
@@ -956,14 +955,14 @@ export default function App() {
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
                         </div>
                       ) : (
-                        activeExams.filter(e => !e.isHidden && !e.isMockSeries).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
+                        activeExams.filter(e => !e.isHidden && !e.isMockSeries).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam, index) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
                           <div key={exam.id} className="bg-white/70 backdrop-blur-md relative z-10 border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
-                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
+                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{index + 1}. {exam.title}</h4>
                                 {exam.isMockSeries && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>}
                               </div>
                               <details className="mt-2 group">
@@ -1040,9 +1039,9 @@ export default function App() {
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100">
-                                {historicalResults.map((resItem) => (
+                                {historicalResults.map((resItem, index) => (
                                   <tr key={resItem.id} className="hover:bg-slate-50 transition">
-                                    <td className="py-4 px-4 font-semibold text-slate-900">{resItem.examName}</td>
+                                    <td className="py-4 px-4 font-semibold text-slate-900"><span className="text-slate-400 font-mono text-xs mr-2">{index + 1}.</span>{resItem.examName}</td>
                                     <td className="py-4 px-4 font-mono text-xs text-slate-500">
                                       {new Date(resItem.submittedAt).toLocaleDateString()}
                                     </td>
@@ -1086,11 +1085,11 @@ export default function App() {
 
                           {/* Mobile Cards View */}
                           <div className="md:hidden space-y-3">
-                            {historicalResults.map((resItem) => (
+                            {historicalResults.map((resItem, index) => (
                               <div key={resItem.id} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
                                 <div className="flex justify-between items-start gap-4">
                                   <div>
-                                    <h4 className="font-semibold text-slate-900 text-sm leading-tight">{resItem.examName}</h4>
+                                    <h4 className="font-semibold text-slate-900 text-sm leading-tight"><span className="text-slate-400 font-mono text-xs mr-1">{index + 1}.</span>{resItem.examName}</h4>
                                     <p className="font-mono text-xs text-slate-500 mt-1.5">{new Date(resItem.submittedAt).toLocaleDateString()}</p>
                                   </div>
                                   <span className={`shrink-0 inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
@@ -1191,14 +1190,14 @@ export default function App() {
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">Coming live on 20th June Stay Tuned</p>
                         </div>
                       ) : (
-                        activeExams.filter(e => e.isMockSeries && !e.isHidden).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam) => {
+                        activeExams.filter(e => e.isMockSeries && !e.isHidden).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map((exam, index) => {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
                           <div key={exam.id} className="bg-white/70 backdrop-blur-md relative z-10 border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
-                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
+                                <h4 className="font-bold text-slate-900 text-base md:text-lg">{index + 1}. {exam.title}</h4>
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wide">Mock Series</span>
                               </div>
                               <details className="mt-2 group">
