@@ -377,6 +377,13 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-slate-800 font-sans antialiased selection:bg-blue-200/50 selection:text-blue-900 relative overflow-hidden">
       
+      {/* PREMIUM LIGHT MESH BACKGROUND */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10 flex items-center justify-center p-0 m-0" aria-hidden="true">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/50 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-200/40 blur-[120px]" />
+        <div className="absolute top-[40%] left-[60%] w-[40%] h-[40%] rounded-full bg-violet-200/50 blur-[120px]" />
+      </div>
+
       {/* GLOBAL NOTIFICATION COMPONENT */}
       <AnimatePresence>
         {toast && (
@@ -540,7 +547,7 @@ export default function App() {
           
           /* 🛡️ ADMINISTRATOR PLATFORM WRAPPER */
           <div className="space-y-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
               <div className="flex items-center gap-4">
                 {currentUser?.photoURL && (
                   <img src={currentUser.photoURL} alt="Admin Profile" className="hidden md:block w-14 h-14 rounded-full border-2 border-slate-200 shadow-sm object-cover" referrerPolicy="no-referrer" />
@@ -552,7 +559,7 @@ export default function App() {
               </div>
 
               {/* NAV TAB CONTROLS */}
-              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-100/80 rounded-xl border border-slate-200 shadow-inner overflow-x-auto w-full max-w-full relative z-10">
+              <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/70 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
                 <button
                   onClick={() => setAdminTab('students')}
                   className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
@@ -744,7 +751,7 @@ export default function App() {
             ) : reviewResult ? (
               
               /* IMMERSIVE AI DETAILED REVIEW VIEWPORT */
-              <div className="space-y-6">
+              <div className="space-y-6 relative z-10">
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">Quiz Analytics: {reviewResult.examName}</h3>
@@ -768,15 +775,15 @@ export default function App() {
 
                 {/* Score and percentage cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-white/70 backdrop-blur-md border border-slate-200 p-5 rounded-xl shadow-sm text-center">
                     <span className="text-xs font-mono text-slate-500 font-bold uppercase block">Final Score</span>
                     <h4 className="text-2xl font-bold text-slate-900 mt-2">{reviewResult.score} / {reviewResult.maxScore || reviewResult.totalQuestions}</h4>
                   </div>
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-white/70 backdrop-blur-md border border-slate-200 p-5 rounded-xl shadow-sm text-center">
                     <span className="text-xs font-mono text-slate-500 font-bold uppercase block">Percentage Pass Grade</span>
                     <h4 className="text-2xl font-bold text-blue-700 mt-2">{reviewResult.percentage}%</h4>
                   </div>
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-white/70 backdrop-blur-md border border-slate-200 p-5 rounded-xl shadow-sm text-center">
                     <span className="text-xs font-mono text-slate-500 font-bold uppercase block">Evaluation Status</span>
                     <span className={`inline-block mt-2 px-3.5 py-1 text-xs font-bold rounded-full ${
                       reviewResult.passed 
@@ -786,14 +793,14 @@ export default function App() {
                       {reviewResult.passed ? 'PASSED' : 'FAILED'}
                     </span>
                   </div>
-                  <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm text-center">
+                  <div className="bg-white/70 backdrop-blur-md border border-slate-200 p-5 rounded-xl shadow-sm text-center">
                     <span className="text-xs font-mono text-slate-500 font-bold uppercase block font-medium">Wrong Answers Map</span>
                     <h4 className="text-2xl font-bold text-rose-600 mt-2">{reviewResult.incorrectCount} / {reviewResult.totalQuestions}</h4>
                   </div>
                 </div>
 
                 {/* Historical answers mapping list */}
-                <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
+                <div className="bg-white/70 backdrop-blur-md border border-slate-200 rounded-xl p-6 md:p-8 shadow-sm space-y-6">
                   <h4 className="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Questions Review Block</h4>
                   {reviewResult.questionsList && reviewResult.questionsList.length > 0 ? (
                     <div className="divide-y divide-slate-150">
@@ -861,7 +868,7 @@ export default function App() {
               
               /* STANDARD PROFILE, EXAMS, RESULTS SWITCHER TABS */
               <div className="space-y-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
                   <div className="flex items-center gap-4">
                     {currentUser?.photoURL && (
                       <img src={currentUser.photoURL} alt="User Profile Avatar" className="hidden md:block w-14 h-14 rounded-full border-2 border-slate-200 shadow-sm object-cover" referrerPolicy="no-referrer" />
@@ -873,7 +880,7 @@ export default function App() {
                   </div>
 
                   {/* Tabs header list */}
-                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-slate-100/80 rounded-xl border border-slate-200 shadow-inner overflow-x-auto w-full max-w-full relative z-10">
+                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/70 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
                     <button
                       onClick={() => setStudentTab('exams')}
                       className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
@@ -944,7 +951,7 @@ export default function App() {
                   {studentTab === 'exams' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {activeExams.filter(e => !e.isHidden && !e.isMockSeries).length === 0 ? (
-                        <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
+                        <div className="md:col-span-2 text-center py-16 bg-white/70 backdrop-blur-md relative z-10 border border-white rounded-2xl p-10 space-y-3 shadow-sm">
                           <BookOpen className="mx-auto text-slate-400" size={36} />
                           <p className="text-slate-500 font-mono text-sm leading-relaxed">No medical examinations have been scheduled live currently. Please contact Admissions Office.</p>
                         </div>
@@ -953,7 +960,7 @@ export default function App() {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
-                          <div key={exam.id} className="bg-white border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                          <div key={exam.id} className="bg-white/70 backdrop-blur-md relative z-10 border border-white rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
@@ -977,20 +984,32 @@ export default function App() {
                                 <span>📋 Item Counts: {exam.questionIds?.length || 0} MCQs</span>
                               </div>
                             </div>
-                            <div className="flex flex-col space-y-2">
-                              <button
-                                disabled={hasAttempted}
-                                onClick={() => {
-                                  if (!hasAttempted) {
-                                    setActiveExam(exam);
-                                  }
-                                }}
-                                className={`py-2 rounded-lg font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] ${hasAttempted ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'}`}
-                              >
-                                {hasAttempted ? 'Already Attempted' : <>Launch Examination <ChevronRight size={14} /></>}
-                              </button>
-                              {hasAttempted && (
-                                <p className="text-[10px] text-center text-slate-400 font-medium">You have already submitted this exam. Only one attempt is allowed.</p>
+                            <div className="flex flex-col mt-auto h-full justify-end">
+                              {hasAttempted ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    disabled
+                                    className="flex-1 py-1.5 rounded-md font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                                  >
+                                    Attempted
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const resItem = historicalResults.find(res => res.examId === exam.id);
+                                      if (resItem) setReviewResult(resItem);
+                                    }}
+                                    className="flex-1 py-1.5 rounded-md font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 shadow-sm cursor-pointer"
+                                  >
+                                    <Eye size={13} /> View Result
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setActiveExam(exam)}
+                                  className="w-full py-1.5 rounded-md font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                                >
+                                  Launch Examination <ChevronRight size={14} />
+                                </button>
                               )}
                             </div>
                           </div>
@@ -1001,7 +1020,7 @@ export default function App() {
 
                   {/* TABS: COMPLETED RESULTS LIST */}
                   {studentTab === 'results' && (
-                    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                    <div className="bg-white/70 backdrop-blur-md relative z-10 border border-slate-200 rounded-xl p-6 shadow-sm">
                       {historicalResults.length === 0 ? (
                         <div className="text-center py-12 text-slate-500 font-mono text-sm">
                           Result documents will generate immediately upon complete answers submission.
@@ -1117,7 +1136,7 @@ export default function App() {
 
                   {/* TABS: PROFILE EDITING */}
                   {studentTab === 'profile' && (
-                    <div className="bg-white border border-slate-200 rounded-xl p-6.5 max-w-xl shadow-sm space-y-6">
+                    <div className="bg-white/70 backdrop-blur-md relative z-10 border border-slate-200 rounded-xl p-6.5 max-w-xl shadow-sm space-y-6">
                       <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
                         {currentUser.photoURL ? (
                           <img src={currentUser.photoURL} alt="User Profile Avatar" className="w-16 h-16 rounded-full border-2 border-slate-200 shadow-sm object-cover" referrerPolicy="no-referrer" />
@@ -1164,7 +1183,7 @@ export default function App() {
                   {studentTab === 'mock_series' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {activeExams.filter(e => e.isMockSeries && !e.isHidden).length === 0 ? (
-                        <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
+                        <div className="md:col-span-2 text-center py-16 bg-white/70 backdrop-blur-md relative z-10 border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
                           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                             <Calendar size={32} />
                           </div>
@@ -1176,7 +1195,7 @@ export default function App() {
                           const hasAttempted = userRole === 'student' && historicalResults.some(res => res.examId === exam.id);
                           
                           return (
-                          <div key={exam.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                          <div key={exam.id} className="bg-white/70 backdrop-blur-md relative z-10 border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
                             <div className="space-y-2">
                               <div className="flex gap-2 items-center">
                                 <h4 className="font-bold text-slate-900 text-base md:text-lg">{exam.title}</h4>
@@ -1200,20 +1219,32 @@ export default function App() {
                                 <span>📋 Item Counts: {exam.questionIds?.length || 0} MCQs</span>
                               </div>
                             </div>
-                            <div className="flex flex-col space-y-2">
-                              <button
-                                disabled={hasAttempted}
-                                onClick={() => {
-                                  if (!hasAttempted) {
-                                    setActiveExam(exam);
-                                  }
-                                }}
-                                className={`py-2 rounded-lg font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] ${hasAttempted ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'}`}
-                              >
-                                {hasAttempted ? 'Already Attempted' : <>Launch Examination <ChevronRight size={14} /></>}
-                              </button>
-                              {hasAttempted && (
-                                <p className="text-[10px] text-center text-slate-400 font-medium">You have already submitted this mock exam. Only one attempt is allowed.</p>
+                            <div className="flex flex-col mt-auto h-full justify-end">
+                              {hasAttempted ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    disabled
+                                    className="flex-1 py-1.5 rounded-md font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                                  >
+                                    Attempted
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const resItem = historicalResults.find(res => res.examId === exam.id);
+                                      if (resItem) setReviewResult(resItem);
+                                    }}
+                                    className="flex-1 py-1.5 rounded-md font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 shadow-sm cursor-pointer"
+                                  >
+                                    <Eye size={13} /> View Result
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setActiveExam(exam)}
+                                  className="w-full py-1.5 rounded-md font-semibold text-xs transition duration-150 flex items-center justify-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.2)] bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                                >
+                                  Launch Examination <ChevronRight size={14} />
+                                </button>
                               )}
                             </div>
                           </div>

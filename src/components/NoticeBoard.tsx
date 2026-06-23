@@ -142,7 +142,7 @@ export default function NoticeBoard({ isAdmin, onNotify }: { isAdmin: boolean, o
   if (loading) return <div className="p-8 text-center text-slate-500">Loading notices...</div>;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+    <div className="bg-white border border-white rounded-xl p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900"><Bell className="text-blue-600" /> Notice Board</h2>
         {isAdmin && !isCreating && (
