@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, updateDoc, doc, getDocs, deleteDoc, query, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, updateDoc, doc, getDocs, deleteDoc, query, getDoc, setDoc, onSnapshot, limit, where } from 'firebase/firestore';
 import { db } from '../utils/firebase.ts';
 import { Trash2, UserX, UserCheck, ShieldAlert, RotateCcw, AlertTriangle } from 'lucide-react';
 import { StudentProfile } from '../types.ts';
@@ -14,18 +14,28 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   const [sortType, setSortType] = useState<'' | 'name_asc' | 'name_desc' | 'date_asc' | 'date_desc'>('');
   const [loading, setLoading] = useState(false);
   const [requireAdminApproval, setRequireAdminApproval] = useState<boolean>(true);
+  const [hasLoadedAll, setHasLoadedAll] = useState(false);
 
   // Fetch student roster
-  const fetchStudents = async () => {
+  const fetchStudents = async (fetchAll = false) => {
     setLoading(true);
     try {
-      const q = collection(db, 'students');
-      const querySnapshot = await getDocs(q);
+      let qBuilder: any = collection(db, 'students');
+      
+      // We must query by status because we're paginating/limiting
+      qBuilder = query(qBuilder, where('status', '==', activeSubTab));
+      
+      if (!fetchAll) {
+         qBuilder = query(qBuilder, limit(15));
+      }
+      
+      const querySnapshot = await getDocs(qBuilder);
       const studentList: StudentProfile[] = [];
       querySnapshot.forEach((doc) => {
         studentList.push({ id: doc.id, ...doc.data() } as any);
       });
       setStudents(studentList);
+      setHasLoadedAll(fetchAll || studentList.length < 15);
     } catch (error) {
       console.error('Error listing student list:', error);
       onNotify('Failed to fetch student list from cloud.', true);
@@ -35,7 +45,11 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   };
 
   useEffect(() => {
-    fetchStudents();
+    setHasLoadedAll(false);
+    fetchStudents(false);
+  }, [activeSubTab]);
+
+  useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -91,7 +105,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
          console.warn('Update email dispatch error:', err);
       }
 
-      fetchStudents();
+      fetchStudents(hasLoadedAll);
     } catch (e) {
       console.error(e);
       onNotify('Failed to update student access state.', true);
@@ -103,7 +117,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
     try {
       await deleteDoc(doc(db, 'students', studentToDelete.uid));
       onNotify(`Student "${studentToDelete.fullName}" permanently removed.`);
-      fetchStudents();
+      fetchStudents(hasLoadedAll);
     } catch (e) {
       console.error(e);
       onNotify('Could not permanently remove student.', true);
@@ -112,13 +126,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
     }
   };
 
-  const filteredList = students.filter(s => {
-    if (activeSubTab === 'approved') return s.status === 'approved';
-    if (activeSubTab === 'pending') return s.status === 'pending';
-    if (activeSubTab === 'revoked') return s.status === 'revoked';
-    if (activeSubTab === 'deleted') return s.status === 'deleted';
-    return false;
-  }).sort((a, b) => {
+  const filteredList = students.sort((a, b) => {
     if (sortType === 'name_asc') {
       return (a.fullName || '').localeCompare(b.fullName || '');
     } else if (sortType === 'name_desc') {
@@ -153,7 +161,6 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
       <div className="flex border-b border-slate-100 bg-white px-6 py-3 gap-6 text-sm overflow-x-auto justify-between items-center">
         <div className="flex gap-6">
           {(['approved', 'pending', 'revoked', 'deleted'] as const).map((tab) => {
-            const count = students.filter(s => s.status === tab).length;
             return (
               <button
                 key={tab}
@@ -165,9 +172,6 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
                 }`}
               >
                 {tab === 'approved' ? 'Accepted' : tab === 'pending' ? 'Pending Requests' : tab === 'revoked' ? 'Revoked Access' : tab} 
-                <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full ${activeSubTab === tab ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
-                  {count}
-                </span>
               </button>
             );
           })}
@@ -189,7 +193,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
       </div>
 
       <div className="p-6">
-        {loading ? (
+        {loading && students.length === 0 ? (
           <div className="flex justify-center items-center py-12 text-slate-500 font-mono text-sm">
             Loading student rosters...
           </div>
@@ -305,6 +309,18 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
                 ))}
               </tbody>
             </table>
+            
+            {!hasLoadedAll && (
+              <div className="p-4 flex justify-center border-t border-slate-100">
+                 <button 
+                   onClick={() => fetchStudents(true)}
+                   disabled={loading}
+                   className="px-6 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-sm rounded-lg transition"
+                 >
+                   {loading ? 'Loading...' : 'View All Students'}
+                 </button>
+              </div>
+            )}
           </div>
         )}
       </div>

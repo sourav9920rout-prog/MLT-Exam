@@ -117,11 +117,32 @@ export default function QuestionBankManager({
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
   const [isReflecting, setIsReflecting] = useState(false);
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
 
-  const fetchQuestions = async (skipAutoSeed = false) => {
+  const fetchSubjects = async () => {
+    try {
+      const qSnap = await getDocs(collection(db, "questionBank"));
+      const qList = qSnap.docs.map(doc => doc.data().subject || "Miscellaneous");
+      setAvailableSubjects(Array.from(new Set(qList)).filter(Boolean) as string[]);
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
+  const fetchQuestions = async (subjectToFetch?: string, skipAutoSeed = false) => {
+    const subj = subjectToFetch !== undefined ? subjectToFetch : filterSubject;
+    if (!subj) {
+      setQuestions([]);
+      return;
+    }
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, "questionBank"));
+      let qBuilder: any = collection(db, "questionBank");
+      if (subj !== 'all') {
+         qBuilder = query(qBuilder, where("subject", "==", subj));
+      }
+      
+      const snap = await getDocs(qBuilder);
       const list: BankQuestion[] = [];
       snap.forEach((d) => {
         const data = d.data();
@@ -132,7 +153,7 @@ export default function QuestionBankManager({
       });
       setQuestions(list);
 
-      if (!skipAutoSeed && !list.some((q) => q.subject === "Reasoning")) {
+      if (!skipAutoSeed && subj === 'Reasoning' && !list.some((q) => q.subject === "Reasoning")) {
         setTimeout(() => {
           handleSeedPDFQuestions();
         }, 500);
@@ -146,8 +167,12 @@ export default function QuestionBankManager({
   };
 
   useEffect(() => {
-    fetchQuestions();
+    fetchSubjects();
   }, []);
+
+  useEffect(() => {
+    fetchQuestions(filterSubject);
+  }, [filterSubject]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -949,7 +974,7 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
     const matchTerm =
       q.englishQuestion?.toLowerCase().includes(term) ||
       q.subject?.toLowerCase().includes(term);
-    const matchSub = filterSubject ? q.subject === filterSubject : true;
+    const matchSub = (filterSubject && filterSubject !== 'all') ? q.subject === filterSubject : true;
     const matchDiff = filterDifficulty
       ? q.difficulty === filterDifficulty
       : true;
@@ -1131,14 +1156,9 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
             onChange={(e) => setFilterSubject(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded bg-white text-slate-700"
           >
-            <option value="">All Subjects</option>
-            {Array.from(
-              new Set([
-                ...questions.map((q) => q.subject || "Miscellaneous"),
-              ]),
-            )
-              .filter(Boolean)
-              .map((subj) => (
+            <option value="" disabled>Select a Subject</option>
+            <option value="all">View All (May be slow)</option>
+            {availableSubjects.sort().map((subj) => (
               <option key={subj} value={subj}>
                 {subj}
               </option>
@@ -1165,6 +1185,13 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
           <div className="p-8 text-center text-slate-500 text-sm font-medium flex items-center justify-center gap-2">
             <RefreshCw className="animate-spin text-blue-500" size={18} />{" "}
             Loading bank...
+          </div>
+        ) : !filterSubject ? (
+          <div className="p-12 text-center text-slate-500 text-sm font-medium">
+            <div className="inline-block p-4 rounded-full bg-slate-50 mb-3">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+            </div>
+            <p>Select a subject to load and manage questions.</p>
           </div>
         ) : filteredQuestions.length === 0 ? (
           <div className="p-12 text-center text-slate-500 text-sm font-medium">

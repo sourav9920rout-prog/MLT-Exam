@@ -647,7 +647,7 @@ export default function App() {
             <div className="transition-all duration-200">
               {adminTab === 'students' && <StudentManager onNotify={showNotification} />}
               {adminTab === 'exams' && <QuestCreator onNotify={showNotification} />}
-              {adminTab === 'results' && <AdminResultsViewer />}
+              {adminTab === 'results' && <AdminResultsViewer onResendEmail={handleResendEmail} sendingResultEmail={sendingResultEmail} />}
               {adminTab === 'admins' && <AdminManager onNotify={showNotification} />}
               {adminTab === 'notices' && <NoticeBoard isAdmin={true} onNotify={showNotification} />}
               {adminTab === 'feedback' && <AdminFeedbackViewer />}

@@ -99,7 +99,7 @@ export default function Leaderboard({ examId, examName, onClose, studentId }: Le
                       </div>
                       <div className="text-right shrink-0 pr-1">
                          <div className="font-bold text-slate-800 text-base tabular-nums leading-none tracking-tight">
-                           {Number.isInteger(r.score) ? r.score : (r.score?.toFixed(1) || 0)} <span className="text-[11px] text-slate-400 font-normal">/ {r.maxScore || r.totalQuestions}</span>
+                           {Number.isInteger(r.score) ? Number(r.score) : Number(r.score || 0).toFixed(1)} <span className="text-[11px] text-slate-400 font-normal">/ {r.maxScore || r.totalQuestions}</span>
                          </div>
                          <div className="text-[10px] text-slate-400 font-mono mt-1">
                            {r.percentage?.toFixed(1)}% | {r.timeTakenSeconds ? `${Math.floor(r.timeTakenSeconds / 60)}m ${Math.floor(r.timeTakenSeconds % 60)}s` : 'N/A'}
@@ -184,7 +184,7 @@ export default function Leaderboard({ examId, examName, onClose, studentId }: Le
                      const timeMins = r.timeTakenSeconds ? Math.floor(r.timeTakenSeconds / 60) : 0;
                      const timeSecs = r.timeTakenSeconds ? Math.floor(r.timeTakenSeconds % 60) : 0;
                      
-                     const displayScore = Number.isInteger(r.score) ? r.score : r.score?.toFixed(1);
+                     const displayScore = Number.isInteger(r.score) ? Number(r.score) : Number(r.score || 0).toFixed(1);
 
                      return (
                        <div key={r.id} className={`grid grid-cols-[60px_1.5fr_120px_100px_100px_100px_120px_150px_40px] gap-2 items-center px-4 py-3 border-b border-transparent transition-colors ${bgClass}`}>
