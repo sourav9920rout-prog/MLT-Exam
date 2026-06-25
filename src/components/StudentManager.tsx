@@ -32,7 +32,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
       const querySnapshot = await getDocs(qBuilder);
       const studentList: StudentProfile[] = [];
       querySnapshot.forEach((doc) => {
-        studentList.push({ id: doc.id, ...doc.data() } as any);
+        studentList.push({ id: doc.id, ...(doc.data() as any) } as any);
       });
       setStudents(studentList);
       setHasLoadedAll(fetchAll || studentList.length < 15);

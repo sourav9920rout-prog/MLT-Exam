@@ -76,7 +76,7 @@ export default function QuestionBankManager({
           await batch.commit();
           localStorage.setItem("cre4_injected_p2", "true");
           onNotify(`Successfully injected ${added} CRE-4 questions.`);
-          fetchQuestions(true);
+          fetchQuestions(filterSubject, true);
         } catch (e) {
           console.error("Failed to auto-inject CRE4", e);
         }
@@ -145,7 +145,7 @@ export default function QuestionBankManager({
       const snap = await getDocs(qBuilder);
       const list: BankQuestion[] = [];
       snap.forEach((d) => {
-        const data = d.data();
+        const data = d.data() as any;
         if (data.subject && data.subject.trim().toLowerCase() === 'mathematics') {
           data.subject = 'Math';
         }
@@ -528,7 +528,7 @@ export default function QuestionBankManager({
         });
       }
       onNotify("Successfully seeded 10 Reasoning questions from PDF!");
-      fetchQuestions(true);
+      fetchQuestions(filterSubject, true);
     } catch (err) {
       console.error(err);
       onNotify("Error seeding PDF questions", true);

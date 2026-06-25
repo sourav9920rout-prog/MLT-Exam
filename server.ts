@@ -414,6 +414,88 @@ app.post('/api/admin/notify-notice', async (req, res) => {
   }
 });
 
+app.post('/api/notify-admin-query', async (req, res) => {
+  const { studentName, studentEmail, queryMessage, adminEmails } = req.body;
+  
+  if (!queryMessage || !adminEmails || adminEmails.length === 0) {
+    return res.status(400).json({ error: 'Missing parameters.' });
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_SUPPORT_EMAIL || 'support.mlt.exams@gmail.com',
+        pass: process.env.SMTP_SUPPORT_PASSWORD || 'mvpmdoatvkubwcnd'
+      }
+    });
+
+    const mailOptions = {
+      from: `"MLT Achievement Portal Support" <${process.env.SMTP_SUPPORT_EMAIL || 'support.mlt.exams@gmail.com'}>`,
+      bcc: adminEmails,
+      subject: `New Query from ${studentName}`,
+      html: `
+        <h3>New Query Request</h3>
+        <p><strong>Student:</strong> ${studentName} (${studentEmail})</p>
+        <p><strong>Message:</strong></p>
+        <p style="white-space: pre-wrap; background: #f4f6f9; padding: 15px; border-radius: 8px;">${queryMessage}</p>
+        <br>
+        <p>Please log in to the admin dashboard to reply to this query.</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.json({ success: true, message: 'Admins notified successfully.' });
+  } catch (error) {
+    console.error('SMTP query error:', error);
+    return res.status(500).json({ error: 'Failed to send query notification.' });
+  }
+});
+
+app.post('/api/notify-student-reply', async (req, res) => {
+  const { studentEmail, studentName, originalQuery, replyMessage, adminName } = req.body;
+  
+  if (!studentEmail || !replyMessage) {
+    return res.status(400).json({ error: 'Missing parameters.' });
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_SUPPORT_EMAIL || 'support.mlt.exams@gmail.com',
+        pass: process.env.SMTP_SUPPORT_PASSWORD || 'mvpmdoatvkubwcnd'
+      }
+    });
+
+    const mailOptions = {
+      from: `"MLT Support Team" <${process.env.SMTP_SUPPORT_EMAIL || 'support.mlt.exams@gmail.com'}>`,
+      to: studentEmail,
+      subject: `Re: Your Query on MLT Achievement Portal`,
+      html: `
+        <h3>Query Resolved</h3>
+        <p>Dear ${studentName},</p>
+        <p>Admin <strong>${adminName}</strong> has replied to your query.</p>
+        
+        <h4>Your Original Query:</h4>
+        <p style="white-space: pre-wrap; background: #f4f6f9; padding: 15px; border-radius: 8px; color: #555;">${originalQuery}</p>
+        
+        <h4>Admin Reply:</h4>
+        <p style="white-space: pre-wrap; background: #e0f2fe; padding: 15px; border-radius: 8px; color: #0f172a;">${replyMessage}</p>
+        
+        <br>
+        <p>Best Regards,<br>MLT Achievement Portal Team</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.json({ success: true, message: 'Student notified successfully.' });
+  } catch (error) {
+    console.error('SMTP reply error:', error);
+    return res.status(500).json({ error: 'Failed to send reply notification.' });
+  }
+});
+
 app.post('/api/admin/notify-new-admin', async (req, res) => {
   return res.json({ success: true, message: 'Notification bypassed.', smtpConfigured: false });
 });
