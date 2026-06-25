@@ -44,7 +44,8 @@ import {
   Trophy,
   Calendar,
   Star,
-  Mail
+  Mail,
+  Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AuthScreen from './components/AuthScreen.tsx';
@@ -77,7 +78,7 @@ export default function App() {
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
   const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise' | 'queries'>('students');
-  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise' | 'queries'>('exams');
+  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise' | 'queries' | 'support'>('exams');
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
   const [mobileInput, setMobileInput] = useState('');
@@ -963,6 +964,16 @@ export default function App() {
                     >
                       Message to Admins
                     </button>
+                    <button
+                      onClick={() => setStudentTab('support')}
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap shadow-[0_0_15px_rgba(251,113,133,0.5)] ${
+                        studentTab === 'support' 
+                      ? 'bg-gradient-to-r from-pink-500 to-yellow-500 text-white shadow-[0_0_20px_rgba(251,113,133,0.8)] border border-transparent' 
+                      : 'bg-gradient-to-r from-pink-400 to-yellow-400 text-white hover:from-pink-500 hover:to-yellow-500 border border-transparent hover:shadow-[0_0_20px_rgba(251,113,133,0.8)]'
+                      }`}
+                    >
+                      Support the App 💖
+                    </button>
                   </div>
                 </div>
 
@@ -1294,6 +1305,31 @@ export default function App() {
                       studentEmail={currentUser.email || ''}
                       onNotify={showNotification}
                     />
+                  )}
+
+                  {studentTab === 'support' && (
+                    <div className="bg-white rounded-xl shadow-[0_0_20px_rgba(251,113,133,0.15)] border border-pink-100 p-8 text-center max-w-2xl mx-auto space-y-6">
+                      <div className="w-20 h-20 bg-gradient-to-tr from-pink-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-pink-200">
+                        <Heart size={40} className="text-pink-500 fill-pink-500" />
+                      </div>
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent">Support the App</h2>
+                      <p className="text-slate-600 text-sm leading-relaxed">
+                        If you find this application helpful for your medical laboratory technology preparation, consider supporting its development and maintenance. Your contribution helps keep the servers running and enables new features!
+                      </p>
+                      
+                      <div className="pt-6">
+                        <a 
+                          href="upi://pay?pa=9716084965@slc&pn=Mr%20TINU%20BHALLA&cu=INR"
+                          className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-pink-500 to-yellow-500 text-white rounded-xl font-bold text-lg hover:shadow-[0_0_25px_rgba(251,113,133,0.6)] transition-all hover:-translate-y-1"
+                        >
+                          <Heart size={20} />
+                          Pay via UPI
+                        </a>
+                        <p className="text-xs text-slate-400 mt-4">
+                          If nothing happens when you click the button, you can directly use this UPI ID: <strong>9716084965@slc</strong>
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
