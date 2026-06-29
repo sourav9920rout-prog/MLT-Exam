@@ -154,6 +154,22 @@
         "smtp3": { "type": "object" }
       },
       "required": ["id"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "Admin notes with embedded Google Drive resource links",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "driveLink": { "type": "string" },
+        "subject": { "type": "string" },
+        "chapter": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "driveLink", "createdAt"]
     }
   },
   "firestore": {
@@ -196,6 +212,10 @@
     "/emailConfigs/{configId}": {
       "schema": "EmailConfig",
       "description": "SMTP configurations managed by admins"
+    },
+    "/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Storage collection for Google Drive linked study material and notes"
     }
   }
 }

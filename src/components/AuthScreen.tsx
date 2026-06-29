@@ -49,7 +49,7 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
         onAuthSuccess(credentialUser, 'admin', 'approved', null);
       } else {
         const reqSnap = await getDoc(doc(db, 'settings', 'general'));
-        const requireApp = reqSnap.exists() ? (reqSnap.data().requireAdminApproval ?? true) : true;
+        const requireApp = reqSnap.exists() ? (reqSnap.data().requireAdminApproval ?? false) : false;
         const initialState = requireApp ? 'pending' : 'approved';
 
         // Construct Student Profile

@@ -67,6 +67,7 @@ import StudentChapterWise from './components/StudentChapterWise.tsx';
 import StudentQueries from './components/StudentQueries.tsx';
 import AdminQueries from './components/AdminQueries.tsx';
 import SupportTab from './components/SupportTab.tsx';
+import NotesManager from './components/NotesManager.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -78,8 +79,9 @@ export default function App() {
 
   // General Portal Switching States
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
-  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise' | 'queries'>('students');
-  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise' | 'queries' | 'support'>('exams');
+  const [adminTab, setAdminTab] = useState<'students' | 'exams' | 'results' | 'smtp' | 'admins' | 'mock_series' | 'notices' | 'feedback' | 'chapter_wise' | 'queries' | 'notes'>('students');
+  const [studentTab, setStudentTab] = useState<'exams' | 'results' | 'profile' | 'mock_series' | 'notices' | 'chapter_wise' | 'queries' | 'support' | 'notes'>('exams');
+  const [mobileTabsExpanded, setMobileTabsExpanded] = useState(false);
 
   const [showMobilePrompt, setShowMobilePrompt] = useState(false);
   const [mobileInput, setMobileInput] = useState('');
@@ -99,7 +101,7 @@ export default function App() {
   // Simple clean toast alert system
   const [toast, setToast] = useState<{ message: string; isError?: boolean } | null>(null);
 
-  const [requireAdminApproval, setRequireAdminApproval] = useState<boolean>(true);
+  const [requireAdminApproval, setRequireAdminApproval] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
@@ -108,8 +110,6 @@ export default function App() {
         if (data.requireAdminApproval !== undefined) {
           setRequireAdminApproval(data.requireAdminApproval);
         }
-      } else {
-        setDoc(doc(db, 'settings', 'general'), { requireAdminApproval: true });
       }
     });
     return () => unsubSettings();
@@ -140,7 +140,7 @@ export default function App() {
             if (data.status === 'deleted') {
               // Create it back based on requirements
               const settingsSnap = await getDoc(doc(db, 'settings', 'general'));
-              const requireApproval = settingsSnap.exists() ? (settingsSnap.data().requireAdminApproval ?? true) : true;
+              const requireApproval = settingsSnap.exists() ? (settingsSnap.data().requireAdminApproval ?? false) : false;
               const newStatus = requireApproval ? 'pending' : 'approved';
               
               const updatedData: StudentProfile = { ...data, status: newStatus as StudentProfile["status"] };
@@ -164,7 +164,7 @@ export default function App() {
             // Document was completely deleted from Firestore (Permanently Expelled)
             // But user is still logged into Firebase Auth. We must re-create their registration.
             const settingsSnap = await getDoc(doc(db, 'settings', 'general'));
-            const requireApproval = settingsSnap.exists() ? (settingsSnap.data().requireAdminApproval ?? true) : true;
+            const requireApproval = settingsSnap.exists() ? (settingsSnap.data().requireAdminApproval ?? false) : false;
             const initialState = requireApproval ? 'pending' : 'approved';
             const studentData: StudentProfile = {
               uid: user.uid,
@@ -654,6 +654,16 @@ export default function App() {
                 >
                   Queries Requested
                 </button>
+                <button
+                  onClick={() => setAdminTab('notes')}
+                  className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                    adminTab === 'notes' 
+                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
+                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                  }`}
+                >
+                  Study Notes & Drive
+                </button>
               </div>
             </div>
 
@@ -667,6 +677,7 @@ export default function App() {
               {adminTab === 'feedback' && <AdminFeedbackViewer />}
               {adminTab === 'chapter_wise' && <AdminChapterWise onNotify={showNotification} />}
               {adminTab === 'queries' && <AdminQueries adminName={currentUser?.displayName || 'Admin'} adminEmail={currentUser?.email || ''} onNotify={showNotification} />}
+              {adminTab === 'notes' && <NotesManager isAdmin={true} onNotify={showNotification} />}
               {adminTab === 'mock_series' && (
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
@@ -894,7 +905,8 @@ export default function App() {
                   </div>
 
                   {/* Tabs header list */}
-                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/70 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
+                  <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/70 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm overflow-x-auto w-full max-w-full relative z-10 items-center">
+                    {/* CORE TABS - ALWAYS VISIBLE */}
                     <button
                       onClick={() => setStudentTab('exams')}
                       className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
@@ -905,26 +917,7 @@ export default function App() {
                     >
                       Exam Bank
                     </button>
-                    <button
-                      onClick={() => setStudentTab('results')}
-                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
-                        studentTab === 'results' 
-                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
-                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
-                      }`}
-                    >
-                      History Results
-                    </button>
-                    <button
-                      onClick={() => setStudentTab('profile')}
-                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
-                        studentTab === 'profile' 
-                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
-                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
-                      }`}
-                    >
-                      Profile
-                    </button>
+
                     <button
                       onClick={() => setStudentTab('mock_series')}
                       className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
@@ -935,9 +928,68 @@ export default function App() {
                     >
                       30 Day 30 Mock Test Series
                     </button>
+
                     <button
-                      onClick={() => setStudentTab('notices')}
+                      onClick={() => setStudentTab('notes')}
                       className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        studentTab === 'notes' 
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
+                      }`}
+                    >
+                      Study Notes & Drive 📚
+                    </button>
+
+                    {/* MOBILE DROPDOWN ARROW TOGGLE - ONLY VISIBLE ON MOBILE */}
+                    <button
+                      onClick={() => setMobileTabsExpanded(!mobileTabsExpanded)}
+                      className="md:hidden flex items-center justify-center p-2 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-all cursor-pointer border border-slate-200"
+                      title="Show All Navigation Tabs"
+                    >
+                      <span className="text-[11px] font-bold text-slate-500 mr-1 select-none">More</span>
+                      <svg 
+                        className={`w-4 h-4 transition-transform duration-300 ${mobileTabsExpanded ? 'rotate-180 text-blue-600' : 'rotate-0'}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2.5"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* EXPANDABLE / DESKTOP TABS */}
+                    <button
+                      onClick={() => { setStudentTab('results'); setMobileTabsExpanded(false); }}
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        mobileTabsExpanded ? 'block w-full text-left md:w-auto md:text-center' : 'hidden md:block'
+                      } ${
+                        studentTab === 'results' 
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
+                      }`}
+                    >
+                      History Results
+                    </button>
+
+                    <button
+                      onClick={() => { setStudentTab('profile'); setMobileTabsExpanded(false); }}
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        mobileTabsExpanded ? 'block w-full text-left md:w-auto md:text-center' : 'hidden md:block'
+                      } ${
+                        studentTab === 'profile' 
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
+                      }`}
+                    >
+                      Profile
+                    </button>
+
+                    <button
+                      onClick={() => { setStudentTab('notices'); setMobileTabsExpanded(false); }}
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        mobileTabsExpanded ? 'block w-full text-left md:w-auto md:text-center' : 'hidden md:block'
+                      } ${
                         studentTab === 'notices' 
                       ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
                       : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
@@ -945,9 +997,12 @@ export default function App() {
                     >
                       Notice Board
                     </button>
+
                     <button
-                      onClick={() => setStudentTab('chapter_wise')}
+                      onClick={() => { setStudentTab('chapter_wise'); setMobileTabsExpanded(false); }}
                       className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        mobileTabsExpanded ? 'block w-full text-left md:w-auto md:text-center' : 'hidden md:block'
+                      } ${
                         studentTab === 'chapter_wise' 
                       ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
                       : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
@@ -955,9 +1010,12 @@ export default function App() {
                     >
                       Chapter Wise Quizzes
                     </button>
+
                     <button
-                      onClick={() => setStudentTab('queries')}
+                      onClick={() => { setStudentTab('queries'); setMobileTabsExpanded(false); }}
                       className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        mobileTabsExpanded ? 'block w-full text-left md:w-auto md:text-center' : 'hidden md:block'
+                      } ${
                         studentTab === 'queries' 
                       ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
                       : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
@@ -965,9 +1023,12 @@ export default function App() {
                     >
                       Message to Admins
                     </button>
+
                     <button
-                      onClick={() => setStudentTab('support')}
-                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap shadow-[0_0_15px_rgba(45,212,191,0.5)] animate-pulse hover:animate-none ${
+                      onClick={() => { setStudentTab('support'); setMobileTabsExpanded(false); }}
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                        mobileTabsExpanded ? 'block w-full text-left md:w-auto md:text-center' : 'hidden md:block'
+                      } shadow-[0_0_15px_rgba(45,212,191,0.5)] animate-pulse hover:animate-none ${
                         studentTab === 'support' 
                       ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-[0_0_20px_rgba(45,212,191,0.8)] border border-transparent' 
                       : 'bg-gradient-to-r from-teal-400 to-emerald-400 text-white hover:from-teal-500 hover:to-emerald-500 border border-transparent hover:shadow-[0_0_20px_rgba(45,212,191,0.8)]'
@@ -1304,6 +1365,13 @@ export default function App() {
                       studentId={currentUser.uid}
                       studentName={studentProfile?.fullName || currentUser.displayName || 'Student'}
                       studentEmail={currentUser.email || ''}
+                      onNotify={showNotification}
+                    />
+                  )}
+
+                  {studentTab === 'notes' && (
+                    <NotesManager 
+                      isAdmin={false}
                       onNotify={showNotification}
                     />
                   )}

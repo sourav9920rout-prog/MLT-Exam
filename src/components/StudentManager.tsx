@@ -13,7 +13,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   const [activeSubTab, setActiveSubTab] = useState<'approved' | 'pending' | 'revoked' | 'deleted'>('approved');
   const [sortType, setSortType] = useState<'' | 'name_asc' | 'name_desc' | 'date_asc' | 'date_desc'>('');
   const [loading, setLoading] = useState(false);
-  const [requireAdminApproval, setRequireAdminApproval] = useState<boolean>(true);
+  const [requireAdminApproval, setRequireAdminApproval] = useState<boolean>(false);
   const [hasLoadedAll, setHasLoadedAll] = useState(false);
 
   // Fetch student roster
@@ -50,11 +50,18 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   }, [activeSubTab]);
 
   useEffect(() => {
-    const unsubSettings = onSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
+    const unsubSettings = onSnapshot(doc(db, 'settings', 'general'), async (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.requireAdminApproval !== undefined) {
           setRequireAdminApproval(data.requireAdminApproval);
+        }
+      } else {
+        try {
+          await setDoc(doc(db, 'settings', 'general'), { requireAdminApproval: false });
+          setRequireAdminApproval(false);
+        } catch (e) {
+          console.error('Failed to auto-initialize settings', e);
         }
       }
     });
