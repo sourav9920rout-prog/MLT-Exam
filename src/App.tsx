@@ -897,80 +897,80 @@ export default function App() {
                   <div className="flex flex-wrap gap-2 mt-4 md:mt-0 p-1.5 bg-white/70 backdrop-blur-md rounded-xl border border-slate-200 shadow-sm overflow-x-auto w-full max-w-full relative z-10">
                     <button
                       onClick={() => setStudentTab('exams')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'exams' 
-                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
                       }`}
                     >
                       Exam Bank
                     </button>
                     <button
                       onClick={() => setStudentTab('results')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'results' 
-                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
                       }`}
                     >
                       History Results
                     </button>
                     <button
                       onClick={() => setStudentTab('profile')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'profile' 
-                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
                       }`}
                     >
                       Profile
                     </button>
                     <button
                       onClick={() => setStudentTab('mock_series')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'mock_series' 
-                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
                       }`}
                     >
                       30 Day 30 Mock Test Series
                     </button>
                     <button
                       onClick={() => setStudentTab('notices')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'notices' 
-                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
                       }`}
                     >
                       Notice Board
                     </button>
                     <button
                       onClick={() => setStudentTab('chapter_wise')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'chapter_wise' 
-                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
                       }`}
                     >
                       Chapter Wise Quizzes
                     </button>
                     <button
                       onClick={() => setStudentTab('queries')}
-                      className={`px-5 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap ${
                         studentTab === 'queries' 
-                      ? 'text-blue-800 bg-white shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900 border border-transparent hover:bg-slate-50'
+                      ? 'text-blue-900 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-blue-400/40' 
+                      : 'text-slate-600 hover:text-blue-700 border border-transparent hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10'
                       }`}
                     >
                       Message to Admins
                     </button>
                     <button
                       onClick={() => setStudentTab('support')}
-                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap shadow-[0_0_15px_rgba(251,113,133,0.5)] ${
+                      className={`px-5 py-2 text-sm font-bold transition-all duration-300 cursor-pointer rounded-lg relative whitespace-nowrap shadow-[0_0_15px_rgba(45,212,191,0.5)] animate-pulse hover:animate-none ${
                         studentTab === 'support' 
-                      ? 'bg-gradient-to-r from-pink-500 to-yellow-500 text-white shadow-[0_0_20px_rgba(251,113,133,0.8)] border border-transparent' 
-                      : 'bg-gradient-to-r from-pink-400 to-yellow-400 text-white hover:from-pink-500 hover:to-yellow-500 border border-transparent hover:shadow-[0_0_20px_rgba(251,113,133,0.8)]'
+                      ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-[0_0_20px_rgba(45,212,191,0.8)] border border-transparent' 
+                      : 'bg-gradient-to-r from-teal-400 to-emerald-400 text-white hover:from-teal-500 hover:to-emerald-500 border border-transparent hover:shadow-[0_0_20px_rgba(45,212,191,0.8)]'
                       }`}
                     >
                       Support the App 💖
