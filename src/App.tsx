@@ -68,6 +68,7 @@ import StudentQueries from './components/StudentQueries.tsx';
 import AdminQueries from './components/AdminQueries.tsx';
 import SupportTab from './components/SupportTab.tsx';
 import NotesManager from './components/NotesManager.tsx';
+import MockSeriesLeaderboard from './components/MockSeriesLeaderboard.tsx';
 
 export default function App() {
   // Auth & Roles States
@@ -92,6 +93,7 @@ export default function App() {
   const [feedbackRatings, setFeedbackRatings] = useState({ ux: 0, difficulty: 0, relevance: 0 });
   const [reviewResult, setReviewResult] = useState<any | null>(null);
   const [leaderboardExam, setLeaderboardExam] = useState<{ id: string, name: string } | null>(null);
+  const [showMockLeaderboard, setShowMockLeaderboard] = useState(false);
   const [sendingResultEmail, setSendingResultEmail] = useState<string | null>(null);
 
   // Roster lists for Students
@@ -680,7 +682,15 @@ export default function App() {
               {adminTab === 'notes' && <NotesManager isAdmin={true} onNotify={showNotification} />}
               {adminTab === 'mock_series' && (
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Calendar className="text-blue-600" /> 30 Day 30 Mock Test Series Administration</h3>
+                    <button 
+                      onClick={() => setShowMockLeaderboard(true)} 
+                      className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-sm rounded-lg flex items-center gap-2 transition cursor-pointer border border-amber-200"
+                    >
+                      <Trophy size={16} /> View Overall Leaderboard
+                    </button>
+                  </div>
                   <AdminTakeExam filterByMockSeries={true} />
                 </div>
               )}
@@ -1276,8 +1286,17 @@ export default function App() {
 
                   {/* TABS: MOCK SERIES */}
                   {studentTab === 'mock_series' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {activeExams.filter(e => e.isMockSeries && !e.isHidden).length === 0 ? (
+                    <div className="space-y-4 relative z-10">
+                      <div className="flex justify-end mb-2">
+                        <button 
+                          onClick={() => setShowMockLeaderboard(true)} 
+                          className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-sm rounded-lg flex items-center gap-2 transition cursor-pointer border border-amber-200 shadow-sm"
+                        >
+                          <Trophy size={16} /> View Overall Leaderboard
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {activeExams.filter(e => e.isMockSeries && !e.isHidden).length === 0 ? (
                         <div className="md:col-span-2 text-center py-16 bg-white/70 backdrop-blur-md relative z-10 border border-slate-200 rounded-2xl p-10 space-y-3 shadow-sm">
                           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                             <Calendar size={32} />
@@ -1345,6 +1364,7 @@ export default function App() {
                           </div>
                         )})
                       )}
+                      </div>
                     </div>
                   )}
 
@@ -1389,6 +1409,13 @@ export default function App() {
             examName={leaderboardExam.name} 
             studentId={currentUser?.uid}
             onClose={() => setLeaderboardExam(null)} 
+          />
+        )}
+
+        {showMockLeaderboard && (
+          <MockSeriesLeaderboard 
+            studentId={currentUser?.uid}
+            onClose={() => setShowMockLeaderboard(false)} 
           />
         )}
 
