@@ -496,8 +496,41 @@ app.post('/api/notify-student-reply', async (req, res) => {
   }
 });
 
-app.post('/api/admin/notify-new-admin', async (req, res) => {
-  return res.json({ success: true, message: 'Notification bypassed.', smtpConfigured: false });
+app.post('/api/admin/send-custom-email', async (req, res) => {
+  const { studentEmail, studentName, subject, message, adminName } = req.body;
+  
+  if (!studentEmail || !subject || !message) {
+    return res.status(400).json({ error: 'Missing parameters.' });
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_SUPPORT_EMAIL || 'support.mlt.exams@gmail.com',
+        pass: process.env.SMTP_SUPPORT_PASSWORD || 'mvpmdoatvkubwcnd'
+      }
+    });
+
+    const mailOptions = {
+      from: `"MLT Support Team" <${process.env.SMTP_SUPPORT_EMAIL || 'support.mlt.exams@gmail.com'}>`,
+      to: studentEmail,
+      subject: subject,
+      html: `
+        <h3>Message from MLT Achievement Portal</h3>
+        <p>Dear ${studentName},</p>
+        <p>${message.replace(/\n/g, '<br/>')}</p>
+        <br>
+        <p>Best Regards,<br>MLT Achievement Portal Team<br>${adminName ? `(Sent by ${adminName})` : ''}</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.json({ success: true, message: 'Email sent successfully.' });
+  } catch (error) {
+    console.error('SMTP custom email error:', error);
+    return res.status(500).json({ error: 'Failed to send email.' });
+  }
 });
 
 

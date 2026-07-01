@@ -79,6 +79,58 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
   };
 
   const [studentToDelete, setStudentToDelete] = useState<StudentProfile | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
+  const [studentResults, setStudentResults] = useState<any[]>([]);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  const handleSelectStudent = async (student: StudentProfile) => {
+    setSelectedStudent(student);
+    setStudentResults([]);
+    try {
+      const q = query(collection(db, 'results'), where('studentId', '==', student.uid));
+      const snap = await getDocs(q);
+      const results: any[] = [];
+      snap.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+      results.sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+      setStudentResults(results);
+    } catch (e) {
+      console.error(e);
+      onNotify('Failed to fetch student results', true);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedStudent || !emailSubject || !emailBody) {
+      onNotify('Please fill in subject and message.', true);
+      return;
+    }
+    setSendingEmail(true);
+    try {
+      const res = await fetch('/api/admin/send-custom-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentEmail: selectedStudent.email,
+          studentName: selectedStudent.fullName,
+          subject: emailSubject,
+          message: emailBody,
+          adminName: 'Admin'
+        })
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      onNotify('Email sent successfully!');
+      setShowEmailModal(false);
+      setEmailSubject('');
+      setEmailBody('');
+    } catch (e) {
+      onNotify('Failed to send email.', true);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   // Set action updating state on firebase & dispatch custom mail update (SMTP 2)
   const handleStatusAction = async (student: StudentProfile, newStatus: StudentProfile['status'], actionLabel: string) => {
@@ -223,7 +275,7 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
               </thead>
               <tbody className="text-sm">
                 {filteredList.map((student, index) => (
-                  <tr key={student.uid} className="hover:bg-slate-50 transition">
+                  <tr key={student.uid} className="hover:bg-slate-50 transition cursor-pointer" onClick={() => handleSelectStudent(student)}>
                     <td className="px-6 py-4 border-b border-slate-100 font-mono text-xs text-slate-400 text-center">{index + 1}</td>
                     <td className="px-6 py-4 border-b border-slate-100 font-semibold text-slate-900">{student.fullName}</td>
                     <td className="px-6 py-4 border-b border-slate-100 text-slate-500">{student.mobileNumber || 'N/A'}</td>
@@ -331,6 +383,80 @@ export default function StudentManager({ onNotify }: StudentManagerProps) {
           </div>
         )}
       </div>
+
+      {selectedStudent && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-slate-800">Results for {selectedStudent.fullName}</h3>
+              <button onClick={() => setSelectedStudent(null)} className="text-slate-500 hover:text-slate-700">Close</button>
+            </div>
+            
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-slate-500 text-xs font-bold uppercase">
+                <tr>
+                  <th className="px-4 py-2">Exam</th>
+                  <th className="px-4 py-2">Date</th>
+                  <th className="px-4 py-2">Score</th>
+                  <th className="px-4 py-2">Percentage</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {studentResults.map(res => (
+                  <tr key={res.id}>
+                    <td className="px-4 py-2 font-medium">{res.examName}</td>
+                    <td className="px-4 py-2">{new Date(res.submittedAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-2">{res.score} / {res.maxScore}</td>
+                    <td className="px-4 py-2">{Number(res.percentage).toFixed(2)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            <div className="mt-6 border-t pt-4">
+              <button 
+                onClick={() => setShowEmailModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white font-bold text-sm rounded-lg hover:bg-blue-700"
+              >
+                Send Personalized Email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEmailModal && selectedStudent && (
+        <div className="fixed inset-0 z-[110] bg-slate-900/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-slate-800 mb-4">Email to {selectedStudent.fullName}</h3>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Subject"
+                value={emailSubject}
+                onChange={e => setEmailSubject(e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded-lg text-sm"
+              />
+              <textarea
+                placeholder="Message"
+                value={emailBody}
+                onChange={e => setEmailBody(e.target.value)}
+                className="w-full p-2 border border-slate-300 rounded-lg text-sm h-32"
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setShowEmailModal(false)} className="px-4 py-2 text-slate-500 font-bold text-sm">Cancel</button>
+                <button 
+                  onClick={handleSendEmail}
+                  disabled={sendingEmail}
+                  className="px-4 py-2 bg-blue-600 text-white font-bold text-sm rounded-lg hover:bg-blue-700"
+                >
+                  {sendingEmail ? 'Sending...' : 'Send'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {studentToDelete && (
         <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4">
