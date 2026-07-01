@@ -1,47 +1,323 @@
 {
   "questions": [
     {
-      "englishQuestion": "PT assesses:",
+      "englishQuestion": "Identify correct statement regarding Robert Koch",
       "englishOptions": [
-        "Intrinsic pathway",
-        "Common pathway",
-        "Extrinsic pathway",
-        "Fibrinolytic pathway"
+        "He is known as father of bacteriology",
+        "The causative organism of cholera, Vibrio cholera was identified by him",
+        "He discovered hypersensitivity phenomenon",
+        "All the above"
       ],
-      "hindiQuestion": "",
+      "hindiQuestion": "रॉबर्ट कोच के बारे में सही कथन की पहचान करें",
       "hindiOptions": [
-        "",
-        "",
-        "",
-        ""
+        "उन्हें जीवाणु विज्ञान का जनक माना जाता है",
+        "हैजा का कारण बनने वाला जीव, विब्रियो हैजा, उनके द्वारा पहचाना गया था",
+        "उन्होंने हाइपरसेंसिटिविटी घटना की खोज की",
+        "उपरोक्त सभी"
       ],
-      "hindiExplanation": "",
-      "correctOptionIndex": 2,
-      "englishExplanation": "",
-      "subject": "Miscellaneous",
+      "hindiExplanation": "रॉबर्ट कोच ने हैजा (Vibrio cholerae) और तपेदिक (Mycobacterium tuberculosis) के बैक्टीरिया की पहचान की, उन्हें जीवाणु विज्ञान का जनक माना जाता है, और उन्होंने हाइपरसेंसिटिविटी (कोच घटना) की खोज की।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Robert Koch identified the causative organisms of cholera (Vibrio cholerae) and tuberculosis (Mycobacterium tuberculosis). He is considered the father of bacteriology and discovered hypersensitivity (Koch phenomenon).",
+      "subject": "Microbiology",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Father of antiseptic surgery is",
+      "englishOptions": [
+        "Louis Pasteur",
+        "Robert Koch",
+        "Antonie Van Leeuwenhoek",
+        "Lister"
+      ],
+      "hindiQuestion": "एंटीसेप्टिक सर्जरी के जनक कौन हैं",
+      "hindiOptions": [
+        "लुई पाश्चर",
+        "रॉबर्ट कोच",
+        "एंटोनिए वैन ल्यूवेनहोक",
+        "लिस्टर"
+      ],
+      "hindiExplanation": "जोसेफ लिस्टर को एंटीसेप्टिक सर्जरी के जनक के रूप में जाना जाता है, क्योंकि उन्होंने सर्जरी के दौरान संक्रमण को कम करने के लिए एंटीसेप्टिक तकनीकों की शुरुआत की थी।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Joseph Lister is known as the father of antiseptic surgery for introducing antiseptic techniques during surgery to reduce infection.",
+      "subject": "Microbiology",
       "difficulty": "medium"
     },
     {
-      "englishQuestion": "Pre-analytical error occurs during:",
+      "englishQuestion": "Which among the following is a contribution by Louis Pasteur in the field of microbiology?",
       "englishOptions": [
-        "Analysis",
-        "Reporting",
-        "Sample collection & handling",
-        "Interpretation"
+        "Techniques of Pasteurization",
+        "Process of Fermentation",
+        "Rabies, cholera and anthrax vaccine",
+        "All the above"
       ],
-      "hindiQuestion": "",
+      "hindiQuestion": "माइक्रोबायोलॉजी के क्षेत्र में लुई पाश्चर का योगदान कौन सा है",
       "hindiOptions": [
-        "",
-        "",
-        "",
-        ""
+        "पाश्चुरीकरण की तकनीक",
+        "किण्वन (Fermentation) की प्रक्रिया",
+        "रेबीज, हैजा और एंथ्रेक्स वैक्सीन",
+        "उपरोक्त सभी"
       ],
-      "hindiExplanation": "",
-      "correctOptionIndex": 2,
-      "englishExplanation": "",
-      "subject": "Miscellaneous",
+      "hindiExplanation": "लुई पाश्चर ने पाश्चुरीकरण, किण्वन और कई बीमारियों जैसे रेबीज, हैजा और एंथ्रेक्स के लिए टीके विकसित करने में महत्वपूर्ण योगदान दिया।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Louis Pasteur made significant contributions, including pasteurization techniques, the process of fermentation, and the development of vaccines for rabies, cholera, and anthrax.",
+      "subject": "Microbiology",
       "difficulty": "medium"
     },
+    {
+      "englishQuestion": "Mycobacterium leprae is also known as",
+      "englishOptions": [
+        "Golden bacilli",
+        "Koch's bacillus",
+        "Magical bacilli",
+        "Hansen's bacilli"
+      ],
+      "hindiQuestion": "मायकोबैक्टीरियम लेप्राई को और किस नाम से जाना जाता है",
+      "hindiOptions": [
+        "गोल्डन बैसिली",
+        "कोच का बैसिलस",
+        "मैजिकल बैसिली",
+        "हैनसेन का बैसिलस"
+      ],
+      "hindiExplanation": "मायकोबैक्टीरियम लेप्राई को हैनसेन के बैसिलस के रूप में भी जाना जाता है क्योंकि इसकी खोज गेरार्ड आर्मर हैनसेन ने की थी।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Mycobacterium leprae is also known as Hansen's bacillus, named after Gerhard Armauer Hansen who discovered it.",
+      "subject": "Microbiology",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Drug of choice to treat leprosy is",
+      "englishOptions": [
+        "Rifampicin",
+        "Acyclovir",
+        "Zidovudine",
+        "Dapsone"
+      ],
+      "hindiQuestion": "कुष्ठ रोग (leprosy) के इलाज के लिए सबसे उपयुक्त दवा है",
+      "hindiOptions": [
+        "रिफैम्पिसिन",
+        "एसाइक्लोविर",
+        "जिडोवुडिन",
+        "डैप्सोन"
+      ],
+      "hindiExplanation": "कुष्ठ रोग के इलाज के लिए डैप्सोन एक मुख्य दवा है, जिसे आमतौर पर रिफैम्पिसिन और क्लोफाज़िमिन के साथ मल्टी-ड्रग थेरेपी (MDT) के हिस्से के रूप में दिया जाता है।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Dapsone is a key drug for treating leprosy, usually part of Multi-Drug Therapy (MDT) along with Rifampicin and Clofazimine.",
+      "subject": "Microbiology",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Mycobacterium tuberculosis is also known as",
+      "englishOptions": [
+        "Golden bacilli",
+        "Koch's bacillus",
+        "Magical bacilli",
+        "Hansen's bacilli"
+      ],
+      "hindiQuestion": "मायकोबैक्टीरियम ट्यूबरकुलोसिस को और किस नाम से जाना जाता है",
+      "hindiOptions": [
+        "गोल्डन बैसिली",
+        "कोच का बैसिलस",
+        "मैजिकल बैसिली",
+        "हैनसेन का बैसिलस"
+      ],
+      "hindiExplanation": "मायकोबैक्टीरियम ट्यूबरकुलोसिस को रॉबर्ट कोच के नाम पर कोच के बैसिलस के रूप में जाना जाता है, जिन्होंने इसे खोजा था।",
+      "correctOptionIndex": 1,
+      "englishExplanation": "Mycobacterium tuberculosis is known as Koch's bacillus, named after Robert Koch, who identified it.",
+      "subject": "Microbiology",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Correct statement regarding microscope is",
+      "englishOptions": [
+        "Electrons are used as a source of illumination in Electron microscope",
+        "Antonie Van Leeuwenhoek developed microscope first time",
+        "Knoll & Ruska developed electron microscope",
+        "All the above"
+      ],
+      "hindiQuestion": "माइक्रोस्कोप के बारे में सही कथन है",
+      "hindiOptions": [
+        "इलेक्ट्रॉन माइक्रोस्कोप में रोशनी के स्रोत के रूप में इलेक्ट्रॉनों का उपयोग किया जाता है",
+        "एंटोनिए वैन ल्यूवेनहोक ने सबसे पहले माइक्रोस्कोप विकसित किया",
+        "नॉल और रुस्का ने इलेक्ट्रॉन माइक्रोस्कोप विकसित किया",
+        "उपरोक्त सभी"
+      ],
+      "hindiExplanation": "ये सभी कथन सही हैं: इलेक्ट्रॉन माइक्रोस्कोप में इलेक्ट्रॉन स्रोत होते हैं, ल्यूवेनहोक ने शुरुआती माइक्रोस्कोप विकसित किए, और नॉल व रुस्का ने पहला इलेक्ट्रॉन माइक्रोस्कोप बनाया।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "All these statements are correct: Electron microscopes use electrons as illumination, Leeuwenhoek developed early microscopes, and Knoll & Ruska built the first electron microscope.",
+      "subject": "Microbiology",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "All of the following are acid-fast organisms EXCEPT",
+      "englishOptions": [
+        "Mycobacterium tuberculosis",
+        "Nocardia",
+        "Isospora belli",
+        "Staphylococcus"
+      ],
+      "hindiQuestion": "इनमें से सभी एसिड-फास्ट जीव हैं, सिवाय",
+      "hindiOptions": [
+        "मायकोबैक्टीरियम ट्यूबरकुलोसिस",
+        "नोकार्डिया",
+        "आइसोस्पोरा बेली",
+        "स्टैफिलोकोकस"
+      ],
+      "hindiExplanation": "स्टैफिलोकोकस एक एसिड-फास्ट जीव नहीं है, जबकि मायकोबैक्टीरियम, नोकार्डिया और आइसोस्पोरा एसिड-फास्ट (या आंशिक एसिड-फास्ट) होते हैं।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Staphylococcus is not an acid-fast organism, whereas Mycobacterium, Nocardia, and Isospora are acid-fast (or partially acid-fast).",
+      "subject": "Microbiology",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Bacterial structure involved in respiration is",
+      "englishOptions": [
+        "Ribosome",
+        "Pili",
+        "Mesosome",
+        "Flagella"
+      ],
+      "hindiQuestion": "श्वसन में शामिल बैक्टीरिया की संरचना है",
+      "hindiOptions": [
+        "राइबोसोम",
+        "पिली",
+        "मेसोसोम",
+        "फ्लैगेला"
+      ],
+      "hindiExplanation": "बैक्टीरिया में मेसोसोम प्लाज्मा झिल्ली के फोल्ड होते हैं जो श्वसन, कोशिका विभाजन और स्पोर निर्माण में मदद करते हैं।",
+      "correctOptionIndex": 2,
+      "englishExplanation": "Mesosomes are plasma membrane folds in bacteria that function in respiration, cell division, and sporulation.",
+      "subject": "Microbiology",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Identify correct statement regarding bacteria",
+      "englishOptions": [
+        "Respiration, cell division and sporulation are the functions of mesosome in bacteria",
+        "Capsule in bacteria enables adherence to surface and protection against phagocytosis",
+        "Heterotrophs are the bacteria that are unable to synthesize their own food materials",
+        "All the above"
+      ],
+      "hindiQuestion": "बैक्टीरिया के बारे में सही कथन की पहचान करें",
+      "hindiOptions": [
+        "श्वसन, कोशिका विभाजन और स्पोर निर्माण बैक्टीरिया में मेसोसोम के कार्य हैं",
+        "बैक्टीरिया में कैप्सूल सतह पर चिपकने और फैगोसाइटोसिस से सुरक्षा सक्षम करता है",
+        "हेटरोट्रोफ़ वे बैक्टीरिया हैं जो अपने स्वयं के भोजन सामग्री को संश्लेषित करने में असमर्थ हैं",
+        "उपरोक्त सभी"
+      ],
+      "hindiExplanation": "मेसोसोम, कैप्सूल और हेटरोट्रोफ़ के बारे में दिए गए सभी कथन बैक्टीरिया के संदर्भ में सही हैं।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "All statements provided regarding mesosomes, capsules, and heterotrophs are correct in the context of bacteria.",
+      "subject": "Microbiology",
+      "difficulty": "hard"
+    },
+
+    {
+      "englishQuestion": "Coma shaped bacteria are known as",
+      "englishOptions": [
+        "Staphylococci",
+        "Streptococci",
+        "Vibrio",
+        "Bacillus"
+      ],
+      "hindiQuestion": "कोमा आकार के बैक्टीरिया को किस रूप में जाना जाता है",
+      "hindiOptions": [
+        "स्टैफिलोकोक्सी",
+        "स्ट्रेप्टोकोक्सी",
+        "विब्रियो",
+        "बैसिलस"
+      ],
+      "hindiExplanation": "कोमा के आकार वाले बैक्टीरिया को 'विब्रियो' कहा जाता है (जैसे विब्रियो कोलेरी, जो हैजा का कारण बनता है)।",
+      "correctOptionIndex": 2,
+      "englishExplanation": "Comma-shaped bacteria are called 'Vibrio' (e.g., Vibrio cholerae, the causative agent of cholera).",
+      "subject": "1000 Questions Subject",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Which of the following is most resistant to sterilization?",
+      "englishOptions": [
+        "Tubercle bacilli",
+        "Viruses",
+        "Spores",
+        "Prions"
+      ],
+      "hindiQuestion": "निम्नलिखित में से कौन नसबंदी (sterilization) के प्रति सबसे अधिक प्रतिरोधी है?",
+      "hindiOptions": [
+        "ट्यूबरकल बैसिली",
+        "वायरस",
+        "बीजाणु (Spores)",
+        "प्रियन (Prions)"
+      ],
+      "hindiExplanation": "प्रियन (Prions) प्रोटीन के संक्रामक कण होते हैं, जो सामान्य स्टरलाइज़ेशन प्रक्रियाओं के प्रति अत्यधिक प्रतिरोधी होते हैं।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Prions are infectious protein particles that are extremely resistant to standard sterilization procedures.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Endoscope is sterilized by:",
+      "englishOptions": [
+        "Glutaraldehyde",
+        "Formaldehyde",
+        "Atuoclaving",
+        "Hot ait oven"
+      ],
+      "hindiQuestion": "एंडोस्कोप को किसके द्वारा स्टरलाइज़ किया जाता है:",
+      "hindiOptions": [
+        "ग्लूटरलडिहाइड",
+        "फॉर्मल्डेहाइड",
+        "ऑटोक्लेविंग",
+        "हॉट एयर ओवन"
+      ],
+      "hindiExplanation": "एंडोस्कोप जैसे हीट-संवेदनशील उपकरणों को रासायनिक रूप से ग्लूटरलडिहाइड का उपयोग करके कीटाणुरहित या स्टरलाइज़ किया जाता है।",
+      "correctOptionIndex": 0,
+      "englishExplanation": "Heat-sensitive instruments like endoscopes are chemically disinfected or sterilized using glutaraldehyde.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Recommended transport medium for stool specimen suspected to contain Vibrio Cholerae is:",
+      "englishOptions": [
+        "Buffered glycerol saline medium",
+        "Venkatraman-Ramakrishanan medium",
+        "Nutrient broth",
+        "Blood agar"
+      ],
+      "hindiQuestion": "विब्रियो कोलेरी युक्त संदिग्ध मल के नमूने के लिए अनुशंसित परिवहन माध्यम है:",
+      "hindiOptions": [
+        "बफ़र्ड ग्लिसरॉल सलाइन माध्यम",
+        "वेंकटरामन-रामकृष्णन माध्यम",
+        "पोषक शोरबा (Nutrient broth)",
+        "ब्लड अगर"
+      ],
+      "hindiExplanation": "विब्रियो कोलेरी के लिए बफ़र्ड ग्लिसरॉल सलाइन माध्यम एक प्रभावी परिवहन माध्यम है जो नमूने में बैक्टीरिया की व्यवहार्यता बनाए रखता है।",
+      "correctOptionIndex": 0,
+      "englishExplanation": "Buffered glycerol saline medium is an effective transport medium for Vibrio cholerae, helping maintain bacterial viability in stool specimens.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Which is an enriched media?",
+      "englishOptions": [
+        "Selenite F broth",
+        "Peptone water",
+        "MacConkey agar",
+        "Chocolate agar"
+      ],
+      "hindiQuestion": "कौन सा एनरिच्ड मीडिया (enriched media) है?",
+      "hindiOptions": [
+        "सेलेनाइट F ब्रोथ",
+        "पेप्टोन पानी",
+        "मैककॉन्की अगर",
+        "चॉकलेट अगर"
+      ],
+      "hindiExplanation": "चॉकलेट अगर एक 'एनरिच्ड' मीडिया है जो फास्टिडियस जीवों की वृद्धि का समर्थन करता है। (नोट: सेलेनाइट F ब्रोथ एक 'एनरिचमेंट' मीडिया है, न कि एनरिच्ड मीडिया)।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Chocolate agar is an 'enriched' medium that supports the growth of fastidious organisms. Note: Selenite F broth is an 'enrichment' medium.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "hard"
+    },
+  ]
+}
     {
       "englishQuestion": "CBC anticoagulant:",
       "englishOptions": [
@@ -1975,25 +2251,193 @@
       "difficulty": "medium"
     },
     {
-      "englishQuestion": "Not an input device:",
+      "englishQuestion": "Coma shaped bacteria are known as",
       "englishOptions": [
-        "Mouse",
-        "Keyboard",
-        "Scanner",
-        "Modem"
+        "Staphylococci",
+        "Streptococci",
+        "Vibrio",
+        "Bacillus"
       ],
-      "hindiQuestion": "",
+      "hindiQuestion": "कोमा आकार के बैक्टीरिया को किस रूप में जाना जाता है",
       "hindiOptions": [
-        "",
-        "",
-        "",
-        ""
+        "स्टैफिलोकोक्सी",
+        "स्ट्रेप्टोकोक्सी",
+        "विब्रियो",
+        "बैसिलस"
       ],
-      "hindiExplanation": "",
-      "correctOptionIndex": 3,
-      "englishExplanation": "",
-      "subject": "Miscellaneous",
+      "hindiExplanation": "कोमा के आकार वाले बैक्टीरिया को 'विब्रियो' कहा जाता है (जैसे विब्रियो कोलेरी, जो हैजा का कारण बनता है)।",
+      "correctOptionIndex": 2,
+      "englishExplanation": "Comma-shaped bacteria are called 'Vibrio' (e.g., Vibrio cholerae, the causative agent of cholera).",
+      "subject": "1000 Questions Subject",
       "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Which of the following is most resistant to sterilization?",
+      "englishOptions": [
+        "Tubercle bacilli",
+        "Viruses",
+        "Spores",
+        "Prions"
+      ],
+      "hindiQuestion": "निम्नलिखित में से कौन नसबंदी (sterilization) के प्रति सबसे अधिक प्रतिरोधी है?",
+      "hindiOptions": [
+        "ट्यूबरकल बैसिली",
+        "वायरस",
+        "बीजाणु (Spores)",
+        "प्रियन (Prions)"
+      ],
+      "hindiExplanation": "प्रियन (Prions) प्रोटीन के संक्रामक कण होते हैं, जो सामान्य स्टरलाइज़ेशन प्रक्रियाओं के प्रति अत्यधिक प्रतिरोधी होते हैं।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Prions are infectious protein particles that are extremely resistant to standard sterilization procedures.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Endoscope is sterilized by:",
+      "englishOptions": [
+        "Glutaraldehyde",
+        "Formaldehyde",
+        "Autoclaving",
+        "Hot air oven"
+      ],
+      "hindiQuestion": "एंडोस्कोप को किसके द्वारा स्टरलाइज़ किया जाता है:",
+      "hindiOptions": [
+        "ग्लूटरलडिहाइड",
+        "फॉर्मल्डेहाइड",
+        "ऑटोक्लेविंग",
+        "हॉट एयर ओवन"
+      ],
+      "hindiExplanation": "एंडोस्कोप जैसे हीट-संवेदनशील उपकरणों को रासायनिक रूप से ग्लूटरलडिहाइड का उपयोग करके कीटाणुरहित या स्टरलाइज़ किया जाता है।",
+      "correctOptionIndex": 0,
+      "englishExplanation": "Heat-sensitive instruments like endoscopes are chemically disinfected or sterilized using glutaraldehyde.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Recommended transport medium for stool specimen suspected to contain Vibrio Cholerae is:",
+      "englishOptions": [
+        "Buffered glycerol saline medium",
+        "Venkatraman-Ramakrishanan medium",
+        "Nutrient broth",
+        "Blood agar"
+      ],
+      "hindiQuestion": "विब्रियो कोलेरी युक्त संदिग्ध मल के नमूने के लिए अनुशंसित परिवहन माध्यम है:",
+      "hindiOptions": [
+        "बफ़र्ड ग्लिसरॉल सलाइन माध्यम",
+        "वेंकटरामन-रामकृष्णन माध्यम",
+        "पोषक शोरबा (Nutrient broth)",
+        "ब्लड अगर"
+      ],
+      "hindiExplanation": "विब्रियो कोलेरी के लिए बफ़र्ड ग्लिसरॉल सलाइन माध्यम एक प्रभावी परिवहन माध्यम है जो नमूने में बैक्टीरिया की व्यवहार्यता बनाए रखता है।",
+      "correctOptionIndex": 0,
+      "englishExplanation": "Buffered glycerol saline medium is an effective transport medium for Vibrio cholerae, helping maintain bacterial viability in stool specimens.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Which is an enriched media?",
+      "englishOptions": [
+        "Selenite F broth",
+        "Peptone water",
+        "MacConkey agar",
+        "Chocolate agar"
+      ],
+      "hindiQuestion": "कौन सा एनरिच्ड मीडिया (enriched media) है?",
+      "hindiOptions": [
+        "सेलेनाइट F ब्रोथ",
+        "पेप्टोन पानी",
+        "मैककॉन्की अगर",
+        "चॉकलेट अगर"
+      ],
+      "hindiExplanation": "चॉकलेट अगर एक 'एनरिच्ड' मीडिया है जो फास्टिडियस जीवों की वृद्धि का समर्थन करता है। (नोट: सेलेनाइट F ब्रोथ एक 'एनरिचमेंट' मीडिया है, न कि एनरिच्ड मीडिया)।",
+      "correctOptionIndex": 3,
+      "englishExplanation": "Chocolate agar is an 'enriched' medium that supports the growth of fastidious organisms. Note: Selenite F broth is an 'enrichment' medium.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "hard"
+    },
+    {
+      "englishQuestion": "Which of the following factor does not affect microbial growth?",
+      "englishOptions": [
+        "Moisture",
+        "Disinfection",
+        "Darkness",
+        "Temperature"
+      ],
+      "hindiQuestion": "निम्नलिखित में से कौन सा कारक सूक्ष्मजीवों की वृद्धि को प्रभावित नहीं करता है?",
+      "hindiOptions": [
+        "नमी",
+        "कीटाणुशोधन",
+        "अंधेरा",
+        "तापमान"
+      ],
+      "hindiExplanation": "कीटाणुशोधन (Disinfection) सूक्ष्मजीवों को मारने की प्रक्रिया है, यह वृद्धि को प्रभावित करने वाला कारक नहीं है; अंधेरा, नमी और तापमान वृद्धि को प्रभावित करते हैं।",
+      "correctOptionIndex": 2,
+      "englishExplanation": "Disinfection is a process to kill microorganisms, not a factor affecting their growth; darkness, moisture, and temperature do affect microbial growth.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "Agar concentration required to prepare nutrient agar is:",
+      "englishOptions": [
+        "1-2%",
+        "4-6%",
+        "0.25-0.5%",
+        "0.5-1%"
+      ],
+      "hindiQuestion": "न्यूट्रिएंट अगर तैयार करने के लिए आवश्यक अगर सांद्रता है:",
+      "hindiOptions": [
+        "1-2%",
+        "4-6%",
+        "0.25-0.5%",
+        "0.5-1%"
+      ],
+      "hindiExplanation": "ठोस माध्यम जैसे न्यूट्रिएंट अगर बनाने के लिए आमतौर पर 1-2% अगर का उपयोग किया जाता है।",
+      "correctOptionIndex": 0,
+      "englishExplanation": "Typically, 1-2% agar is used to solidify culture media like nutrient agar.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "HIV is a",
+      "englishOptions": [
+        "Retrovirus",
+        "DNA virus",
+        "Fungus",
+        "Bacteria"
+      ],
+      "hindiQuestion": "एचआईवी (HIV) एक है:",
+      "hindiOptions": [
+        "रेट्रोवायरस",
+        "डीएनए वायरस",
+        "कवक",
+        "बैक्टीरिया"
+      ],
+      "hindiExplanation": "एचआईवी एक आरएनए रेट्रोवायरस है जो अपने जीनोम को मेजबान कोशिका के डीएनए में बदलने के लिए रिवर्स ट्रांसक्रिप्टेज़ एंजाइम का उपयोग करता है।",
+      "correctOptionIndex": 0,
+      "englishExplanation": "HIV is an RNA retrovirus that utilizes the reverse transcriptase enzyme to convert its genome into the DNA of the host cell.",
+      "subject": "1000 Questions Subject",
+      "difficulty": "medium"
+    },
+    {
+      "englishQuestion": "MRSA is mediated due to",
+      "englishOptions": [
+        "Plasmid",
+        "Chromosome",
+        "Transposons",
+        "None"
+      ],
+      "hindiQuestion": "MRSA किसके कारण होता है:",
+      "hindiOptions": [
+        "प्लास्मिड",
+        "गुणसूत्र (Chromosome)",
+        "ट्रांसपोसोन",
+        "कोई नहीं"
+      ],
+      "hindiExplanation": "MRSA (मेथिलीन-प्रतिरोधी स्टैफिलोकोकस ऑरियस) में प्रतिरोध आमतौर पर क्रोमोसोमल जीन (mecA जीन) द्वारा मध्यस्थ होता है।",
+      "correctOptionIndex": 1,
+      "englishExplanation": "Resistance in MRSA (Methicillin-resistant Staphylococcus aureus) is typically mediated by chromosomal genes (specifically the mecA gene).",
+      "subject": "1000 Questions Subject",
+      "difficulty": "hard"
     }
   ]
 }
