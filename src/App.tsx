@@ -7,7 +7,6 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  getRedirectResult,
   User as FirebaseUser
 } from 'firebase/auth';
 import { 
@@ -122,14 +121,6 @@ export default function App() {
     setToast({ message, isError });
     setTimeout(() => setToast(null), 5000);
   };
-
-  useEffect(() => {
-    getRedirectResult(auth).catch((error) => {
-      if (error && error.code !== 'auth/redirect-cancelled-by-user') {
-        showNotification(error.message || 'Google Auth Redirect Failed', true);
-      }
-    });
-  }, []);
 
   // Auth Status Watchers
   useEffect(() => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../utils/firebase.ts';
 import { StudentProfile } from '../types.ts';
@@ -105,33 +105,16 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
   }, []);
 
   const handleGoogleSignIn = async () => {
-    if (isInIframe) {
-      onShowNotification('Google Login may be blocked in the preview. Please open the app in a new tab (top right corner).', false);
-    }
-    
     onLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      if (!isInIframe) {
-        try {
-          const res = await signInWithPopup(auth, provider);
-          await proceedWithUser(res.user);
-        } catch (popupErr: any) {
-          if (popupErr.code === 'auth/internal-error' || popupErr.code === 'auth/popup-blocked') {
-             onShowNotification('Falling back to secure redirect...', false);
-             await signInWithRedirect(auth, provider);
-          } else {
-             throw popupErr;
-          }
-        }
-      } else {
-        const res = await signInWithPopup(auth, provider);
-        await proceedWithUser(res.user);
-      }
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const res = await signInWithPopup(auth, provider);
+      await proceedWithUser(res.user);
     } catch (error: any) {
-      if (error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment') {
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment' || error.code === 'auth/internal-error') {
         onShowNotification('Login blocked in this preview. Please open the app in a new tab.', true);
-      } else if (error.code !== 'auth/popup-closed-by-user') {
+      } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
         onShowNotification(error.message || 'Google Auth Failed', true);
       }
     } finally {
@@ -153,7 +136,7 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
         </div>
 
         {/* GOOGLE SIGN IN BUTTON */}
-        <div>
+        <div className="space-y-4">
           {isInIframe && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs text-center">
               Google Login may be blocked inside this preview. If the button doesn't work, please open the app in a new tab using the button in the top right.
