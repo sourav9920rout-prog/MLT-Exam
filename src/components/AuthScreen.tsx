@@ -112,11 +112,25 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
     onLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      const res = await signInWithPopup(auth, provider);
-      await proceedWithUser(res.user);
+      if (!isInIframe) {
+        try {
+          const res = await signInWithPopup(auth, provider);
+          await proceedWithUser(res.user);
+        } catch (popupErr: any) {
+          if (popupErr.code === 'auth/internal-error' || popupErr.code === 'auth/popup-blocked') {
+             onShowNotification('Falling back to secure redirect...', false);
+             await signInWithRedirect(auth, provider);
+          } else {
+             throw popupErr;
+          }
+        }
+      } else {
+        const res = await signInWithPopup(auth, provider);
+        await proceedWithUser(res.user);
+      }
     } catch (error: any) {
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment') {
-        onShowNotification('Popup blocked. Please allow popups for this site, or open the app in a new tab to login.', true);
+      if (error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment') {
+        onShowNotification('Login blocked in this preview. Please open the app in a new tab.', true);
       } else if (error.code !== 'auth/popup-closed-by-user') {
         onShowNotification(error.message || 'Google Auth Failed', true);
       }

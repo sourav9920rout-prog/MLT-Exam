@@ -187,6 +187,12 @@ export default function App() {
             };
             
             await setDoc(doc(db, 'students', user.uid), studentData);
+            await setDoc(doc(db, 'users', user.uid), {
+              uid: user.uid,
+              email: user.email?.toLowerCase() || '',
+              role: 'student',
+              createdAt: new Date().toISOString()
+            });
             
             setUserRole('student');
             setStudentStatus(initialState);
