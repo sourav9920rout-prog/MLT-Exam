@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../utils/firebase.ts';
 import { StudentProfile } from '../types.ts';
@@ -94,14 +94,30 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
     }
   };
 
+  const [isInIframe, setIsInIframe] = React.useState(false);
+
+  React.useEffect(() => {
+    try {
+      setIsInIframe(window.self !== window.top);
+    } catch (e) {
+      setIsInIframe(true);
+    }
+  }, []);
+
   const handleGoogleSignIn = async () => {
+    if (isInIframe) {
+      onShowNotification('Google Login may be blocked in the preview. Please open the app in a new tab (top right corner).', false);
+    }
+    
     onLoading(true);
     try {
       const provider = new GoogleAuthProvider();
       const res = await signInWithPopup(auth, provider);
       await proceedWithUser(res.user);
     } catch (error: any) {
-      if (error.code !== 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment') {
+        onShowNotification('Popup blocked. Please allow popups for this site, or open the app in a new tab to login.', true);
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         onShowNotification(error.message || 'Google Auth Failed', true);
       }
     } finally {
@@ -124,6 +140,11 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
 
         {/* GOOGLE SIGN IN BUTTON */}
         <div>
+          {isInIframe && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs text-center">
+              Google Login may be blocked inside this preview. If the button doesn't work, please open the app in a new tab using the button in the top right.
+            </div>
+          )}
           <button
             type="button"
             onClick={handleGoogleSignIn}
