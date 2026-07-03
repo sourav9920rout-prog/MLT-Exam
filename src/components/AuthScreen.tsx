@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../utils/firebase.ts';
 import { StudentProfile } from '../types.ts';
@@ -109,15 +109,9 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      const res = await signInWithPopup(auth, provider);
-      await proceedWithUser(res.user);
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment' || error.code === 'auth/internal-error') {
-        onShowNotification('Login blocked in this preview. Please open the app in a new tab.', true);
-      } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-        onShowNotification(error.message || 'Google Auth Failed', true);
-      }
-    } finally {
+      onShowNotification(error.message || 'Google Auth Redirect Failed', true);
       onLoading(false);
     }
   };
@@ -173,3 +167,4 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
     </div>
   );
 }
+
