@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../utils/firebase.ts';
 import { StudentProfile } from '../types.ts';
@@ -12,6 +12,10 @@ interface AuthScreenProps {
 
 export default function AuthScreen({ onLoading, onShowNotification, onAuthSuccess }: AuthScreenProps) {
   
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [isSignUp, setIsSignUp] = React.useState(false);
+
   const proceedWithUser = async (credentialUser: any) => {
     let isAdminAttempt = false;
 
@@ -104,14 +108,38 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
     }
   }, []);
 
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    onLoading(true);
+    try {
+      if (isSignUp) {
+        const res = await createUserWithEmailAndPassword(auth, email, password);
+        await proceedWithUser(res.user);
+      } else {
+        const res = await signInWithEmailAndPassword(auth, email, password);
+        await proceedWithUser(res.user);
+      }
+    } catch (error: any) {
+      onShowNotification(error.message || 'Authentication Failed', true);
+    } finally {
+      onLoading(false);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     onLoading(true);
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      await signInWithRedirect(auth, provider);
+      const res = await signInWithPopup(auth, provider);
+      await proceedWithUser(res.user);
     } catch (error: any) {
-      onShowNotification(error.message || 'Google Auth Redirect Failed', true);
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment' || error.code === 'auth/internal-error') {
+        onShowNotification('Login blocked in this preview. Please open the app in a new tab.', true);
+      } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+        onShowNotification(error.message || 'Google Auth Failed', true);
+      }
+    } finally {
       onLoading(false);
     }
   };
@@ -161,6 +189,58 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
             </svg>
             Sign in with Google
           </button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-slate-500">Or continue with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleEmailAuth} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                placeholder="your.email@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                placeholder="••••••••"
+                minLength={6}
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
+            >
+              {isSignUp ? 'Create Account' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="text-center mt-4 text-sm text-slate-600">
+            {isSignUp ? 'Already have an account?' : 'Need an account?'}{' '}
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-blue-600 font-semibold hover:underline"
+            >
+              {isSignUp ? 'Sign In' : 'Sign Up'}
+            </button>
+          </div>
         </div>
 
       </div>
