@@ -17,11 +17,13 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
   const [isSignUp, setIsSignUp] = React.useState(false);
 
   const proceedWithUser = async (credentialUser: any) => {
+    console.log("proceedWithUser: Starting...", credentialUser.email);
     let isAdminAttempt = false;
 
     if (credentialUser.email && credentialUser.email.toLowerCase() === 'sourav.9920rout@gmail.com') {
        isAdminAttempt = true;
     } else if (credentialUser.email) {
+       console.log("proceedWithUser: Checking admin emails...");
        const adminEmailSnap = await getDoc(doc(db, 'adminEmails', credentialUser.email.toLowerCase()));
        if (adminEmailSnap.exists()) {
           isAdminAttempt = true;
@@ -29,6 +31,7 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
     }
 
     if (isAdminAttempt) {
+       console.log("proceedWithUser: Admin detected.");
        await setDoc(doc(db, 'admins', credentialUser.uid), {
            uid: credentialUser.uid,
            email: credentialUser.email,
@@ -40,18 +43,23 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
     }
 
     // Normal Student/User
+    console.log("proceedWithUser: Checking student...");
     const studentSnap = await getDoc(doc(db, 'students', credentialUser.uid));
     
     if (studentSnap.exists()) {
+      console.log("proceedWithUser: Student found.");
       const data = studentSnap.data() as StudentProfile;
       onAuthSuccess(credentialUser, 'student', data.status || 'pending', data);
       onShowNotification('Authenticated successfully.');
     } else {
+      console.log("proceedWithUser: New user detected.");
       // New User or Admin
       const adminCheck = await getDoc(doc(db, 'admins', credentialUser.uid));
       if (adminCheck.exists()) {
+        console.log("proceedWithUser: Admin found in admins collection.");
         onAuthSuccess(credentialUser, 'admin', 'approved', null);
       } else {
+        console.log("proceedWithUser: Creating new student record...");
         const reqSnap = await getDoc(doc(db, 'settings', 'general'));
         const requireApp = reqSnap.exists() ? (reqSnap.data().requireAdminApproval ?? false) : false;
         const initialState = requireApp ? 'pending' : 'approved';
@@ -128,18 +136,23 @@ export default function AuthScreen({ onLoading, onShowNotification, onAuthSucces
 
   const handleGoogleSignIn = async () => {
     onLoading(true);
+    console.log("Starting Google Sign In...");
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
+      
+      console.log("Calling signInWithPopup...");
       const res = await signInWithPopup(auth, provider);
+      console.log("signInWithPopup returned, proceeding with user:", res.user.email);
       await proceedWithUser(res.user);
+      console.log("proceedWithUser completed.");
     } catch (error: any) {
+      console.error("Google Auth Error:", error);
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-supported-in-this-environment' || error.code === 'auth/internal-error') {
         onShowNotification('Login blocked in this preview. Please open the app in a new tab.', true);
       } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
         onShowNotification(error.message || 'Google Auth Failed', true);
       }
-    } finally {
       onLoading(false);
     }
   };
