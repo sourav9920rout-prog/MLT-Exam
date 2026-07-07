@@ -135,12 +135,26 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
       onConfirm: async () => {
         try {
           const qSnap = await getDocs(collection(db, `chapter_chapters/${id}/questions`));
-          const batch = writeBatch(db);
-          qSnap.forEach(doc => {
-            batch.delete(doc.ref);
-          });
-          batch.delete(doc(db, 'chapter_chapters', id));
-          await batch.commit();
+          const docs = qSnap.docs;
+          const CHUNK_SIZE = 100;
+          for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+            const chunk = docs.slice(i, i + CHUNK_SIZE);
+            const batch = writeBatch(db);
+            chunk.forEach(d => {
+              batch.delete(d.ref);
+            });
+            // Also delete the chapter itself in the last chunk
+            if (i + CHUNK_SIZE >= docs.length) {
+                batch.delete(doc(db, 'chapter_chapters', id));
+            }
+            await batch.commit();
+            await new Promise(r => setTimeout(r, 400));
+          }
+          if (docs.length === 0) {
+            const batch = writeBatch(db);
+            batch.delete(doc(db, 'chapter_chapters', id));
+            await batch.commit();
+          }
           
           fetchChapters(activeSubject.id);
           if (activeChapter?.id === id) setActiveChapter(null);
@@ -167,11 +181,11 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
       const processedLines = [];
       const lines = rawTextValue.split("\n");
       for (const line of lines) {
-        if (line.length > 3000) {
+        if (line.length > 1500) {
           let remaining = line;
           while (remaining.length > 0) {
-            processedLines.push(remaining.substring(0, 3000));
-            remaining = remaining.substring(3000);
+            processedLines.push(remaining.substring(0, 1500));
+            remaining = remaining.substring(1500);
           }
         } else {
           processedLines.push(line);
@@ -179,7 +193,7 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
       }
 
       for (const line of processedLines) {
-        if (currentChunk.length + line.length > 3000) {
+        if (currentChunk.length + line.length > 1500) {
           if (currentChunk) textChunks.push(currentChunk);
           currentChunk = line + "\n";
         } else {
@@ -233,6 +247,8 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
             totalAdded++;
           }
           await batch.commit();
+          // Delay to avoid write stream exhaustion
+          await new Promise(r => setTimeout(r, 400));
         }
       }
       
@@ -271,11 +287,17 @@ export default function AdminChapterWise({ onNotify }: { onNotify: (msg: string,
         setLoading(true);
         try {
           const qSnap = await getDocs(collection(db, `chapter_chapters/${activeChapter.id}/questions`));
-          const batch = writeBatch(db);
-          qSnap.docs.forEach(d => {
-            batch.delete(doc(db, `chapter_chapters/${activeChapter.id}/questions`, d.id));
-          });
-          await batch.commit();
+          const docs = qSnap.docs;
+          const CHUNK_SIZE = 100;
+          for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+            const chunk = docs.slice(i, i + CHUNK_SIZE);
+            const batch = writeBatch(db);
+            chunk.forEach(d => {
+              batch.delete(doc(db, `chapter_chapters/${activeChapter.id}/questions`, d.id));
+            });
+            await batch.commit();
+            await new Promise(r => setTimeout(r, 400));
+          }
           fetchQuestions(activeChapter.id);
           setConfirmConfig(null);
           onNotify("All questions deleted");

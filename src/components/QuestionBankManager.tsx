@@ -42,49 +42,6 @@ export default function QuestionBankManager({
   const [filterDifficulty, setFilterDifficulty] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-seed CRE-4 questions
-  useEffect(() => {
-    if (localStorage.getItem("cre4_injected_p2") === "true") return;
-    
-    // Check if we are ready and questions are loaded
-    if (questions.length > 0) {
-      const inject = async () => {
-        try {
-          const cre4 = [{"englishQuestion":"What is the normal fasting blood sugar level?","hindiQuestion":"सामान्य उपवास रक्त शर्करा (Fasting Blood Sugar) कितनी होती है?","englishOptions":["40–80 mg/dL","60–90 mg/dL","70–110 mg/dL","120–140 mg/dL"],"hindiOptions":["40–80 mg/dL","60–90 mg/dL","70–110 mg/dL","120–140 mg/dL"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"DCT detects:","hindiQuestion":"DCT (Direct Coombs Test) क्या पता लगाता है?","englishOptions":["Plasma antibodies","Complement only","Antibodies attached to RBCs in vivo","Antigens"],"hindiOptions":["प्लाज़्मा एंटीबॉडी","केवल कॉम्प्लीमेंट","RBCs पर जुड़े एंटीबॉडी","एंटीजन"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Most abundant plasma protein is:","hindiQuestion":"प्लाज़्मा में सबसे अधिक मात्रा में पाया जाने वाला प्रोटीन कौन-सा है?","englishOptions":["Globulin","Fibrinogen","Transferrin","Albumin"],"hindiOptions":["ग्लोब्युलिन","फाइब्रिनोजन","ट्रांसफेरिन","एल्ब्यूमिन"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"IgE is associated with:","hindiQuestion":"IgE किससे संबंधित है?","englishOptions":["Bacterial infection","Autoimmunity","Allergic reaction","Blood grouping"],"hindiOptions":["बैक्टीरियल संक्रमण","ऑटोइम्यून रोग","एलर्जिक प्रतिक्रिया","रक्त समूह"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Universal donor is:","hindiQuestion":"सार्वभौमिक रक्तदाता (Universal Donor) कौन है?","englishOptions":["AB+","A−","B−","O−"],"hindiOptions":["AB+","A−","B−","O−"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Cryostat is used for:","hindiQuestion":"Cryostat का उपयोग किस लिए किया जाता है?","englishOptions":["Fixation","Staining","Frozen section","Embedding"],"hindiOptions":["फिक्सेशन","स्टेनिंग","Frozen Section","एम्बेडिंग"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"PPE stands for:","hindiQuestion":"PPE का पूर्ण रूप क्या है?","englishOptions":["Personal Patient Equipment","Personal Processing Equipment","Personal Protective Equipment","Protective Patient Equipment"],"hindiOptions":["Personal Patient Equipment","Personal Processing Equipment","Personal Protective Equipment","Protective Patient Equipment"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Gram-positive bacteria retain crystal violet due to:","hindiQuestion":"Gram-positive बैक्टीरिया Crystal Violet रंग क्यों बनाए रखते हैं?","englishOptions":["Capsule","Lipid layer","Teichoic acid only","Thick peptidoglycan layer"],"hindiOptions":["कैप्सूल","लिपिड परत","केवल Teichoic Acid","मोटी Peptidoglycan परत"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Increased bleeding time indicates:","hindiQuestion":"Bleeding Time बढ़ना किसका संकेत है?","englishOptions":["RBC disorder","Platelet disorder","Hemolysis","Polycythemia"],"hindiOptions":["RBC विकार","Platelet विकार","Hemolysis","Polycythemia"],"correctOptionIndex":1,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Microcytic hypochromic anemia is commonly due to:","hindiQuestion":"Microcytic Hypochromic Anemia का मुख्य कारण क्या है?","englishOptions":["B12 deficiency","Folate deficiency","Iron deficiency anemia","Hemophilia"],"hindiOptions":["Vitamin B12 की कमी","Folate की कमी","Iron Deficiency Anemia","Hemophilia"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Rh incompatibility mainly affects:","hindiQuestion":"Rh असंगति मुख्य रूप से किसे प्रभावित करती है?","englishOptions":["First pregnancy","Current pregnancy only","Subsequent pregnancies","Never affects fetus"],"hindiOptions":["पहली गर्भावस्था","केवल वर्तमान गर्भावस्था","अगली गर्भावस्थाएँ","कभी नहीं"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"What should be done after a needle-stick injury?","hindiQuestion":"Needle-stick injury होने पर क्या करना चाहिए?","englishOptions":["Ignore it","Cover wound","Report tomorrow","Immediate action/reporting"],"hindiOptions":["अनदेखा करें","घाव ढक दें","कल रिपोर्ट करें","तुरंत रिपोर्ट करें और कार्रवाई करें"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Hb estimation using HCl is done by:","hindiQuestion":"HCl का उपयोग किस Hb Estimation Method में होता है?","englishOptions":["Cyanmethemoglobin method","Drabkin method","Sahli method","HemoCue"],"hindiOptions":["Cyanmethemoglobin Method","Drabkin Method","Sahli Method","HemoCue"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Lifespan of RBC is:","hindiQuestion":"RBC का जीवनकाल कितना होता है?","englishOptions":["90 days","100 days","120 days","180 days"],"hindiOptions":["90 दिन","100 दिन","120 दिन","180 दिन"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Pancytopenia means decrease in:","hindiQuestion":"Pancytopenia का अर्थ है कमी होना—","englishOptions":["RBC only","WBC only","Platelets only","RBC + WBC + Platelets"],"hindiOptions":["केवल RBC","केवल WBC","केवल Platelets","RBC + WBC + Platelets"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Serum amylase rises in:","hindiQuestion":"Serum Amylase किस रोग में बढ़ता है?","englishOptions":["Hepatitis","Diabetes","Acute pancreatitis","Anemia"],"hindiOptions":["Hepatitis","Diabetes","Acute Pancreatitis","Anemia"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Reticulocyte count indicates:","hindiQuestion":"Reticulocyte Count किसका संकेत देता है?","englishOptions":["Kidney function","Liver function","Bone marrow activity","Spleen function"],"hindiOptions":["Kidney Function","Liver Function","Bone Marrow Activity","Spleen Function"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Acid alcohol in ZN stain acts as:","hindiQuestion":"Ziehl-Neelsen Stain में Acid Alcohol क्या कार्य करता है?","englishOptions":["Counterstain","Mordant","Primary stain","Decolorizer"],"hindiOptions":["Counterstain","Mordant","Primary Stain","Decolorizer"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"HbA1c reflects glucose control over:","hindiQuestion":"HbA1c पिछले कितने समय की ग्लूकोज़ नियंत्रण स्थिति बताता है?","englishOptions":["1 month","2 months","3–4 months","1 year"],"hindiOptions":["1 महीना","2 महीने","3–4 महीने","1 वर्ष"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Routine tissue fixative is:","hindiQuestion":"Routine Tissue Fixative कौन-सा है?","englishOptions":["Alcohol","Acetone","Xylene","Formalin"],"hindiOptions":["Alcohol","Acetone","Xylene","Formalin"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Malaria is commonly detected by:","hindiQuestion":"मलेरिया की पहचान सामान्यतः किससे की जाती है?","englishOptions":["ELISA","PCR","Peripheral blood film","Culture"],"hindiOptions":["ELISA","PCR","Peripheral Blood Film","Culture"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"}];
-          const cre4_p2 = [{"englishQuestion":"Microtome is used for:","hindiQuestion":"Microtome का उपयोग किस लिए किया जाता है?","englishOptions":["Staining","Fixing","Cutting thin sections","Embedding"],"hindiOptions":["Staining","Fixing","पतले ऊतक खंड (Thin Sections) काटने के लिए","Embedding"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"Microtome का उपयोग Histopathology में ऊतकों की बहुत पतली स्लाइड बनाने के लिए किया जाता है।","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Major ketone body in DKA:","hindiQuestion":"DKA में प्रमुख Ketone Body कौन-सी होती है?","englishOptions":["Acetone","Acetoacetate","β-Hydroxybutyrate","Ethanol"],"hindiOptions":["Acetone","Acetoacetate","β-Hydroxybutyrate","Ethanol"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Flame photometry principle:","hindiQuestion":"Flame Photometry किस सिद्धांत पर आधारित है?","englishOptions":["Absorption","Reflection","Fluorescence","Emission"],"hindiOptions":["Absorption","Reflection","Fluorescence","Emission"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Culture & sensitivity identifies:","hindiQuestion":"Culture & Sensitivity Test क्या पहचानता है?","englishOptions":["Blood group","Glucose level","Organism and suitable antibiotic","Hemoglobin"],"hindiOptions":["Blood Group","Glucose Level","रोगजनक जीव एवं उपयुक्त एंटीबायोटिक","Hemoglobin"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Complement system belongs to:","hindiQuestion":"Complement System किस प्रकार की प्रतिरक्षा का भाग है?","englishOptions":["Adaptive immunity","Humoral immunity","Cell-mediated immunity","Innate immunity"],"hindiOptions":["Adaptive Immunity","Humoral Immunity","Cell-mediated Immunity","Innate Immunity"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"HBsAg indicates:","hindiQuestion":"HBsAg की उपस्थिति क्या दर्शाती है?","englishOptions":["Vaccination","Past infection","Recovery","Active Hepatitis B infection"],"hindiOptions":["Vaccination","पूर्व संक्रमण","रोगमुक्ति","सक्रिय Hepatitis B संक्रमण"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"BSL-2 requires:","hindiQuestion":"BSL-2 प्रयोगशाला में क्या आवश्यक है?","englishOptions":["Sample precautions","Environmental control","Personnel protection","All of the above"],"hindiOptions":["Sample Precautions","Environmental Control","Personnel Protection","उपरोक्त सभी"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Low albumin is seen in:","hindiQuestion":"Albumin का स्तर किस रोग में कम हो जाता है?","englishOptions":["Hypertension","Diabetes","Nephrotic syndrome","Polycythemia"],"hindiOptions":["Hypertension","Diabetes","Nephrotic Syndrome","Polycythemia"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Autoclave biological indicator:","hindiQuestion":"Autoclave का Biological Indicator कौन-सा है?","englishOptions":["E. coli","Bacillus subtilis","Clostridium","Geobacillus stearothermophilus"],"hindiOptions":["E. coli","Bacillus subtilis","Clostridium","Geobacillus stearothermophilus"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Normal gut flora:","hindiQuestion":"सामान्य आंतों के जीवाणुओं का मुख्य कार्य क्या है?","englishOptions":["Cause disease","Produce toxins","Prevent pathogen colonization","Destroy RBCs"],"hindiOptions":["रोग उत्पन्न करना","विष बनाना","रोगजनकों को बसने से रोकना","RBCs को नष्ट करना"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Sickle cell anemia involves defect in:","hindiQuestion":"Sickle Cell Anemia में दोष कहाँ होता है?","englishOptions":["RBC membrane","Platelets","WBCs","Hemoglobin structure"],"hindiOptions":["RBC Membrane","Platelets","WBCs","Hemoglobin Structure"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Abnormal hemoglobin in sickle cell disease:","hindiQuestion":"Sickle Cell Disease में असामान्य Hemoglobin कौन-सा है?","englishOptions":["HbA","HbF","HbA₂","HbS"],"hindiOptions":["HbA","HbF","HbA₂","HbS"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Calibration means:","hindiQuestion":"Calibration का अर्थ क्या है?","englishOptions":["Cleaning","Repairing","Validating instrument accuracy","Sterilizing"],"hindiOptions":["Cleaning","Repairing","यंत्र की सटीकता की जाँच","Sterilizing"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Hospital waste disposal follows:","hindiQuestion":"अस्पताल के जैव-चिकित्सा कचरे का निपटान किस नियम के अनुसार किया जाता है?","englishOptions":["WHO rules","NABL rules","CLIA rules","BMW Rules"],"hindiOptions":["WHO Rules","NABL Rules","CLIA Rules","BMW Rules"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"ELISA detects:","hindiQuestion":"ELISA किसका पता लगाता है?","englishOptions":["Glucose","Electrolytes","Antigens/Antibodies","Hemoglobin"],"hindiOptions":["Glucose","Electrolytes","Antigen/Antibody","Hemoglobin"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Coagulation tube contains:","hindiQuestion":"Coagulation Test Tube में कौन-सा Anticoagulant होता है?","englishOptions":["EDTA","Heparin","Fluoride","Sodium citrate"],"hindiOptions":["EDTA","Heparin","Fluoride","Sodium Citrate"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Preferred sample for blood glucose:","hindiQuestion":"Blood Glucose जांच के लिए सबसे उपयुक्त Sample कौन-सा है?","englishOptions":["Serum","Whole blood","EDTA plasma","Fluoride plasma"],"hindiOptions":["Serum","Whole Blood","EDTA Plasma","Fluoride Plasma"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Zero-order kinetics enzyme:","hindiQuestion":"Zero-order kinetics पर आधारित एंजाइम कौन-सा है?","englishOptions":["AST","ALT","LDH","ALP"],"hindiOptions":["AST","ALT","LDH","ALP"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Common liver function assessment:","hindiQuestion":"Liver Function की सामान्य जांच क्या कहलाती है?","englishOptions":["CBC","ESR","PT only","LFT"],"hindiOptions":["CBC","ESR","PT Only","LFT"],"correctOptionIndex":3,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"},{"englishQuestion":"Kidney function marker:","hindiQuestion":"Kidney Function का प्रमुख Marker कौन-सा है?","englishOptions":["Bilirubin","Albumin","Creatinine","Hemoglobin"],"hindiOptions":["Bilirubin","Albumin","Creatinine","Hemoglobin"],"correctOptionIndex":2,"englishExplanation":"","hindiExplanation":"","subject":"CRE-4","difficulty":"medium"}];
-          const { writeBatch, doc } = await import('firebase/firestore');
-          const batch = writeBatch(db);
-          let added = 0;
-          for (const q of cre4) {
-            const docId = `QB_${Date.now()}_${Math.random().toString(36).substring(2,9)}`;
-            batch.set(doc(db, 'questionBank', docId), {
-              id: docId,
-              ...q,
-              createdAt: new Date().toISOString()
-            });
-            added++;
-          }
-          for (const q of cre4_p2) {
-            const docId = `QB_${Date.now()}_${Math.random().toString(36).substring(2,9)}`;
-            batch.set(doc(db, 'questionBank', docId), {
-              id: docId,
-              ...q,
-              createdAt: new Date().toISOString()
-            });
-            added++;
-          }
-          await batch.commit();
-          localStorage.setItem("cre4_injected_p2", "true");
-          onNotify(`Successfully injected ${added} CRE-4 questions.`);
-          fetchQuestions(filterSubject, true);
-        } catch (e) {
-          console.error("Failed to auto-inject CRE4", e);
-        }
-      };
-      inject();
-    }
-  }, [questions, onNotify]);
-
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -298,7 +255,7 @@ export default function QuestionBankManager({
         for (const line of processedLines) {
            currChunk.push(line);
            currLen += line.length + 1;
-           if ((currLen > 3000 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) || currLen > 5000) {
+           if ((currLen > 1500 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) || currLen > 2000) {
               textChunks.push(currChunk.join('\n'));
               currChunk = [];
               currLen = 0;
@@ -337,23 +294,34 @@ export default function QuestionBankManager({
 
       onNotify(`Saving ${extracted.length} questions to database...`);
 
-      for (const q of extracted) {
-        const qId =
-          "qb_" + Date.now() + Math.random().toString(36).substring(2, 6);
-        await setDoc(doc(db, "questionBank", qId), {
-          id: qId,
-          englishQuestion: q.englishQuestion || "Missing English Context",
-          hindiQuestion: q.hindiQuestion || "हिंदी अनुवाद उपलब्ध नहीं है",
-          englishOptions: q.englishOptions || ["", "", "", ""],
-          hindiOptions: q.hindiOptions || ["", "", "", ""],
-          correctOptionIndex: Number(q.correctOptionIndex) || 0,
-          englishExplanation:
-            q.englishExplanation || "No explanation provided.",
-          hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
-          subject: ((uploadSubject.trim() || q.subject)?.trim().toLowerCase() === 'mathematics' ? 'Math' : (uploadSubject.trim() || q.subject)) || "Miscellaneous",
-          difficulty: q.difficulty || "medium",
-          createdAt: Date.now(),
-        });
+      let totalSaved = 0;
+      const CHUNK_SIZE = 25;
+      for (let i = 0; i < extracted.length; i += CHUNK_SIZE) {
+        const chunk = extracted.slice(i, i + CHUNK_SIZE);
+        const { writeBatch } = await import("firebase/firestore");
+        const batch = writeBatch(db);
+        
+        for (const q of chunk) {
+          const qId = "qb_" + Date.now() + Math.random().toString(36).substring(2, 6);
+          batch.set(doc(db, "questionBank", qId), {
+            id: qId,
+            englishQuestion: q.englishQuestion || "Missing English Context",
+            hindiQuestion: q.hindiQuestion || "हिंदी अनुवाद उपलब्ध नहीं है",
+            englishOptions: q.englishOptions || ["", "", "", ""],
+            hindiOptions: q.hindiOptions || ["", "", "", ""],
+            correctOptionIndex: Number(q.correctOptionIndex) || 0,
+            englishExplanation:
+              q.englishExplanation || "No explanation provided.",
+            hindiExplanation: q.hindiExplanation || "कोई व्याख्या नहीं।",
+            subject: ((uploadSubject.trim() || q.subject)?.trim().toLowerCase() === 'mathematics' ? 'Math' : (uploadSubject.trim() || q.subject)) || "Miscellaneous",
+            difficulty: q.difficulty || "medium",
+            createdAt: Date.now(),
+          });
+        }
+        await batch.commit();
+        totalSaved += chunk.length;
+        // Delay to avoid write stream exhaustion
+        await new Promise(r => setTimeout(r, 400));
       }
 
       onNotify(`Successfully imported ${extracted.length} pasted questions.`);
@@ -956,6 +924,8 @@ Unassigned/Failed: ${unassignedCount}${apiErrorCount > 0 ? `\n\nWarning: Encount
           }
           await batch.commit();
           updated += chunk.length;
+          // Add delay to prevent write stream exhaustion
+          await new Promise(r => setTimeout(r, 400));
         }
         onNotify(`Successfully updated ${operations.length} results.`);
       } else {

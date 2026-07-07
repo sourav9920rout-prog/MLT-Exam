@@ -578,6 +578,8 @@ async function generateContentWithRetry(client: any, config: any) {
   throw lastError;
 }
 
+import { jsonrepair } from 'jsonrepair';
+
 function parseJSONRobust(text: string) {
   let cleanText = text.trim();
   
@@ -585,41 +587,54 @@ function parseJSONRobust(text: string) {
     const match = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (match && match[1]) {
       cleanText = match[1].trim();
+    } else {
+      cleanText = cleanText.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
     }
   }
 
   try { return JSON.parse(cleanText); } catch(e) {}
   
-  // Clean trailing commas
-  const noTrailingCommas = cleanText.replace(/,\s*([\]}])/g, '$1');
-  try { return JSON.parse(noTrailingCommas); } catch(e) {}
-  
-  // Repair deeply truncated {"questions": [...] } JSON
-  let repairedText = noTrailingCommas;
-  if (!repairedText.endsWith('}') && !repairedText.endsWith(']')) {
-    const lastCompleteObject = repairedText.lastIndexOf('},');
-    if (lastCompleteObject !== -1) {
-       try { return JSON.parse(repairedText.substring(0, lastCompleteObject + 1) + ']}'); } catch(e3) {}
-       try { return JSON.parse(repairedText.substring(0, lastCompleteObject + 1) + ']'); } catch(e3) {}
-    }
+  try {
+      const repaired = jsonrepair(cleanText);
+      return JSON.parse(repaired);
+  } catch(e) {}
+
+  let lastCommaBrace = cleanText.lastIndexOf('},');
+  if (lastCommaBrace !== -1) {
+      let trimmed = cleanText.substring(0, lastCommaBrace + 1) + ']}';
+      try { return JSON.parse(jsonrepair(trimmed)); } catch(e) {}
+      
+      trimmed = cleanText.substring(0, lastCommaBrace + 1) + ']';
+      try { return JSON.parse(jsonrepair(trimmed)); } catch(e) {}
   }
 
-  const startIndex = noTrailingCommas.indexOf('{');
-  const endIndex = noTrailingCommas.lastIndexOf('}');
-  if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-    const maybeJson = noTrailingCommas.substring(startIndex, endIndex + 1);
-    try { return JSON.parse(maybeJson); } catch(e3) {}
+  let tempText = cleanText;
+  for (let i = 0; i < 20; i++) {
+      lastCommaBrace = tempText.lastIndexOf('},');
+      if (lastCommaBrace !== -1) {
+          tempText = tempText.substring(0, lastCommaBrace + 1);
+          try { return JSON.parse(jsonrepair(tempText + ']}')); } catch(e) {}
+          try { return JSON.parse(jsonrepair(tempText + ']')); } catch(e) {}
+      } else {
+          break;
+      }
   }
-  
-  const arrStartIndex = noTrailingCommas.indexOf('[');
-  const arrEndIndex = noTrailingCommas.lastIndexOf(']');
-  if (arrStartIndex !== -1 && arrEndIndex !== -1 && arrEndIndex > arrStartIndex) {
-    const maybeJsonArr = noTrailingCommas.substring(arrStartIndex, arrEndIndex + 1);
-    try { return JSON.parse(maybeJsonArr); } catch(e4) {}
-  }
+
+  // Attempt regex extraction of individual question objects as last resort
+  try {
+      const matches = cleanText.match(/{(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*}/g);
+      if (matches && matches.length > 0) {
+          const parsedArr = matches.map(m => {
+              try { return JSON.parse(jsonrepair(m)); } catch(e) { return null; }
+          }).filter(obj => obj && (obj.englishQuestion || obj.hindiQuestion || obj.question));
+          if (parsedArr.length > 0) {
+              return { questions: parsedArr };
+          }
+      }
+  } catch(e) {}
 
   // Fallback to original throw
-  return JSON.parse(cleanText); 
+  return JSON.parse(cleanText);
 }
 
 app.post('/api/admin/extract-questions', async (req, res) => {
@@ -743,8 +758,8 @@ app.post('/api/admin/extract-questions-raw', async (req, res) => {
       currentChunk.push(line);
       currentLength += line.length + 1;
       
-      // Split when chunk is roughly 4500 chars and we hit an empty line or a line starting with 'Q', OR hit an absolute hard limit
-      if ((currentLength > 4500 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) || currentLength > 8000) {
+      // Split when chunk is roughly 1500 chars and we hit an empty line or a line starting with 'Q', OR hit an absolute hard limit
+      if ((currentLength > 1500 && (line.trim() === '' || !!line.match(/^Q\d+\./i))) || currentLength > 2000) {
         chunks.push(currentChunk.join('\n'));
         currentChunk = [];
         currentLength = 0;
